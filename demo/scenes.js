@@ -48,7 +48,7 @@ window.OSP_SCENES = [
       <footer class="welcome-footer">
         <div class="meta-block"><span class="meta-label">Adelaide University · Capstone PG-S2-22</span><span class="meta-value">Optimal Sensor Placement for Wastewater Network Monitoring</span></div>
         <div class="meta-block"><span class="meta-label">SA Water &amp; Academic Supervision</span><span class="meta-value">Vineeth Maruvada &amp; Adel (SA Water) · Karamjit Kaur (Supervisor)</span></div>
-        <div class="meta-block"><span class="meta-label">Project Team</span><div class="team-grid"><span>Rijoy John</span><span>Wimukthi Rajapaksha</span><span>Abraham Paul Jaison</span><span>Ashis Jose Kalathil</span><span>Satya Siddhartha Balanagu</span></div></div>
+        <div class="meta-block"><span class="meta-label">Project Team</span><div class="team-grid"><span>Abraham Paul Jaison</span><span>Ashis Jose Kalathil</span><span>Rijoy John</span><span>Satya Siddhartha Balanagu</span><span>Wimukthi Rajapaksha</span></div></div>
       </footer>`,
   },
 
