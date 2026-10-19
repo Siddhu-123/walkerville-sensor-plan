@@ -32,6 +32,14 @@ a { color: var(--teal-deep); text-underline-offset: 2px; }
 body:not(.is-welcome) .welcome-sheet { padding-top: 64px; padding-bottom: 30px; }
 /* wider than the welcome design so story copy has a comfortable measure; the map offset reads this width */
 .welcome-sheet { width: clamp(400px, 38vw, 580px); }
+/* one crisp layer instead of five blur bands: at this width the bands left diagonal streaks on the panel and a smeared strip over the map */
+.blur-band.b1, .blur-band.b2, .blur-band.b3, .blur-band.b4 { display: none; }
+.blur-band.b0 { -webkit-mask-image: none; mask-image: none; }
+.welcome-rect-stack { filter: drop-shadow(14px 0 32px rgba(0, 0, 0, .14)); }
+/* let welcome text use the wider sheet, and fill the team grid down each column so it reads alphabetically either way */
+.welcome-greeting, .welcome-footer { max-width: none; }
+.dataset-meta { white-space: nowrap; }
+.team-grid { grid-auto-flow: column; grid-template-rows: repeat(3, auto); }
 
 .card { position: relative; flex: 1 1 auto; min-height: 0; max-width: 460px; overflow-y: auto; overflow-x: hidden;
   display: flex; flex-direction: column; justify-content: safe center; scrollbar-width: thin; scrollbar-color: rgba(148, 134, 110, .4) transparent; padding-right: 6px; }
