@@ -1,0 +1,150 @@
+{
+ "cases": [
+  "ii0.00_flat_uniform_b1_sfree",
+  "ii0.11_flat_uniform_b1_sfree",
+  "ii0.40_flat_uniform_b1_sfree",
+  "ii0.11_flat_weighted_b1_sfree",
+  "ii0.11_flat_uniform_b1.5_sfree"
+ ],
+ "robustness": {
+  "alarm": [
+   {
+    "manhole": 4453770,
+    "chosen_in": 5,
+    "of": 5
+   },
+   {
+    "manhole": 4428096,
+    "chosen_in": 2,
+    "of": 5
+   },
+   {
+    "manhole": 4451823,
+    "chosen_in": 2,
+    "of": 5
+   },
+   {
+    "manhole": 4450531,
+    "chosen_in": 2,
+    "of": 5
+   },
+   {
+    "manhole": 4448419,
+    "chosen_in": 2,
+    "of": 5
+   },
+   {
+    "manhole": 4449882,
+    "chosen_in": 1,
+    "of": 5
+   },
+   {
+    "manhole": 4428268,
+    "chosen_in": 1,
+    "of": 5
+   },
+   {
+    "manhole": 4452946,
+    "chosen_in": 1,
+    "of": 5
+   },
+   {
+    "manhole": 4451287,
+    "chosen_in": 1,
+    "of": 5
+   },
+   {
+    "manhole": 1623826,
+    "chosen_in": 1,
+    "of": 5
+   },
+   {
+    "manhole": 4449436,
+    "chosen_in": 1,
+    "of": 5
+   },
+   {
+    "manhole": 4448853,
+    "chosen_in": 1,
+    "of": 5
+   },
+   {
+    "manhole": 4453489,
+    "chosen_in": 1,
+    "of": 5
+   },
+   {
+    "manhole": 4450137,
+    "chosen_in": 1,
+    "of": 5
+   },
+   {
+    "manhole": 4427588,
+    "chosen_in": 1,
+    "of": 5
+   },
+   {
+    "manhole": 4447394,
+    "chosen_in": 1,
+    "of": 5
+   }
+  ],
+  "surcharge": [
+   {
+    "manhole": 4453770,
+    "chosen_in": 4,
+    "of": 5
+   },
+   {
+    "manhole": 4428096,
+    "chosen_in": 2,
+    "of": 5
+   },
+   {
+    "manhole": 4451823,
+    "chosen_in": 2,
+    "of": 5
+   },
+   {
+    "manhole": 4450531,
+    "chosen_in": 2,
+    "of": 5
+   },
+   {
+    "manhole": 4449882,
+    "chosen_in": 1,
+    "of": 5
+   },
+   {
+    "manhole": 4501866,
+    "chosen_in": 1,
+    "of": 5
+   },
+   {
+    "manhole": 4428268,
+    "chosen_in": 1,
+    "of": 5
+   },
+   {
+    "manhole": 4449436,
+    "chosen_in": 1,
+    "of": 5
+   },
+   {
+    "manhole": 4448345,
+    "chosen_in": 1,
+    "of": 5
+   },
+   {
+    "manhole": 4450137,
+    "chosen_in": 1,
+    "of": 5
+   },
+   {
+    "manhole": 4454116,
+    "chosen_in": 1,
+    "of": 5
+   }
+  ]
+ }
+}

@@ -1,0 +1,11 @@
+# Only the client demo is tracked; the rest of this folder stays local.
+/*
+!/.gitignore
+!/README.md
+!/demo.html
+!/demo/
+!/vendor/
+!/cloud-run/
+/cloud-run/*
+!/cloud-run/presentation/
+.DS_Store

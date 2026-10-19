@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Where to watch a growing sewer</title>
+  <link rel="stylesheet" href="assets/deck.css">
+</head>
+<body>
+  <div id="progress"></div>
+  <nav id="chrome" aria-label="Slide controls">
+    <button id="prev" type="button" aria-label="Previous slide">&larr;</button>
+    <span id="counter" aria-live="polite">1 / 1</span>
+    <button id="next" type="button" aria-label="Next slide">&rarr;</button>
+    <select id="jump" aria-label="Jump to slide"></select>
+  </nav>
+  <main id="deck" aria-label="Presentation"></main>
+
+  <!-- Data first: each file sets one window variable from the export (build/export_scenario.py). -->
+  <script src="data/config.js"></script>
+  <script src="data/geometry.js"></script>
+  <script src="data/scenario.js"></script>
+  <script src="content/slides.js"></script>
+  <script src="assets/deck.js"></script>
+</body>
+</html>
