@@ -30,8 +30,10 @@ a { color: var(--teal-deep); text-underline-offset: 2px; }
 /* ---------------------------------------------------------------- sheet: welcome and story share it */
 .welcome-sheet { transition: padding .5s var(--ease); }
 body:not(.is-welcome) .welcome-sheet { padding-top: 64px; padding-bottom: 30px; }
+/* wider than the welcome design so story copy has a comfortable measure; the map offset reads this width */
+.welcome-sheet { width: clamp(400px, 38vw, 580px); }
 
-.card { position: relative; flex: 1 1 auto; min-height: 0; max-width: 356px; overflow-y: auto; overflow-x: hidden;
+.card { position: relative; flex: 1 1 auto; min-height: 0; max-width: 460px; overflow-y: auto; overflow-x: hidden;
   display: flex; flex-direction: column; justify-content: safe center; scrollbar-width: thin; scrollbar-color: rgba(148, 134, 110, .4) transparent; padding-right: 6px; }
 .card::-webkit-scrollbar { width: 4px; }
 .card::-webkit-scrollbar-thumb { border-radius: 2px; background: rgba(148, 134, 110, .4); }
@@ -159,7 +161,7 @@ body.is-welcome .card { justify-content: space-between; max-width: none; }
   font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); }
 
 /* ---------------------------------------------------------------- navigation: thin act line, count, two arrows */
-#bar { flex: none; max-width: 330px; margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--rule);
+#bar { flex: none; max-width: 460px; margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--rule);
   transition: opacity .5s var(--ease); }
 body.is-welcome #bar { opacity: 0; pointer-events: none; height: 0; margin: 0; padding: 0; border: 0; overflow: hidden; }
 #acts { display: flex; gap: 4px; height: 12px; align-items: center; }
