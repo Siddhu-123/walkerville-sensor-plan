@@ -32,9 +32,12 @@ function buildMapStyle() {
   };
 
   if (!isFile) {
+    // data/tiles holds local copies of CARTO's tiles and is not published, so a hosted copy reads CARTO's CDN
+    const onThisMachine = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
     sources["adelaide-v-tiles"] = {
       type: "vector",
-      tiles: [`${localOrigin}/data/tiles/{z}/{x}/{y}.mvt`],
+      tiles: onThisMachine ? [`${localOrigin}/data/tiles/{z}/{x}/{y}.mvt`]
+        : ["a", "b", "c", "d"].map((s) => `https://tiles-${s}.basemaps.cartocdn.com/vectortiles/carto.streets/v1/{z}/{x}/{y}.mvt`),
       minzoom: 8,
       maxzoom: 14
     };
