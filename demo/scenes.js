@@ -65,7 +65,7 @@ window.OSP_SCENES = [
   {
     id: "brief", act: "The question", view: "all", fx: "brief",
     show: { terrain: 1, pipes: 0.75, chambers: 1, homes: 0.25 },
-    kicker: "SA Water's brief",
+    kicker: "The brief and our scope",
     title: "How many sensors, of which type, and where?",
     html: `<div class="params src">
         <div><span class="k">How many, and where</span><span class="v">Project request</span><span class="s">"Identify the optimal sensor locations and number of sensors."</span></div>
@@ -73,7 +73,7 @@ window.OSP_SCENES = [
         <div><span class="k">To watch for</span><span class="v">Scoping §1.1</span><span class="s">Overcapacity and overflow as new homes are added to existing sewers.</span></div>
         <div><span class="k">Within</span><span class="v">Scoping §2.5</span><span class="s">One pilot trunk sewer network. No installation or field trials.</span></div>
       </div>
-      <blockquote class="quote">"Optimal sensor placement is a solution for the data collection problem."<cite>Vineeth Maruvada, SA Water · meeting, 4 Sep 2026</cite></blockquote>`,
+      <blockquote class="quote">"Optimal sensor placement is not the problem… optimal sensor placement is a solution for the data collection problem."<cite>Vineeth Maruvada, SA Water · meeting with the capstone team</cite></blockquote>`,
   },
   {
     id: "answer", act: "The answer", view: "all", fx: "answer",
@@ -82,7 +82,7 @@ window.OSP_SCENES = [
     title: "{{plan_k1_Word}} sensors, at these {{plan_k1_word}} manholes",
     stats: [["{{plan_k1_worst}}%", "of detectable growth seen, even in the weather case where the plan does worst"],
             ["{{plan_k1_mean}}%", "seen on average across the {{cases}} weather cases"]],
-    html: `<p>Of the {{combos_k1}} possible ways to place {{plan_k1}} sensors, <strong>none sees more</strong> in its worst case. That is proven by exact optimisation, not estimated.</p>
+    html: `<p>Of the {{combos_k1}} possible ways to place {{plan_k1}} sensors, <strong>none sees more</strong> in its worst case. We solved for the best set exactly on our {{runs}} runs, so no other set of {{plan_k1}} scores higher on them.</p>
       <p class="note">Detectable growth raises the water by at least {{rise_focus_mm}} mm at some manhole. Growth too small to show anywhere can't be seen by any sensor, so it doesn't count for or against the plan.</p>`,
     legend: "plan1",
   },
@@ -114,7 +114,7 @@ window.OSP_SCENES = [
     kicker: "How it fails",
     title: "Every new home loads every pipe below it",
     html: `<p>Sewage runs downhill by gravity. A new home's flow adds to every pipe between it and the end of the network, so growth anywhere upstream reaches the trunk.</p>
-      <p>When a pipe runs out of spare room, water backs up into the manholes behind it. <strong>That rise is what a sensor can see</strong>, well before anything overflows.</p>`,
+      <p>When a pipe runs out of spare room, water backs up into the manholes behind it. <strong>That rise is what a sensor can see.</strong></p>`,
     legend: "flow",
   },
 
@@ -135,7 +135,7 @@ window.OSP_SCENES = [
     show: { terrain: 0.9, pipes: 0.8, flow: 0.35, chambers: 1 },
     kicker: "Why SWMM",
     title: "We modelled the water, not just the pipe map",
-    html: `<p>Most published methods judge a sensor's reach from the pipe map alone, such as every pipe within a set number of links (He et al. 2026), and so did our first prototype. But growth only shows where the water still has room to rise.</p>
+    html: `<p>One published approach judges a sensor's reach from the pipe map alone, counting every pipe within a set number of links (He et al. 2026), and so did our first prototype. But growth only shows where the water still has room to rise.</p>
       <div class="vs">
         <span></span><b>Map rule</b><b>SWMM</b>
         <span>What a sensor sees</span><span>Pipes within reach, assumed</span><span>Water depth, computed</span>
@@ -159,9 +159,9 @@ window.OSP_SCENES = [
     show: { terrain: 0.9, pipes: 0.6, chambers: 0.35, alarm: 1 },
     kicker: "The unknowns",
     title: "Five weather cases, not one",
-    html: `<p>Nobody has measured how much groundwater and rain leaks into Walkerville's pipes, so every growth test ran under five cases, from a dry day to a heavy wet period.</p>`,
+    html: `<p>We do not yet have measured data on how much groundwater and rain leaks into Walkerville's pipes, so every growth test ran under five cases, from a dry day to a heavy wet period.</p>`,
     seg: [0, 1, 2, 3, 4], readout: true,
-    after: `<p class="note">In a storm, {{base_surcharged_severe}} pipes run full before any growth. A sensor there can't show growth, which is why the plan puts its storm watchers elsewhere.</p>`,
+    after: `<p class="note">In a storm, {{base_surcharged_severe}} manholes are already surcharged before any growth. A sensor there can't show growth, which is why the plan puts its storm watchers elsewhere.</p>`,
     legend: "alarm",
   },
 
@@ -170,8 +170,8 @@ window.OSP_SCENES = [
     id: "howmany", act: "Why it holds", view: "plan",
     show: { terrain: 1, pipes: 0.7, chambers: 0.25, sensors: 1, phase2: 1 },
     kicker: "Proof 1 · how many",
-    title: "Five is where the curve bends",
-    html: `<p>The best share of growth any plan can see in its worst weather case, for 1 to {{plan_kmax}} sensors. Every point on the blue line is the proven best for that number.</p>`,
+    title: "The first five do most of the work",
+    html: `<p>The best share of growth any plan can see in its worst weather case, for 1 to {{plan_kmax}} sensors. Every point on the black line is the proven best for that number. The curve is still rising at {{plan_kmax}}.</p>`,
     chart: "frontier",
     after: `<p class="note">The first five reach {{opt_k1_worst}}%; the next five add {{kmax_gain}} points between them. Picking one sensor at a time, the usual method, falls short of the best by up to {{greedy_gap_max}} points, so we solved for the best set directly.</p>`,
   },
@@ -189,7 +189,7 @@ window.OSP_SCENES = [
     id: "holdout", act: "Why it holds", view: "plan",
     show: { terrain: 0.7, pipes: 0.45, sensors: 0.8 },
     kicker: "Proof 3 · unseen weather",
-    title: "We tested it on weather it never saw",
+    title: "How it holds on weather it never saw",
     html: `<p>For each case, we chose five sensors using only the other four, then scored them on the case left out.</p>`,
     chart: "holdout",
     after: `<p>Three cases barely move. Dry days and storms do: planned without them, a plan sees {{held_dry_unseen}}% of dry-day growth instead of {{held_dry_seen}}%, and {{held_severe_unseen}}% in a storm instead of {{held_severe_seen}}%. <strong>The plan has to be chosen across all the weather it will face</strong>, so SA Water's real normal-day levels are the first thing to check.</p>`,
@@ -213,7 +213,7 @@ window.OSP_SCENES = [
     html: `<p>Ground level and pipe depth decide where water can back up, so the model needs both.</p>
       <div class="params">
         <div><span class="k">Pipe floor levels</span><span class="v">every main</span><span class="s">From SA Water's records. <span class="chip measured">measured</span></span></div>
-        <div><span class="k">Ground level at the lid</span><span class="v">±{{contour_error_m}} m</span><span class="s">From 1 m contours for {{covers_contour}} of {{sites}} manholes, surveyed for {{covers_surveyed}}. <span class="chip sourced">derived</span></span></div>
+        <div><span class="k">Ground level at the lid</span><span class="v">{{contour_error_m}} m avg. error</span><span class="s">From 1 m contours for {{covers_contour}} of {{sites}} manholes, surveyed for {{covers_surveyed}}. <span class="chip sourced">derived</span></span></div>
         <div><span class="k">Manhole depth</span><span class="v">{{depth_median_m}} m</span><span class="s">Median; most lie between {{depth_p10_m}} and {{depth_p90_m}} m.</span></div>
       </div>
       <p class="note">Heights are stretched nine times so the depth shows.</p>`,
@@ -271,7 +271,7 @@ window.OSP_SCENES = [
     title: "A sensor sees growth as a rise above its normal level",
     html: `<p>A sensor counts growth when the water at its manhole rises <strong>{{rise_focus_mm}} mm or more</strong> above its own normal level. Each spike is one manhole's rise when these homes connect.</p>`,
     gauge: true,
-    after: `<p class="note">A fixed {{alarm_mm}} mm alarm (Do et al. 2023), the only kind of alert a float switch can give, saw none of {{dry_small_runs}} dry-day growth runs up to {{size_focus}} homes. A rise needs continuous depth, so the plan assumes level sensors. The {{rise_focus_mm}} mm rule is declared until SA Water's level records set it; normal levels at a Stonyfell sensor ranged {{stonyfell_low}} to {{stonyfell_high}} mm.</p>`,
+    after: `<p class="note">A fixed {{alarm_mm}} mm alarm (Do et al. 2023), the alert a float switch gives at a fixed height, saw none of {{dry_small_runs}} dry-day growth runs up to {{size_focus}} homes. A rise needs continuous depth, so the plan assumes level sensors. The {{rise_focus_mm}} mm rule is declared until SA Water's level records set it; normal levels at a Stonyfell sensor ranged {{stonyfell_low}} to {{stonyfell_high}} mm.</p>`,
     legend: "resp",
   },
 
@@ -313,7 +313,7 @@ window.OSP_SCENES = [
     kicker: "In one line",
     title: "Five sensors now. Five more as growth is confirmed.",
     stats: [["{{plan_k1_worst}}%", "worst case, first five"], ["{{plan_kmax_worst}}%", "worst case, all ten"], ["{{runs}}", "simulations behind it"]],
-    html: `<p>Proven best for its size, ahead of every obvious alternative, and tested on weather it never saw. When the pilot data arrives, the same pipeline re-runs and every number here updates.</p>
+    html: `<p>The best set of its size on our runs, well ahead of the obvious alternatives. It holds less well on weather it was not chosen for, so SA Water's measured levels come first. When the pilot data arrives, the same pipeline re-runs and every number here updates.</p>
       <p class="note">Plan: 23 Oct prototype on the pilot area · 6 Nov scenario and cost comparison · 13 Nov guidelines · 20 Nov business case and handover. <a href="cloud-run/presentation/deck.html">Detailed deck and appendices</a></p>`,
     legend: "plan",
   },
