@@ -6,7 +6,7 @@
 // the same camera every frame, so the network sits on real Adelaide streets at any zoom or tilt.
 (function () {
   "use strict";
-  const S = window.OSP_STORY, SCENES = window.OSP_SCENES, STATIC = window.OSP_STATIC || {};
+  const S = window.OSP_STORY, SCENES = window.OSP_SCENES, LIB = window.OSP_LIB, STATIC = window.OSP_STATIC || {};
   const FACTS = Object.assign({}, S.facts, STATIC);
   const $ = (id) => document.getElementById(id);
   const canvas = $("stage-canvas"), ctx = canvas.getContext("2d");
@@ -668,14 +668,15 @@
   // charts ------------------------------------------------------------
   const pctTxt = (v) => Math.round(v * 100) + "%";
   function chartFrontier() {
-    const w = 380, h = 190, l = 34, r = 12, t = 12, b = 30, K = S.curves.optimum.length;
+    const w = 380, h = 240, l = 60, r = 12, t = 16, b = 42, K = S.curves.optimum.length;
     const X = (k) => l + (k - 1) / (K - 1) * (w - l - r), Y = (v) => t + (1 - v) * (h - t - b);
     const line = (arr) => arr.map((v, i) => (i ? "L" : "M") + X(i + 1).toFixed(1) + " " + Y(v).toFixed(1)).join(" ");
     const len = 900, k1 = FACTS.plan_k1, v1 = S.curves.optimum[k1 - 1];
     let g = "";
     for (const v of [0, 0.25, 0.5, 0.75, 1]) g += `<line class="grid" x1="${l}" x2="${w - r}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${l - 6}" y="${Y(v) + 4}" text-anchor="end">${v * 100}%</text>`;
-    for (let k = 1; k <= K; k++) g += `<text x="${X(k)}" y="${h - 12}" text-anchor="middle">${k}</text>`;
-    g += `<text x="${(l + w - r) / 2}" y="${h}" text-anchor="middle">sensors</text>`;
+    for (let k = 1; k <= K; k++) g += `<text x="${X(k)}" y="${h - b + 18}" text-anchor="middle">${k}</text>`;
+    g += `<text x="${(l + w - r) / 2}" y="${h - 8}" text-anchor="middle">Number of sensors</text>`;
+    g += `<text transform="translate(12 ${(t + h - b) / 2}) rotate(-90)" text-anchor="middle">Growth seen, worst weather case</text>`;
     g += `<path class="draw" style="--len:${len}" d="${line(S.curves.random)}" fill="none" stroke="#d3c7b1" stroke-width="2"/>`;
     g += `<path class="draw" style="--len:${len}" d="${line(S.curves.greedy)}" fill="none" stroke="#9a8d78" stroke-width="2" stroke-dasharray="0"/>`;
     g += `<path class="draw" style="--len:${len}" d="${line(S.curves.optimum)}" fill="none" stroke="#16130f" stroke-width="3"/>`;
@@ -687,16 +688,23 @@
     g += `<text x="${X(K) - 2}" y="${Y(S.curves.random[K - 1]) + 15}" text-anchor="end">Best of 20 random</text></g>`;
     return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Share of growth seen in the worst weather case, by number of sensors">${g}</svg>`;
   }
+  function chartAxis(l, r, y, title, w) {
+    return `<line class="axis" x1="${l}" x2="${r}" y1="${y}" y2="${y}"/>` + [0, 0.5, 1].map((v) => {
+      const x = l + (r - l) * v;
+      return `<line class="axis" x1="${x}" x2="${x}" y1="${y}" y2="${y + 4}"/><text x="${x}" y="${y + 18}" text-anchor="middle">${pctTxt(v)}</text>`;
+    }).join("") + `<text x="${w / 2}" y="${y + 43}" text-anchor="middle">${title}</text>`;
+  }
   function chartBars(rows, max) {
-    const w = 380, rh = 30, l = 150, h = rows.length * rh + 4;
-    let g = "";
+    const w = 380, rh = 30, l = 150, t = 26, y0 = t + rows.length * rh, h = y0 + 52;
+    let g = `<text x="0" y="12">Plan (five sensors each)</text>`;
     rows.forEach((row, i) => {
-      const y = i * rh + 4, bw = (w - l - 44) * row.v / (max || 1);
+      const y = t + i * rh + 4, bw = (w - l - 44) * row.v / (max || 1);
       g += `<text class="lab" x="0" y="${y + 15}">${row.label}</text>`;
       g += `<rect class="bar" style="transition-delay:${0.15 + i * 0.12}s" x="${l}" y="${y + 3}" width="${Math.max(2, bw)}" height="16" rx="3" fill="${row.col}"/>`;
       g += `<text class="val pop" x="${l + Math.max(2, bw) + 6}" y="${y + 15}">${pctTxt(row.v)}</text>`;
     });
-    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img">${g}</svg>`;
+    g += chartAxis(l, w - 44, y0, "Share of detectable growth seen (worst weather case)", w);
+    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Share of detectable growth seen by each five-sensor plan">${g}</svg>`;
   }
   function chartBeats() {
     const k = FACTS.plan_k1 - 1, c = S.curves;
@@ -709,10 +717,10 @@
     ], 1);
   }
   function chartHoldout() {
-    const k = FACTS.plan_k1, w = 380, rh = 40, l = 118;
-    let g = "";
+    const k = FACTS.plan_k1, w = 380, rh = 40, l = 118, t = 26;
+    let g = `<text x="0" y="12">Weather case left out</text>`;
     S.held_out.forEach((row, i) => {
-      const y = i * rh + 2, a = row["seen_k" + k], b = row["unseen_k" + k], sc = (w - l - 44);
+      const y = t + i * rh + 2, a = row["seen_k" + k], b = row["unseen_k" + k], sc = (w - l - 44);
       const name = CASE_SHORT[i];
       g += `<text class="lab" x="0" y="${y + 17}">${name}</text>`;
       g += `<rect class="bar" style="transition-delay:${0.1 + i * 0.1}s" x="${l}" y="${y + 4}" width="${sc * a}" height="12" rx="2" fill="#16130f"/>`;
@@ -720,8 +728,9 @@
       g += `<rect class="bar" style="transition-delay:${0.2 + i * 0.1}s" x="${l}" y="${y + 19}" width="${Math.max(2, sc * b)}" height="12" rx="2" fill="${b < a - 0.05 ? "#b8523b" : "#cbbfa8"}"/>`;
       g += `<text class="val pop" x="${l + Math.max(2, sc * b) + 5}" y="${y + 29}" style="fill:${b < a - 0.05 ? "#b8523b" : "#6e675d"}">${pctTxt(b)}</text>`;
     });
-    const h = S.held_out.length * rh + 4;
-    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img">${g}</svg>
+    const y0 = t + S.held_out.length * rh, h = y0 + 52;
+    g += chartAxis(l, w - 44, y0, "Share of that case’s detectable growth seen (five sensors)", w);
+    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Share of detectable growth seen for each weather case left out">${g}</svg>
       <div class="legend"><span class="key"><i style="background:#16130f;border-radius:2px"></i>Planned with this case</span><span class="key"><i style="background:#b8523b;border-radius:2px"></i>Planned without it (grey: no change)</span></div>`;
   }
   function gaugeHtml() {
@@ -737,9 +746,116 @@
       <div class="read" id="gRead"></div></div>`;
   }
 
+  // One shared source/info card, outside the scrolling slide.
+  const sourceCard = document.createElement("div");
+  sourceCard.id = "source-card"; sourceCard.className = "source-card"; sourceCard.hidden = true;
+  sourceCard.setAttribute("role", "region"); sourceCard.setAttribute("aria-label", "Sources and chart information");
+  document.body.appendChild(sourceCard);
+  const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  // `at` is a verbatim line on that page; the viewer scrolls to it and marks it in blue.
+  const libraryLink = (doc, page, at) => `<a href="${esc(LIB.base + "pdf-viewer.html?paper=" + encodeURIComponent(doc.id) + "&pdf=" + encodeURIComponent(doc.pdf) + "&title=" + encodeURIComponent(doc.title) + "&page=" + page + (at ? "&q=" + encodeURIComponent(at.replace(/^…\s*/, "").slice(0, 160)) : ""))}" target="_blank" rel="noopener">Open p. ${esc(page)} at this line</a>`;
+  const teamHtml = (team) => team ? `<section><h3>Team review, p. ${esc(team.page)}</h3><blockquote>“${esc(team.quote)}”</blockquote>${libraryLink(LIB.docs.team, team.page, team.quote)}</section>` : "";
+  let sourceAnchor = null, sourceTimer = 0, sourcePress = null;
+  function closeSource() {
+    clearTimeout(sourceTimer);
+    if (sourceAnchor) sourceAnchor.setAttribute("aria-expanded", "false");
+    sourceCard.hidden = true; sourceAnchor = null;
+  }
+  function placeSource() {
+    if (!sourceAnchor) return;
+    const a = sourceAnchor.getBoundingClientRect(), w = window.innerWidth, h = window.innerHeight, gap = 8;
+    sourceCard.style.maxHeight = Math.max(0, h - gap * 2) + "px";
+    let r = sourceCard.getBoundingClientRect(), x, y;
+    if (a.right + gap + r.width <= w - gap) { x = a.right + gap; y = a.top; }
+    else if (a.left - gap - r.width >= gap) { x = a.left - gap - r.width; y = a.top; }
+    else {
+      const below = h - a.bottom - gap * 2, above = a.top - gap * 2;
+      sourceCard.style.maxHeight = Math.max(0, below >= above ? below : above) + "px";
+      r = sourceCard.getBoundingClientRect(); x = a.left;
+      y = below >= above ? a.bottom + gap : a.top - r.height - gap;
+    }
+    sourceCard.style.left = Math.max(gap, Math.min(w - r.width - gap, x)) + "px";
+    sourceCard.style.top = Math.max(gap, Math.min(h - r.height - gap, y)) + "px";
+  }
+  function showSource(el) {
+    clearTimeout(sourceTimer);
+    let h = "";
+    if (el.dataset.info) {
+      const info = LIB.info[el.dataset.info]; if (!info) return;
+      h = `<h3>${esc(info.title)}</h3>${info.html}${teamHtml(info.team)}`;
+    } else {
+      const src = LIB.src[el.dataset.src]; if (!src) return;
+      if (el.matches("span.chip")) {
+        const text = el.textContent.trim(), k = el.classList.contains("confirm") ? "confirm" : Object.hasOwn(LIB.tags, text) ? text : [...el.classList].find((c) => c !== "chip" && Object.hasOwn(LIB.tags, c));
+        if (LIB.tags[k]) h += `<p class="source-tag">${esc(LIB.tags[k])}</p>`;
+      }
+      h += (src.lib || []).map((item) => {
+        const doc = LIB.docs[item.doc];
+        return `<section><h3>${esc(doc.title)}</h3><p>${esc(item.says)}</p>${libraryLink(doc, item.page, item.at)}</section>`;
+      }).join("") + teamHtml(src.team);
+      if (src.gap) h += `<p class="source-gap">${esc(src.gap)}</p>`;
+    }
+    if (sourceAnchor && sourceAnchor !== el) sourceAnchor.setAttribute("aria-expanded", "false");
+    sourceAnchor = el; el.setAttribute("aria-expanded", "true");
+    sourceCard.innerHTML = h; sourceCard.hidden = false; sourceCard.scrollTop = 0; placeSource();
+  }
+  function leaveSource() {
+    clearTimeout(sourceTimer);
+    sourceTimer = setTimeout(() => {
+      if (sourceAnchor && !sourceAnchor.matches(":hover") && !sourceCard.matches(":hover") && !sourceCard.contains(document.activeElement)) closeSource();
+    }, 200);
+  }
+  sourceCard.addEventListener("pointerenter", () => clearTimeout(sourceTimer));
+  sourceCard.addEventListener("pointerleave", leaveSource);
+  sourceCard.addEventListener("focusin", () => clearTimeout(sourceTimer));
+  sourceCard.addEventListener("focusout", leaveSource);
+  document.addEventListener("click", (e) => { if (sourceAnchor && !sourceAnchor.contains(e.target) && !sourceCard.contains(e.target)) closeSource(); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || !sourceAnchor) return;
+    e.preventDefault();
+    if (sourceCard.contains(document.activeElement)) sourceAnchor.focus();
+    closeSource();
+  });
+  window.addEventListener("resize", placeSource);
+  document.addEventListener("scroll", placeSource, true);
+  function wireSources(sc) {
+    if (!LIB) return;
+    const selectors = { chart: "svg.chart", params: ".params", steps: ".steps", vs: ".vs", stats: ".stats", seg: ".seg", gauge: ".gauge" };
+    Object.entries(sc.info || {}).forEach(([type, key]) => {
+      const el = selectors[type] && card.querySelector(selectors[type]); if (!el) return;
+      const host = document.createElement("div"), b = document.createElement("button");
+      host.className = "info-host" + (type === "chart" ? " info-chart" : "");
+      el.replaceWith(host); host.appendChild(el);
+      b.type = "button"; b.className = "info-button"; b.textContent = "i"; b.dataset.info = key;
+      b.setAttribute("aria-label", "About this chart/table"); host.appendChild(b);
+    });
+    card.querySelectorAll("span.chip[data-src], span.cite[data-src], .info-button").forEach((el) => {
+      el.tabIndex = 0; el.setAttribute("role", "button");
+      el.setAttribute("aria-controls", sourceCard.id); el.setAttribute("aria-expanded", "false");
+      el.addEventListener("pointerenter", (e) => { if (e.pointerType !== "touch") showSource(el); });
+      el.addEventListener("pointerleave", leaveSource);
+      el.addEventListener("focus", () => showSource(el)); el.addEventListener("blur", leaveSource);
+      el.addEventListener("pointerdown", () => { sourcePress = { el, open: sourceAnchor === el }; });
+      el.addEventListener("click", () => {
+        const open = sourcePress && sourcePress.el === el ? sourcePress.open : sourceAnchor === el;
+        sourcePress = null; if (open) closeSource(); else showSource(el);
+      });
+      el.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault(); sourcePress = null;
+          if (sourceAnchor === el) closeSource(); else showSource(el);
+        } else if (e.key === "Tab" && !e.shiftKey && sourceAnchor === el) {
+          const link = sourceCard.querySelector("a"); if (link) { e.preventDefault(); link.focus(); }
+        }
+      });
+    });
+  }
+
   function renderCard(sc, i) {
+    closeSource();
     if (sc.welcome) {
       card.innerHTML = tok(sc.html);
+      wireSources(sc);
       card.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => enter(i + 1)));
       return;
     }
@@ -756,6 +872,7 @@
     if (sc.after) h += `<div>${tok(sc.after)}</div>`;
     if (sc.legend) h += legendHtml(sc.legend);
     card.innerHTML = h;
+    wireSources(sc);
     card.scrollTop = 0;
     card.querySelectorAll(".stat b").forEach(countUp);
   }
@@ -963,6 +1080,7 @@
   function enter(i, instant) {
     i = Math.max(0, Math.min(SCENES.length - 1, i));
     if (i === cur && !instant) return;
+    closeSource();
     clearTimers(); fx.onPick = null; fx.laterals = null; fx.chamberPop = 0; fx.drift = 0; fx.widthTarget = 1; fx.reveal = 1;
     document.body.classList.toggle("is-welcome", !!SCENES[i].welcome);
     fx.resp = null; fx.hover = -1;
@@ -1002,8 +1120,9 @@
   $("prev").addEventListener("click", () => enter(cur - 1));
   $("next").addEventListener("click", () => enter(cur + 1));
   document.addEventListener("keydown", (e) => {
-    if (e.target.closest && e.target.closest("input, select, textarea")) return;
+    if (e.target.closest && e.target.closest("input, select, textarea, .source-card")) return;
     const k = e.key;
+    if ((k === " " || k === "Enter") && e.target.closest && e.target.closest("a, [role=button]")) return;
     if (["ArrowRight", "ArrowDown", "PageDown", " "].includes(k)) { e.preventDefault(); enter(cur + 1); }
     else if (["ArrowLeft", "ArrowUp", "PageUp"].includes(k)) { e.preventDefault(); enter(cur - 1); }
     else if (k === "Home") enter(0);
@@ -1012,6 +1131,7 @@
   });
   let wheelAcc = 0, wheelLock = 0, wheelIdle = 0;
   window.addEventListener("wheel", (e) => {
+    if (e.target.closest && e.target.closest(".source-card")) return;
     if (e.target.closest && e.target.closest(".card") && card.scrollHeight > card.clientHeight + 2) return;
     e.preventDefault();
     const now = performance.now();
@@ -1021,7 +1141,7 @@
     if (Math.abs(wheelAcc) > 70) { enter(cur + (wheelAcc > 0 ? 1 : -1)); wheelAcc = 0; wheelLock = now; }
   }, { passive: false });
   let touch = null;
-  window.addEventListener("touchstart", (e) => { const t = e.touches[0]; touch = { x: t.clientX, y: t.clientY, t: performance.now() }; }, { passive: true });
+  window.addEventListener("touchstart", (e) => { if (e.target.closest && e.target.closest(".source-card")) { touch = null; return; } const t = e.touches[0]; touch = { x: t.clientX, y: t.clientY, t: performance.now() }; }, { passive: true });
   window.addEventListener("touchend", (e) => {
     if (!touch) return; const t = e.changedTouches[0], dx = t.clientX - touch.x, dy = t.clientY - touch.y;
     if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.4 && performance.now() - touch.t < 700) enter(cur + (dx < 0 ? 1 : -1));

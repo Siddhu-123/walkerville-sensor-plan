@@ -64,6 +64,7 @@ window.OSP_SCENES = [
   // ---------------------------------------------------------------- the question
   {
     id: "brief", act: "The question", view: "all", fx: "brief",
+    info: { params: "brief" },
     show: { terrain: 1, pipes: 0.75, chambers: 1, homes: 0.25 },
     kicker: "The brief and our scope",
     title: "How many sensors, of which type, and where?",
@@ -77,6 +78,7 @@ window.OSP_SCENES = [
   },
   {
     id: "answer", act: "The answer", view: "all", fx: "answer",
+    info: { stats: "answerstats" },
     show: { terrain: 1, pipes: 0.75, chambers: 0.3, sensors: 1 },
     kicker: "Our recommendation",
     title: "{{plan_k1_Word}} sensors, at these {{plan_k1_word}} manholes",
@@ -121,6 +123,7 @@ window.OSP_SCENES = [
   // ---------------------------------------------------------------- how we found it
   {
     id: "path", act: "How we found it", view: "all",
+    info: { steps: "path" },
     show: { terrain: 0.9, pipes: 0.6, chambers: 0.3 },
     kicker: "How we got here",
     title: "Three models, and the one we kept",
@@ -132,10 +135,11 @@ window.OSP_SCENES = [
   },
   {
     id: "swmm", act: "How we found it", view: "all", fx: "swmm",
+    info: { vs: "swmm" },
     show: { terrain: 0.9, pipes: 0.8, flow: 0.35, chambers: 1 },
     kicker: "Why SWMM",
     title: "We modelled the water, not just the pipe map",
-    html: `<p>One published approach judges a sensor's reach from the pipe map alone, counting every pipe within a set number of links (He et al. 2026), and so did our first prototype. But growth only shows where the water still has room to rise.</p>
+    html: `<p>One published approach judges a sensor's reach from the pipe map alone, counting every pipe within a set number of links (<span class="cite" data-src="maprule">He et al. 2026</span>), and so did our first prototype. But growth only shows where the water still has room to rise.</p>
       <div class="vs">
         <span></span><b>Map rule</b><b>SWMM</b>
         <span>What a sensor sees</span><span>Pipes within reach, assumed</span><span>Water depth, computed</span>
@@ -156,6 +160,7 @@ window.OSP_SCENES = [
   },
   {
     id: "cases", act: "How we found it", view: "all", fx: "cases",
+    info: { seg: "cases" },
     show: { terrain: 0.9, pipes: 0.6, chambers: 0.35, alarm: 1 },
     kicker: "The unknowns",
     title: "Five weather cases, not one",
@@ -168,6 +173,7 @@ window.OSP_SCENES = [
   // ---------------------------------------------------------------- the proof
   {
     id: "howmany", act: "Why it holds", view: "plan",
+    info: { chart: "frontier" },
     show: { terrain: 1, pipes: 0.7, chambers: 0.25, sensors: 1, phase2: 1 },
     kicker: "Proof 1 · how many",
     title: "The first five do most of the work",
@@ -177,6 +183,7 @@ window.OSP_SCENES = [
   },
   {
     id: "beats", act: "Why it holds", view: "beats", fx: "beats",
+    info: { chart: "beats" },
     show: { terrain: 1, pipes: 0.6, chambers: 0.2, sensors: 1, trunk: 1 },
     kicker: "Proof 2 · against the alternatives",
     title: "It beats every obvious choice",
@@ -187,6 +194,7 @@ window.OSP_SCENES = [
   },
   {
     id: "holdout", act: "Why it holds", view: "plan",
+    info: { chart: "holdout" },
     show: { terrain: 0.7, pipes: 0.45, sensors: 0.8 },
     kicker: "Proof 3 · unseen weather",
     title: "How it holds on weather it never saw",
@@ -207,51 +215,55 @@ window.OSP_SCENES = [
   // ---------------------------------------------------------------- 3D: the parameters
   {
     id: "below", act: "Below the street", view: "tilt", fx: "below", ms: 2600,
+    info: { params: "params" },
     show: { terrain: 1, pipes: 1, shafts: 1, sensors: 1 },
     kicker: "What the numbers rest on",
     title: "Every manhole, from the lid to the pipe floor",
     html: `<p>Ground level and pipe depth decide where water can back up, so the model needs both.</p>
       <div class="params">
-        <div><span class="k">Pipe floor levels</span><span class="v">every main</span><span class="s">From SA Water's records. <span class="chip measured">measured</span></span></div>
-        <div><span class="k">Ground level at the lid</span><span class="v">{{contour_error_m}} m avg. error</span><span class="s">From 1 m contours for {{covers_contour}} of {{sites}} manholes, surveyed for {{covers_surveyed}}. <span class="chip sourced">derived</span></span></div>
+        <div><span class="k">Pipe floor levels</span><span class="v">every main</span><span class="s">From SA Water's records. <span class="chip measured" data-src="inverts">measured</span></span></div>
+        <div><span class="k">Ground level at the lid</span><span class="v">{{contour_error_m}} m avg. error</span><span class="s">From 1 m contours for {{covers_contour}} of {{sites}} manholes, surveyed for {{covers_surveyed}}. <span class="chip sourced" data-src="cover">derived</span></span></div>
         <div><span class="k">Manhole depth</span><span class="v">{{depth_median_m}} m</span><span class="s">Median; most lie between {{depth_p10_m}} and {{depth_p90_m}} m.</span></div>
       </div>
       <p class="note">Heights are stretched nine times so the depth shows.</p>`,
   },
   {
     id: "fall", act: "Below the street", view: "side", fx: "fall", style: "path", ms: 2400,
+    info: { params: "params" },
     show: { terrain: 0.45, pipes: 1, shafts: 0.5, flow: 1 },
     kicker: "Parameter · slope",
     title: "Gravity does the work",
     html: `<p>The longest drainage path falls {{path_fall_m}} m over {{path_km}} km. Slope sets how much each pipe carries and which way the water goes.</p>
       <div class="params">
-        <div><span class="k">Flow direction</span><span class="v">recorded</span><span class="s">SA Water's own direction field, checked against the levels at shared manholes. <span class="chip checked">checked</span></span></div>
-        <div><span class="k">Slope</span><span class="v">from levels</span><span class="s">Computed from pipe-floor levels; the published gradient field agrees (median ratio {{gradient_ratio}}). <span class="chip checked">checked</span></span></div>
+        <div><span class="k">Flow direction</span><span class="v">recorded</span><span class="s">SA Water's own direction field, checked against the levels at shared manholes. <span class="chip checked" data-src="direction">checked</span></span></div>
+        <div><span class="k">Slope</span><span class="v">from levels</span><span class="s">Computed from pipe-floor levels; the published gradient field agrees (median ratio {{gradient_ratio}}). <span class="chip checked" data-src="slope">checked</span></span></div>
       </div>`,
     legend: "flow",
   },
   {
     id: "pipes", act: "Below the street", view: (V) => V.close(V.phase1(2), 230), fx: "pipes", style: "size", ms: 2200,
+    info: { params: "params" },
     show: { terrain: 0.55, pipes: 1, shafts: 1, chambers: 0.2, sensors: 0.6 },
     kicker: "Parameter · pipes",
     title: "Size, material and roughness",
     html: `<div class="params">
-        <div><span class="k">Diameter</span><span class="v">every main</span><span class="s">{{small_pipe_pct}}% are 150 mm, the smallest size. <span class="chip measured">measured</span></span></div>
-        <div><span class="k">Material</span><span class="v">{{clay_pct}}% clay</span><span class="s">Records marked "unknown" are filled from a second published field. <span class="chip measured">measured</span></span></div>
-        <div><span class="k">Roughness (Manning's n)</span><span class="v">{{manning_clay}} / {{manning_pvc}}</span><span class="s">Clay / uPVC, standard values (Chow 1959). No roughness is recorded. <span class="chip sourced">sourced</span> <span class="chip confirm">to confirm</span></span></div>
+        <div><span class="k">Diameter</span><span class="v">every main</span><span class="s">{{small_pipe_pct}}% are 150 mm, the smallest size. <span class="chip measured" data-src="diameter">measured</span></span></div>
+        <div><span class="k">Material</span><span class="v">{{clay_pct}}% clay</span><span class="s">Records marked "unknown" are filled from a second published field. <span class="chip measured" data-src="material">measured</span></span></div>
+        <div><span class="k">Roughness (Manning's n)</span><span class="v">{{manning_clay}} / {{manning_pvc}}</span><span class="s">Clay / uPVC, standard values (<span class="cite" data-src="manning">Chow 1959</span>). No roughness is recorded. <span class="chip sourced" data-src="manning">sourced</span> <span class="chip confirm" data-src="manning">to confirm</span></span></div>
       </div>`,
     legend: "size",
   },
   {
     id: "load", act: "Below the street", view: (V) => V.close(V.phase1(1), 200, { bearing: 24, pitch: 55 }), fx: "load", ms: 2200,
+    info: { params: "params" },
     show: { terrain: 0.7, pipes: 1, shafts: 0.8, homes: 1, sensors: 0.6 },
     kicker: "Parameter · load",
     title: "What one new home adds",
     html: `<div class="params">
-        <div><span class="k">People per new home</span><span class="v">{{people_per_new_dwelling}}</span><span class="s">ABS 2021 household size. <span class="chip sourced">sourced</span></span></div>
-        <div><span class="k">Water use</span><span class="v">{{litres_per_person_day}} L/day</span><span class="s">Per person (Barwon Water, WSAA supplement). <span class="chip sourced">sourced</span> <span class="chip confirm">SA value to confirm</span></span></div>
-        <div><span class="k">Peak factor</span><span class="v">×{{peak_factor}}</span><span class="s">Busiest hour against the daily average. <span class="chip declared">declared</span></span></div>
-        <div><span class="k">People per existing home</span><span class="v">{{people_per_connection}}</span><span class="s">ABS 2021 population over connected properties. <span class="chip measured">measured</span></span></div>
+        <div><span class="k">People per new home</span><span class="v">{{people_per_new_dwelling}}</span><span class="s"><span class="cite" data-src="household">ABS 2021 household size</span>. <span class="chip sourced" data-src="household">sourced</span></span></div>
+        <div><span class="k">Water use</span><span class="v">{{litres_per_person_day}} L/day</span><span class="s">Per person (<span class="cite" data-src="wateruse">Barwon Water, WSAA supplement</span>). <span class="chip sourced" data-src="wateruse">sourced</span> <span class="chip confirm" data-src="wateruse">SA value to confirm</span></span></div>
+        <div><span class="k">Peak factor</span><span class="v">×{{peak_factor}}</span><span class="s">Busiest hour against the daily average. <span class="chip declared" data-src="peak">declared</span></span></div>
+        <div><span class="k">People per existing home</span><span class="v">{{people_per_connection}}</span><span class="s"><span class="cite" data-src="population">ABS 2021 population</span> over connected properties. <span class="chip measured" data-src="population">measured</span></span></div>
       </div>
       <p class="note">{{size_focus}} new homes add about {{growth_focus_lps}} L/s at the peak. New homes are assumed to let in no groundwater, which understates their effect.</p>`,
   },
@@ -260,35 +272,37 @@ window.OSP_SCENES = [
     show: { terrain: 0.8, pipes: 0.8, shafts: 0.35, water: 1, sensors: 0.7 },
     kicker: "Parameter · wet weather",
     title: "Groundwater and rain get into old pipes",
-    html: `<p>Leakage into the pipes is the biggest unknown. We ran three levels: none, the level that just meets the utility's design rating ({{ii_design}} L/s per 100 m of pipe), and a heavy wet period ({{ii_severe}} L/s per 100 m). <span class="chip declared">declared</span> <span class="chip confirm">flow survey to confirm</span></p>`,
+    html: `<p>Leakage into the pipes is the biggest unknown. We ran three levels: none, the level that just meets the utility's design rating ({{ii_design}} L/s per 100 m of pipe), and a heavy wet period ({{ii_severe}} L/s per 100 m). <span class="chip declared" data-src="infiltration">declared</span> <span class="chip confirm" data-src="infiltration">flow survey to confirm</span></p>`,
     seg: [0, 1, 2], readout: true,
     legend: "water",
   },
   {
     id: "sees", act: "Below the street", view: (V) => V.close(V.phase1(1), 300), fx: "sees", ms: 2200,
+    info: { gauge: "gauge" },
     show: { terrain: 0.55, pipes: 0.8, shafts: 1, chambers: 0.6, sensors: 1, resp: 1, spikes: 1 },
     kicker: "Parameter · detection",
     title: "A sensor sees growth as a rise above its normal level",
     html: `<p>A sensor counts growth when the water at its manhole rises <strong>{{rise_focus_mm}} mm or more</strong> above its own normal level. Each spike is one manhole's rise when these homes connect.</p>`,
     gauge: true,
-    after: `<p class="note">A fixed {{alarm_mm}} mm alarm (Do et al. 2023), the alert a float switch gives at a fixed height, saw none of {{dry_small_runs}} dry-day growth runs up to {{size_focus}} homes. A rise needs continuous depth, so the plan assumes level sensors. The {{rise_focus_mm}} mm rule is declared until SA Water's level records set it; normal levels at a Stonyfell sensor ranged {{stonyfell_low}} to {{stonyfell_high}} mm.</p>`,
+    after: `<p class="note">A fixed {{alarm_mm}} mm alarm (<span class="cite" data-src="alarm">Do et al. 2023</span>), the alert a float switch gives at a fixed height, saw none of {{dry_small_runs}} dry-day growth runs up to {{size_focus}} homes. A rise needs continuous depth, so the plan assumes level sensors. The {{rise_focus_mm}} mm rule is declared until SA Water's level records set it; normal levels at <span class="cite" data-src="levelsensor">a Stonyfell sensor</span> ranged {{stonyfell_low}} to {{stonyfell_high}} mm.</p>`,
     legend: "resp",
   },
 
   // ---------------------------------------------------------------- what next
   {
     id: "register", act: "What's next", view: "plan", ms: 2600,
+    info: { params: "register" },
     show: { terrain: 1, pipes: 0.7, chambers: 0.25, sensors: 1, phase2: 1 },
     kicker: "Honest limits",
     title: "What is assumed, and what removes it",
     html: `<div class="params">
-        <div><span class="k">Steady busiest-hour flows</span><span class="v"><span class="chip declared">declared</span></span><span class="s">No storms or daily cycle yet. Removed by SA Water's calibrated model or level records.</span></div>
-        <div><span class="k">Leakage into pipes</span><span class="v"><span class="chip declared">declared</span></span><span class="s">Removed by a flow survey or treatment-plant inflow records.</span></div>
-        <div><span class="k">Detection thresholds</span><span class="v"><span class="chip declared">declared</span></span><span class="s">{{rise_focus_mm}} mm rise and {{alarm_mm}} mm alarm. Removed by normal-day level records and the alarm settings in use.</span></div>
-        <div><span class="k">Water use and peak factor</span><span class="v"><span class="chip sourced">sourced</span></span><span class="s">Interstate values. Removed by SA Water's design figures.</span></div>
-        <div><span class="k">Pump stations</span><span class="v"><span class="chip declared">ideal</span></span><span class="s">Modelled as passing all flow at once. Removed by pump rates and controls.</span></div>
-        <div><span class="k">One model fix pending</span><span class="v"><span class="chip confirm">to fix</span></span><span class="s">Relief pipes return everyday flow to a pump well. A corrected run is needed before final numbers.</span></div>
-        <div><span class="k">No field validation yet</span><span class="v"><span class="chip confirm">to confirm</span></span><span class="s">Checked against overflow and blockage history once it is shared.</span></div>
+        <div><span class="k">Steady busiest-hour flows</span><span class="v"><span class="chip declared" data-src="steady">declared</span></span><span class="s">No storms or daily cycle yet. Removed by SA Water's calibrated model or level records.</span></div>
+        <div><span class="k">Leakage into pipes</span><span class="v"><span class="chip declared" data-src="infiltration">declared</span></span><span class="s">Removed by a flow survey or treatment-plant inflow records.</span></div>
+        <div><span class="k">Detection thresholds</span><span class="v"><span class="chip declared" data-src="alarm">declared</span></span><span class="s">{{rise_focus_mm}} mm rise and {{alarm_mm}} mm alarm. Removed by normal-day level records and the alarm settings in use.</span></div>
+        <div><span class="k">Water use and peak factor</span><span class="v"><span class="chip sourced" data-src="wateruse">sourced</span></span><span class="s">Interstate values. Removed by SA Water's design figures.</span></div>
+        <div><span class="k">Pump stations</span><span class="v"><span class="chip declared" data-src="pumps">ideal</span></span><span class="s">Modelled as passing all flow at once. Removed by pump rates and controls.</span></div>
+        <div><span class="k">One model fix pending</span><span class="v"><span class="chip confirm" data-src="modelfix">to fix</span></span><span class="s">Relief pipes return everyday flow to a pump well. A corrected run is needed before final numbers.</span></div>
+        <div><span class="k">No field validation yet</span><span class="v"><span class="chip confirm" data-src="validation">to confirm</span></span><span class="s">Checked against overflow and blockage history once it is shared.</span></div>
       </div>`,
     legend: "plan",
   },

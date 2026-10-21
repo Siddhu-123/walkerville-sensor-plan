@@ -96,7 +96,7 @@ body.is-welcome .card { justify-content: space-between; max-width: none; }
 
 /* evidence chips: where each figure comes from */
 .chip { display: inline-block; padding: 1px 6px; border-radius: 4px; vertical-align: 1px; white-space: nowrap;
-  font-size: 9.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+  font-size: 9.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; }
 .chip.measured { background: rgba(45, 106, 110, .12); color: var(--teal-deep); }
 .chip.sourced { background: rgba(148, 134, 110, .16); color: #5f5340; }
 .chip.declared { background: rgba(194, 122, 44, .14); color: #8a5a1f; }
@@ -174,6 +174,30 @@ body.is-welcome .card { justify-content: space-between; max-width: none; }
 .readout b.hit { color: var(--teal-deep); } .readout b.miss { color: var(--rust); }
 .casepill { display: inline-block; margin-right: 4px; padding: 2px 8px; border-radius: 4px; background: rgba(22, 19, 15, .07);
   font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); }
+
+/* Source cards share the paper, rule and small legend type. */
+.cite[data-src] { text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
+.info-host { position: relative; padding-top: 26px; }
+.info-chart { max-width: 380px; }
+.card .info-button { position: absolute; top: 1px; right: 0; display: grid; place-items: center;
+  width: 22px; height: 22px; padding: 0; border: 1px solid var(--rule-strong); border-radius: 50%;
+  background: var(--paper); color: var(--teal-deep); font-size: 12px; font-weight: 600; line-height: 1; cursor: pointer; }
+.card .info-button:hover, .card .info-button[aria-expanded="true"] { border-color: var(--teal); background: #fff; }
+.chip[data-src]:focus-visible, .cite[data-src]:focus-visible, .info-button:focus-visible, .source-card a:focus-visible {
+  outline: 2px solid var(--teal); outline-offset: 3px; }
+.source-card { position: fixed; z-index: 60; box-sizing: border-box; width: calc(100vw - 16px); max-width: 320px;
+  overflow-y: auto; overscroll-behavior: contain; padding: 14px 16px; border: 1px solid var(--rule-strong); border-radius: 8px;
+  background: var(--paper); box-shadow: 0 6px 24px rgba(54, 51, 46, .18); color: var(--ink-body);
+  font-size: 11.5px; line-height: 1.5; overflow-wrap: anywhere; }
+.source-card[hidden] { display: none; }
+.source-card h3 { margin: 0 0 6px; font-size: 12px; line-height: 1.4; font-weight: 600; color: var(--ink); }
+.source-card p { margin: 0 0 8px; }
+.source-card section { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--rule); }
+.source-card section:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.source-card blockquote { margin: 0 0 8px; padding-left: 10px; border-left: 2px solid var(--teal); }
+.source-card .source-tag { font-weight: 500; color: var(--ink); }
+.source-card .source-gap { margin-top: 10px; color: var(--ink-muted); }
+.source-card > :last-child { margin-bottom: 0; }
 
 /* ---------------------------------------------------------------- navigation: thin act line, count, two arrows */
 #bar { flex: none; max-width: 460px; margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--rule);
@@ -256,6 +280,7 @@ body.is-welcome #source, body.is-welcome #furniture { opacity: 0; }
   .stats { margin-bottom: 12px; gap: 10px; }
   .stat b { font-size: 28px; }
   .params > div { padding: 6px 0; }
+  .info-chart { max-width: 330px; }
   .chart { max-width: 330px; margin: 4px 0 8px; }
   #bar { margin-top: 14px; padding-top: 10px; }
 }
