@@ -10,4 +10,4 @@ python3 -m http.server 8766
 
 Use the arrow keys or the on-screen buttons to move through the scenes.
 
-Github Pages link https://github.com/Siddhu-123/walkerville-sensor-plan
+Github Pages link https://siddhu-123.github.io/walkerville-sensor-plan/
