@@ -25,6 +25,9 @@ window.OSP_STATIC = {
   sim1_warn_high: "20.5",
   sim2_missed_km: "2.7",      // Simulation 2 missed about 2.7 km of sewer draining in from outside
   sim2_dry_ratio: "1.7",      // and its "dry weather" was 1.7x the design envelope
+  // Carried over from the detailed deck (cloud-run/presentation/content/slides.js, STATIC_FACTS)
+  us_event_share: 26,         // US EPA (2004) SSO report: wet-weather/I&I share of events with a known cause
+  us_volume_share: 75,        // same report: about three-quarters of SSO volume
 };
 
 window.OSP_SCENES = [
@@ -52,16 +55,118 @@ window.OSP_SCENES = [
       </footer>`,
   },
 
-  // ---------------------------------------------------------------- the answer
+  // ---------------------------------------------------------------- title
   {
-    id: "title", act: "The question", noAct: true, view: "all", fx: "title", ms: 3400,
+    id: "title", act: "Why watch growth", noAct: true, view: "all", fx: "title", ms: 3400,
     show: { terrain: 1, pipes: 1, chambers: 0.7, homes: 0.35 },
     kicker: "Sewer sensor placement · Walkerville",
     title: "Where to watch a growing sewer",
-    html: `<p class="lead">A sensor plan for watching infill growth, tested on {{runs}} simulated futures of the Walkerville network.</p>
+    html: `<p class="lead">How many sensors a sewer needs, where to put them, and how much of the growth they catch, tested on {{runs}} simulated futures of the Walkerville network.</p>
       <p class="note">Built on SA Water's public Walkerville sample. The same steps re-run on the pilot network when its data arrives. Draft for discussion.</p>`,
   },
+  // ---------------------------------------------------------------- the pressure
+  // Growth types: ProjectScopingDocument_v3.1.7 §1.1 and §2.5 (Scenarios); mechanism, stages and the
+  // growth/blockage contrast: presentation/modelling/07_GROWTH_OVERFLOW_MECHANISM.md §2.2, §2.4-2.7, §8.5.
+  {
+    id: "growth", act: "Why watch growth", view: "all",
+    show: { terrain: 1, pipes: 0.8, chambers: 0.3, homes: 0.9 },
+    kicker: "Two kinds of growth",
+    title: "A sewer grows in two ways",
+    html: `<div class="params">
+        <div><span class="k">Greenfield</span><span class="v">Urban fringe</span><span class="s">New subdivisions on undeveloped land connect at the edge of the network. Their own pipes are new and sized for them, so the extra load lands on the existing trunk where they join.</span></div>
+        <div><span class="k">Infill</span><span class="v">Established suburbs</span><span class="s">Extra homes on existing lots, from subdividing a block or replacing one house with several, connect to old mains that were never sized for them.</span></div>
+      </div>
+      <p>Both use up spare room in every pipe downstream. Walkerville is an established suburb, so the growth tested here is infill.</p>
+      <p class="note">For the pilot area, each growth scenario will be split into infill and greenfield parts, as agreed with SA Water on 28 September.</p>`,
+  },
+  {
+    id: "infill", act: "Why watch growth", view: "all", fx: "infill", style: "age",
+    show: { terrain: 0.8, pipes: 1, homes: 0.9 },
+    kicker: "The pressure",
+    title: "Infill is adding homes to century-old pipes",
+    stats: [["{{median_pipe_year}}", "median year a Walkerville sewer pipe was laid"],
+            ["{{small_pipe_pct}}%", "of pipes are the smallest size, 150 mm"],
+            ["{{homes}}", "properties connected today"]],
+    html: `<p>Units and subdivisions replace single houses on the same lots, so new flow enters old, small pipes that were never sized for it. {{pre1960_pct}}% of this network was laid before 1960, and {{clay_pct}}% is vitrified clay.</p>`,
+    legend: "age",
+  },
+  {
+    id: "downhill", act: "Why watch growth", view: "all", fx: "downhill",
+    show: { terrain: 1, pipes: 0.55, flow: 1, chambers: 0.4 },
+    kicker: "How it fails",
+    title: "Every new home loads every pipe below it",
+    html: `<p>Sewage runs downhill by gravity. A new home's flow adds to every pipe between it and the end of the network, so growth anywhere upstream reaches the trunk.</p>
+      <p>When a pipe runs out of spare room, water backs up into the manholes behind it. <strong>That rise is what a sensor can see.</strong></p>`,
+    legend: "flow",
+  },
+  {
+    id: "overflow", act: "Why watch growth", view: "all",
+    show: { terrain: 1, pipes: 0.55, flow: 0.8, chambers: 0.6 },
+    kicker: "From growth to overflow",
+    title: "The spill shows up above the pipe at fault",
+    html: `<ol class="steps">
+        <li><b>One pipe runs out first</b><span>On the path from new homes to the outlet, the pipe with the least spare room becomes the bottleneck.</span></li>
+        <li><b>Rain tips it over</b><span>Dry-weather flow rarely fills a pipe. Growth uses up the margin that used to absorb rain, so smaller, more frequent storms now overload it.</span></li>
+        <li><b>Water backs up</b><span>The full pipe pushes the level up through the manholes behind it. Below it, flow is capped and levels look normal.</span></li>
+        <li class="kept"><b>It spills where the lid is lowest</b><span>The overflow comes out at the manhole with the least room to its lid, often well upstream of the pipe at fault.</span></li>
+      </ol>
+      <p>So a sensor below the bottleneck sees almost nothing. <strong>One in the backed-up zone above it sees it first.</strong></p>`,
+    legend: "flow",
+  },
+  {
+    id: "stages", act: "Why watch growth", view: "all",
+    show: { terrain: 1, pipes: 0.6, flow: 0.4, chambers: 0.8 },
+    kicker: "How growth shows",
+    title: "Growth shows in stages, years before a spill",
+    html: `<ol class="steps">
+        <li><b>The everyday peak creeps up</b><span>On dry days, the daily high level drifts upward over months and years as homes connect.</span></li>
+        <li><b>Moderate storms start to surcharge</b><span>Water rises above the top of the pipe more often, and in smaller storms.</span></li>
+        <li><b>Overflow in ever-smaller storms</b><span>Spills that once needed a big storm become recurrent.</span></li>
+      </ol>
+      <p>A <strong>level sensor</strong> sees the first two stages, giving months to years of warning. A <strong>float switch</strong> set near the lid sees only the last one, when the water is already about to spill.</p>`,
+  },
+  {
+    id: "why", act: "Why watch growth", view: "all",
+    show: { terrain: 1, pipes: 0.55, flow: 0.6, chambers: 0.4, homes: 0.5 },
+    kicker: "Why it matters",
+    title: "Growth can be seen coming, but overflow records hide it",
+    stats: [["{{us_event_share}}%", "of overflow events in US national records came from wet-weather capacity problems"],
+            ["{{us_volume_share}}%", "of the spilled volume came from those same problems"]],
+    html: `<p>Blockages cause most overflow events, so they fill the records and can hide growth. At one sensor the two look alike, but they behave differently:</p>
+      <div class="vs">
+        <b></b><b>Blockage</b><b>Growth</b>
+        <span>Onset</span><span>Sudden, days</span><span>Gradual, years</span>
+        <span>Weather</span><span>Often dry</span><span>Rises with rain</span>
+        <span>Where</span><span>One point</span><span>A predictable zone</span>
+        <span>Afterwards</span><span>High until cleared</span><span>Falls, then recurs</span>
+      </div>
+      <p class="note">US EPA (2004), Report to Congress on CSOs and SSOs (EPA-833-R-04-001).</p>`,
+    legend: "flow",
+  },
+
   // ---------------------------------------------------------------- the question
+  {
+    id: "today", act: "The question", view: "all",
+    show: { terrain: 1, pipes: 0.6, chambers: 1, homes: 0.2 },
+    kicker: "Today",
+    title: "Sensor sites are chosen one case at a time",
+    html: `<ul>
+        <li>Sites are picked from breakdown history, hydraulic model results, complaints, and how close a manhole is to a creek or reservoir.</li>
+        <li>There is no written method for how many sensors an area needs, or where they give the most visibility.</li>
+        <li>The network has already moved from blanket coverage to a smaller number of critical manholes. <strong>That makes the choice of sites more important.</strong></li>
+      </ul>`,
+  },
+  {
+    id: "question", act: "The question", view: "all",
+    show: { terrain: 1, pipes: 0.75, chambers: 1, homes: 0.3 },
+    kicker: "What we set out to answer",
+    title: "Three things SA Water needs to know",
+    html: `<div class="params">
+        <div><span class="k">Where?</span><span class="s">Which manholes show growth first, and which ones see the most of it?</span></div>
+        <div><span class="k">How many?</span><span class="s">How many sensors are enough before each extra one adds little?</span></div>
+        <div><span class="k">How well?</span><span class="s">How much of the growth do they catch, in dry weather and in wet?</span></div>
+      </div>`,
+  },
   {
     id: "brief", act: "The question", view: "all", fx: "brief",
     info: { params: "brief" },
@@ -76,6 +181,8 @@ window.OSP_SCENES = [
       </div>
       <blockquote class="quote">"Optimal sensor placement is not the problem… optimal sensor placement is a solution for the data collection problem."<cite>Vineeth Maruvada, SA Water · meeting with the capstone team</cite></blockquote>`,
   },
+
+  // ---------------------------------------------------------------- the answer
   {
     id: "answer", act: "The answer", view: "all", fx: "answer",
     info: { stats: "answerstats" },
@@ -96,28 +203,6 @@ window.OSP_SCENES = [
     html: `<p>No single manhole sees growth in every weather. One sensor is strongest on dry days, one in everyday wet weather, and three in storms, when the trunk is already full and can't show any more rise.</p>
       <p><strong>Phase 2:</strong> five more sites (dashed) lift the worst case to {{plan_kmax_worst}}% and the average to {{plan_kmax_mean}}%. Adding them later loses nothing: the ten together score the same as the best possible ten.</p>`,
     legend: "plan",
-  },
-
-  // ---------------------------------------------------------------- the pressure
-  {
-    id: "infill", act: "Why watch growth", view: "all", fx: "infill", style: "age",
-    show: { terrain: 0.8, pipes: 1, homes: 0.9 },
-    kicker: "The pressure",
-    title: "Infill is adding homes to century-old pipes",
-    stats: [["{{median_pipe_year}}", "median year a Walkerville sewer pipe was laid"],
-            ["{{small_pipe_pct}}%", "of pipes are the smallest size, 150 mm"],
-            ["{{homes}}", "properties connected today"]],
-    html: `<p>Units and subdivisions replace single houses on the same lots, so new flow enters old, small pipes that were never sized for it. {{pre1960_pct}}% of this network was laid before 1960, and {{clay_pct}}% is vitrified clay.</p>`,
-    legend: "age",
-  },
-  {
-    id: "downhill", act: "Why watch growth", view: "all", fx: "downhill",
-    show: { terrain: 1, pipes: 0.55, flow: 1, chambers: 0.4 },
-    kicker: "How it fails",
-    title: "Every new home loads every pipe below it",
-    html: `<p>Sewage runs downhill by gravity. A new home's flow adds to every pipe between it and the end of the network, so growth anywhere upstream reaches the trunk.</p>
-      <p>When a pipe runs out of spare room, water backs up into the manholes behind it. <strong>That rise is what a sensor can see.</strong></p>`,
-    legend: "flow",
   },
 
   // ---------------------------------------------------------------- how we found it
