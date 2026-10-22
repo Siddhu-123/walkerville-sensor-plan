@@ -170,11 +170,9 @@ def main():
         "plan_k1": k1, "plan_kmax": kmax,
         "plan_k1_worst": share(proof["plan"]["worst"][0]), "plan_k1_mean": share(proof["plan"]["mean"][0]),
         "plan_kmax_worst": share(proof["plan"]["worst"][-1]), "plan_kmax_mean": share(proof["plan"]["mean"][-1]),
-        "opt_k1_worst": share(opt[k1]["worst"]), "opt_kmax_worst": share(opt[kmax]["worst"]),
-        "opt_k1_proven": "proven" if opt[k1]["proven"] else "best found",
         "greedy_k1_worst": share(proof["greedy"]["worst"][k1 - 1]),
         "greedy_kmax_worst": share(proof["greedy"]["worst"][-1]),
-        "greedy_k2_worst": share(proof["greedy"]["worst"][1]), "opt_k2_worst": share(opt[2]["worst"]),
+        "greedy_k2_worst": share(proof["greedy"]["worst"][1]),
         "trunk_k1_worst": share(base["deepest_flow"]["worst"][k1 - 1]),
         "exposed_k1_worst": share(base["most_exposed"]["worst"][k1 - 1]),
         "random_k1_worst": share(base["random_best_of_20"]["worst"][k1 - 1]),
@@ -192,7 +190,14 @@ def main():
     facts["growth_focus_lps"] = round(FOCUS_SIZE * loads["people_per_new_dwelling"] * loads["litres_per_person_day"]
                                       * loads["peak_factor"] / 86400, 1)
     facts["kmax_gain"] = facts["plan_kmax_worst"] - facts["plan_k1_worst"]
-    facts["greedy_gap_max"] = max(share(o["worst"]) - share(g) for o, g in zip(proof["optimum"], proof["greedy"]["worst"]))
+    facts["plan_method"] = proof.get("method", "optimum")
+    if opt:
+        facts.update({
+            "opt_k1_worst": share(opt[k1]["worst"]), "opt_kmax_worst": share(opt[kmax]["worst"]),
+            "opt_k1_proven": "proven" if opt[k1]["proven"] else "best found",
+            "opt_k2_worst": share(opt[2]["worst"]),
+            "greedy_gap_max": max(share(o["worst"]) - share(g) for o, g in zip(proof["optimum"], proof["greedy"]["worst"])),
+        })
     manning = cfg["pipes"]["manning_n_by_material"]
     facts["manning_clay"] = f'{manning["VC"]:.3f}'
     facts["manning_pvc"] = f'{manning["PVCU"]:.3f}'
@@ -225,14 +230,15 @@ def main():
                  "per_case_phase1": proof["plan"]["per_case_phase1"],
                  "per_case_full": proof["plan"]["per_case_full"], "roles": roles()},
         "alt_sets": {"trunk": base["deepest_flow"]["set"][:k1], "exposed": base["most_exposed"]["set"][:k1]},
-        "curves": {"optimum": [o["worst"] for o in proof["optimum"]],
-                   "optimum_mean": [o["mean"] for o in proof["optimum"]],
-                   "greedy": proof["greedy"]["worst"],
+        "curves": {"greedy": proof["greedy"]["worst"],
                    "trunk": base["deepest_flow"]["worst"], "exposed": base["most_exposed"]["worst"],
                    "random": base["random_best_of_20"]["worst"]},
         "held_out": proof["held_out"],
         "facts": facts,
     }
+    if opt:
+        story["curves"].update({"optimum": [o["worst"] for o in proof["optimum"]],
+                                "optimum_mean": [o["mean"] for o in proof["optimum"]]})
     text = json.dumps(story, separators=(",", ":"))
     out = os.path.join(ex.OUT, "story")
     open(out + ".json", "w", encoding="utf-8").write(text)

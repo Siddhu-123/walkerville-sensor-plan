@@ -1,6 +1,6 @@
 # Walkerville Sensor Plan
 
-Client demo of the Simulation 2.5 sensor placement plan for the Walkerville sewer network (Adelaide University capstone PG-S2-22, *Optimal Sensor Placement for Wastewater Network Monitoring*, for SA Water).
+Client demo of the sensor placement plan for the Walkerville sewer network, built on an EPA SWMM simulation (Adelaide University capstone PG-S2-22, *Optimal Sensor Placement for Wastewater Network Monitoring*, for SA Water).
 
 **Live demo:** https://siddhu-123.github.io/walkerville-sensor-plan/demo.html
 
@@ -8,8 +8,8 @@ The demo is a guided story on one map of Walkerville. It explains why infill gro
 
 ## The result in brief
 
-- **Five level sensors now, five more later.** The first five see 61% of detectable growth in the weather case where they do worst, and 72% on average across the five weather cases. Adding the next five lifts this to 75% and 81%.
-- **The five are the proven best five** on the simulations: the set was solved exactly, not picked one at a time.
+- **Five level sensors now, five more later.** The first five see 58% of detectable growth in the weather case where they do worst, and 72% on average across the five weather cases. Adding the next five lifts this to 71% and 83%.
+- **The five are chosen one at a time:** each is the manhole that adds the most growth seen in the worst weather case.
 - **Tested on 8,200 simulated futures:** new homes added at every manhole of a 328-manhole EPA SWMM model, at several growth sizes, under five weather and leakage cases.
 - **Draft for discussion.** The model is built from public data and is uncalibrated. The same steps re-run on the pilot network when SA Water's data is released.
 
@@ -39,7 +39,7 @@ Then go to http://localhost:8766/demo.html. Opening `demo.html` straight from di
 | Try your own growth | On the "Connect 150 homes anywhere" scene, click a manhole |
 | Where a figure comes from | Hover a tag or citation, or click an ⓘ button, to see the backing page in the team's research library |
 
-The "Open the simulation tool" link at the top right opens the Simulation 2.5 workbench in the [gravity-sewer-osp sandbox](https://abrahampaulj.github.io/gravity-sewer-osp/simulation25/index.html).
+The "Open the simulation tool" link at the top right opens the EPA SWMM simulation workbench in the [gravity-sewer-osp sandbox](https://abrahampaulj.github.io/gravity-sewer-osp/simulation25/index.html).
 
 ## What the demo covers
 
@@ -70,13 +70,13 @@ A welcome page, then 33 scenes in nine sections:
 | `demo/demo.css`, `demo/welcome.css` | Styles, including the dark theme |
 | `demo/notes/capstone_facts.md` | Verbatim quotes, with sources, from the project request, scoping documents, sensor review and meeting log, used to keep the copy faithful to them |
 | `vendor/` | MapLibre GL JS |
-| `cloud-run/presentation/` | The build pipeline and the detailed slide deck the demo grew from (see its [README](cloud-run/presentation/README.md)) |
+| `cloud-run/presentation/` | The build pipeline (see its [README](cloud-run/presentation/README.md)) |
 
 ## Where the data comes from
 
 - **Network:** SA Water's sewer records as republished by the Town of Walkerville on ArcGIS Online ("SA Water Sewer June 2021"): gravity mains, manholes, property connection points and 1 m contours. Manhole lid levels are reconstructed from the contours where not surveyed. Flow entering from pipes outside the council is sized from SA Water's statewide gravity-main layer on the SA Government geodata server. The `#data` scene lists each source.
-- **Simulation results:** Simulation 2.5 from the [gravity-sewer-osp](https://github.com/AbrahamPaulJ/gravity-sewer-osp) sandbox, pinned with checksums in `cloud-run/presentation/data/source/` (see `SOURCE.md` there).
-- **Regenerating `story-data.js`:** run the steps in [`cloud-run/presentation/README.md`](cloud-run/presentation/README.md). `export_scenario.py --check` reconciles the figures, `prove_placement.py` proves the optimum, `export_story.py` writes the story data, and `check_copy.py --story` confirms every token resolves.
+- **Simulation results:** EPA SWMM simulation from the [gravity-sewer-osp](https://github.com/AbrahamPaulJ/gravity-sewer-osp) sandbox, pinned with checksums in `cloud-run/presentation/data/source/` (see `SOURCE.md` there).
+- **Regenerating `story-data.js`:** run the steps in [`cloud-run/presentation/README.md`](cloud-run/presentation/README.md). `export_scenario.py --check` reconciles the figures, `prove_placement.py` compares the plan with the alternatives and held-out cases (greedy by default; OSP_PLAN=optimum runs the exact integer program), `export_story.py` writes the story data, and `check_copy.py --story` confirms every token resolves.
 - **Basemap:** © OpenStreetMap contributors, © CARTO. A hosted copy loads CARTO's vector tiles. On `localhost` the page looks for local tiles in `data/tiles/`, which is not in this repository, so a fresh clone run locally shows the bundled water, parks and roads but no detailed street tiles.
 
 ## Limits to keep in mind

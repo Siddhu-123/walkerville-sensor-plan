@@ -1,11 +1,11 @@
 // Where each tag and citation in scenes.js comes from, and the info-button text for charts,
 // tables and methods. Every page number and quote below was checked against the PDF in the
-// team library (papers/sensor_papers). A source that is not in the library says so in `gap`
-// instead of pointing somewhere close.
+// team library (papers/sensor_papers). `web` lists published sources outside the library, linked directly.
 //
 // docs: library items, opened in the library's PDF viewer at `page`.
 // src:  one entry per data-src key used in scenes.js.
 //         lib   [{doc, page, says}]  the library page that backs the statement
+//         web   [{title, url, says}] published sources outside the library
 //         team  {page, quote}        the line in our compiled review that covers the point
 //         gap   string               what is missing from the library, if anything
 // tags: what each chip class means, shown at the top of the hover card.
@@ -63,28 +63,36 @@ window.OSP_LIB = {
         { doc: "sadata", page: 4, at: "Roughness must be assumed, not read. No public source carries usable roughness.", says: "Roughness must be assumed, not read. No public source carries usable roughness." },
       ],
       team: { page: 10, quote: "Level-derived Manning estimates are useful for a benchmark where geometry and roughness are known, but roughness is often missing or assumed." },
-      gap: "The uPVC value (0.010) is not in the library: Table G-2 has no plastic pipe row.",
     },
     household: {
       lib: [],
-      gap: "ABS 2021 Census household size is not in the library yet. Rijoy's Icon Water supplement to WSA 02 (low 3.5, medium 2.5, high density 2 EP per dwelling) is also not in it.",
+      web: [
+        { title: "ABS (2022), Walkerville: 2021 Census all persons QuickStats", url: "https://www.abs.gov.au/census/find-census-data/quickstats/2021/LGA48260", says: "Average number of people per household: 2.3." },
+        { title: "Icon Water, WSA 02 gravity sewerage code supplement (STD-SPE-G-011)", url: "https://www.iconwater.com.au/sites/default/files/2025-10/STD-SPE-G-011%20WSA%2002%20Gravity%20Sewage%20Code%20Supplement.pdf", says: "Equivalent population per dwelling by density: low 3.5, medium 2.5, high 2." },
+      ],
     },
     wateruse: {
       lib: [],
-      gap: "The Barwon Water WSAA supplement (s3.2.2, 200 L per person per day) is not in the library yet. The Icon Water supplement Rijoy showed uses 180 L/EP/day.",
+      web: [
+        { title: "Barwon Water, Supplementary information to the WSAA Sewerage Code of Australia 2014", url: "https://www.barwonwater.vic.gov.au/__data/assets/pdf_file/0025/72529/Supplementary-information-to-the-WSAA-Sewerage-Code-of-Australia-2014.pdf", says: "Section 3.2.2: 200 L per person per day." },
+        { title: "Icon Water, WSA 02 gravity sewerage code supplement (STD-SPE-G-011)", url: "https://www.iconwater.com.au/sites/default/files/2025-10/STD-SPE-G-011%20WSA%2002%20Gravity%20Sewage%20Code%20Supplement.pdf", says: "Uses 180 L per equivalent person per day." },
+      ],
     },
     peak: {
       lib: [],
-      gap: "Peak factor 2.0 is our assumption. No library document gives this value.",
+      gap: "Peak factor 2.0 is our assumption until SA Water's design figure replaces it.",
     },
     population: {
       lib: [],
-      gap: "ABS 2021 population (8,023 people over 2,851 connections) is not in the library yet.",
+      web: [
+        { title: "ABS (2022), Walkerville: 2021 Census all persons QuickStats", url: "https://www.abs.gov.au/census/find-census-data/quickstats/2021/LGA48260", says: "Total people: 8,023." },
+        { title: "Town of Walkerville (2021), SA Water sewer network", url: "https://services-ap1.arcgis.com/38lmAqtkEsaNGT6T/arcgis/rest/services/SA_Water_Sewer_Network/FeatureServer", says: "2,851 property connection points. 8,023 people over 2,851 connections gives 2.81 per existing home." },
+      ],
     },
     infiltration: {
       lib: [],
       team: { page: 21, quote: "Rainfall-derived inflow and infiltration increases sewage volumes, reduces treatment efficiency and can overload a system during heavy rainfall, and the I&I rate is itself treated in the literature as an indicator of the operational and structural condition of the network." },
-      gap: "The source of the 0.11 L/s per 100 m design rating is not in the library yet.",
+      web: [{ title: "Jaison (2026), gravity-sewer-osp, simulation_src/sim25.py", url: "https://github.com/AbrahamPaulJ/gravity-sewer-osp/blob/e6232db/simulation_src/sim25.py#L60", says: "0.11 L/s per 100 m meets the design envelope implied by the utility's own DN225 rating; the other cases are multiples beyond design." }],
     },
     alarm: {
       lib: [
@@ -124,27 +132,26 @@ window.OSP_LIB = {
       title: "Reading this chart",
       html: `<p><b>x-axis:</b> number of sensors in the plan, 1 to 10.<br><b>y-axis:</b> share of detectable growth the plan sees, in the weather case where it does worst.</p>
         <p>Each simulation connects new homes at one manhole (328 manholes × 5 sizes × 5 weather cases = 8,200 runs). A run is <b>detectable</b> when at least one manhole rises 25 mm or more; 3,448 runs are. The plan <b>sees</b> a run when one of its sensors rises 25 mm or more. 100% would mean every detectable run is seen.</p>
-        <p>For five sensors the worst case is the dry day: 61% of the 380 detectable dry-day runs are seen. The other 39% only raise the water at manholes without a sensor.</p>
-        <p><b>Black:</b> best set for each size, found by an exact integer program. <b>Dark grey:</b> Greedy (one at a time). <b>Light:</b> Random (best of 20 sets).</p>`,
+        <p>For five sensors the worst case is the severe storm: 58% of the 1,042 detectable storm runs are seen. The other 42% only raise the water at manholes without a sensor.</p><p><b>Black:</b> our plan, adding one sensor at a time. <b>Light:</b> Random (best of 20 sets).</p>`,
       team: { page: 20, quote: "Exact and convex methods can be accurate but do not scale easily; greedy methods are efficient but can be locally suboptimal; evolutionary methods explore more alternatives but cost more computation." },
     },
     beats: {
       title: "Reading this chart",
-      html: `<p><b>x-axis:</b> share of detectable growth seen in the worst weather case, same measure as the previous chart.<br><b>y-axis:</b> five ways to pick five sensors.</p>
-        <p><b>Our plan:</b> the best set of five. <b>Greedy (one at a time):</b> adds whichever sensor raises the score most, five times over. <b>Random (best of 20 sets):</b> twenty random sets of five, keeping the best. <b>Deepest flow today:</b> the five manholes with the deepest normal flow, all on the trunk. <b>Most exposed alone:</b> the five manholes that each see the most growth on their own.</p>
+      html: `<p><b>x-axis:</b> share of detectable growth seen in the worst weather case, same measure as the previous chart.<br><b>y-axis:</b> four ways to pick five sensors.</p>
+        <p><b>Our plan:</b> adds whichever sensor raises the worst-case score most, five times over. <b>Random (best of 20 sets):</b> twenty random sets of five, keeping the best. <b>Deepest flow today:</b> the five manholes with the deepest normal flow, all on the trunk. <b>Most exposed alone:</b> the five manholes that each see the most growth on their own.</p>
         <p><b>Why two of them score so low:</b> deepest flow today puts four of its five sensors on 300 mm trunk manholes that already run 118 to 199 mm deep on a dry day. Even 150 new homes raise the level there by at most 19.6 mm, under the 25 mm a sensor needs to notice, and the chart scores each plan on its weakest weather case. Most exposed alone shares four of those five manholes, so it sees almost nothing new. In the workbench, the rule-of-thumb methods (largest catchment; two up, two down) pick the trunk too and stay at 0% up to ten sensors.</p>`,
       team: { page: 13, quote: "The objective is nondecreasing and submodular under the stated conditions, which gives the standard greedy algorithm an approximately 63% lower-bound guarantee relative to the optimum." },
     },
     holdout: {
       title: "Reading this chart",
       html: `<p><b>x-axis:</b> share of that weather case's detectable growth seen by five sensors.<br><b>y-axis:</b> the five weather cases.</p>
-        <p><b>Black bar:</b> the recommended five, chosen using all five cases. <b>Second bar:</b> the best five chosen using only the other four cases, then scored on the case left out. Red marks a drop of more than 5 points; grey means little change.</p>
+        <p><b>Black bar:</b> the recommended five, chosen using all five cases. <b>Second bar:</b> five chosen the same way using only the other four cases, then scored on the case left out. Red marks a drop of more than 5 points; grey means little change.</p>
         <p>A large drop means the plan depends on having seen that kind of weather.</p>`,
       team: { page: 19, quote: "The method was robust in average reconstruction across SWMM parameter variants, but exact sensor locations changed with model parameterisation." },
     },
     answerstats: {
       title: "What these two numbers mean",
-      html: `<p><b>Worst case:</b> of the growth runs that raise water 25 mm or more somewhere, the share seen by one of the five sensors, in the weather case where the plan does worst (the dry day).</p>
+      html: `<p><b>Worst case:</b> of the growth runs that raise water 25 mm or more somewhere, the share seen by one of the five sensors, in the weather case where the plan does worst (the severe storm).</p>
         <p><b>Average:</b> the same share averaged over the five weather cases.</p>`,
     },
     brief: {
@@ -153,7 +160,31 @@ window.OSP_LIB = {
     },
     path: {
       title: "How the method changed",
-      html: `<p>Simulation 1 tested warning time on a four-chamber test network. Simulation 2 looked at whole-catchment growth but was set aside after it missed sewer draining in from outside. Simulation 2.5 models all of Walkerville in SWMM, and every result in this walk-through comes from it.</p>`,
+      html: `<p>Simulation 1 tested warning time on a four-chamber test network. Simulation 2 looked at whole-catchment growth but was set aside after it missed sewer draining in from outside. The EPA SWMM simulation models all of Walkerville, and every result in this walk-through comes from it. Simulation 3 is the planned final version. It extends the model with growth spread over areas, new estates and eight weather cases, and is to be refined with SA Water's review and feedback on this prototype. None of its results are shown here.</p><p><a href="https://abrahampaulj.github.io/gravity-sewer-osp/simulation3/index.html" target="_blank" rel="noopener">Open Simulation 3</a></p>`,
+    },
+    growth: {
+      title: "Two kinds of growth",
+      html: `<p><b>Greenfield:</b> a new estate built on empty land, joining the network at one point. <b>Infill:</b> extra homes on existing lots, spread through streets that are already connected. Both add sewage flow; they differ in where it enters.</p>`,
+    },
+    stages: {
+      title: "Terms on this slide",
+      html: `<p><b>Level sensor:</b> measures water depth continuously, so a slow upward drift shows. <b>Float switch:</b> trips when the water reaches a set height, and reports only that it passed that point. <b>Surcharge:</b> water above the top of the pipe, standing up in the manhole.</p>`,
+    },
+    why: {
+      title: "Reading this table",
+      html: `<p>Each row is one way to tell a blockage from growth in a sensor's level record: how fast it starts, how it responds to weather, where it shows, and what happens afterwards.</p>`,
+    },
+    approach: {
+      title: "Terms on this slide",
+      html: `<p><b>Worst weather case:</b> the plan is scored in each of the five weather cases and judged by its lowest score, so it cannot rely on one kind of weather. <b>Share of growth seen:</b> of the runs that raise the water 25 mm or more somewhere, the share where at least one sensor sees that rise.</p>`,
+    },
+    capacity: {
+      title: "Reading this table",
+      html: `<p><b>Capacity check:</b> Manning's equation gives the most a pipe can carry when full, from its size, slope and roughness. It shows which pipe fills first, not how far water backs up behind it. <b>Simulation:</b> EPA SWMM routes the flow through every pipe and gives the water level at each manhole.</p>`,
+    },
+    data: {
+      title: "Reading this table",
+      html: `<p>Each row is one public data layer: what it covers, who publishes it, and what the model takes from it.</p>`,
     },
     swmm: {
       title: "Reading this table",
@@ -175,7 +206,7 @@ window.OSP_LIB = {
     },
     gauge: {
       title: "Reading this gauge",
-      html: `<p>A cut-through manhole. Blue is the water depth. The dashed black line is the 25 mm rise above normal that counts as seeing growth; the red line is the fixed 150 mm alarm a float switch would give.</p>`,
+      html: `<p>A cut-through manhole. Blue is the water depth, and the scale on the left is depth in mm. The grey line is this sensor's normal level. The dashed black line is 25 mm above it, the rise that counts as seeing growth. The dashed red line is the fixed 150 mm alarm a float switch would give.</p>`,
       team: { page: 9, quote: "Float or tilt devices can provide a robust threshold event, such as a high-level alarm, with a simple sensing principle. They do not provide the level history, rate of rise, or normal-pattern information available from a continuous sensor." },
     },
     register: {

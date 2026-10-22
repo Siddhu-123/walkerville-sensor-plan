@@ -8,12 +8,10 @@
   "use strict";
   const S = window.OSP_STORY, SCENES = window.OSP_SCENES, LIB = window.OSP_LIB, STATIC = window.OSP_STATIC || {};
   const FACTS = Object.assign({}, S.facts, STATIC);
-  const greedyGaps = S.curves.optimum.map((v, i) => v - S.curves.greedy[i]);
-  const greedyGapMax = Math.max(...greedyGaps);
   FACTS.greedy_k1_worst = Math.round(100 * S.curves.greedy[4]);
-  FACTS.greedy_gap_k1 = Math.round(100 * greedyGaps[4]);
-  FACTS.greedy_gap_max = Math.round(100 * greedyGapMax);
-  FACTS.greedy_gap_max_at = greedyGaps.indexOf(greedyGapMax) + 1;
+  const heldAge = S.held_out.find((row) => row.case === "Design wet + age-weighted I&I");
+  FACTS.held_age_unseen = Math.round(100 * heldAge["unseen_k" + FACTS.plan_k1]);
+  FACTS.held_age_seen = Math.round(100 * heldAge["seen_k" + FACTS.plan_k1]);
   const $ = (id) => document.getElementById(id);
   const canvas = $("stage-canvas"), ctx = canvas.getContext("2d");
   const card = $("card"), sheet = $("sheet") || card, labelsEl = $("labels"), tip = $("tip");
@@ -715,23 +713,21 @@
   // charts ------------------------------------------------------------
   const pctTxt = (v) => Math.round(v * 100) + "%";
   function chartFrontier() {
-    const w = 380, h = 240, l = 60, r = 12, t = 16, b = 42, K = S.curves.optimum.length;
+    const w = 380, h = 240, l = 60, r = 12, t = 16, b = 42, K = S.curves.greedy.length;
     const X = (k) => l + (k - 1) / (K - 1) * (w - l - r), Y = (v) => t + (1 - v) * (h - t - b);
     const line = (arr) => arr.map((v, i) => (i ? "L" : "M") + X(i + 1).toFixed(1) + " " + Y(v).toFixed(1)).join(" ");
-    const len = 900, k1 = FACTS.plan_k1, v1 = S.curves.optimum[k1 - 1];
+    const len = 900, k1 = FACTS.plan_k1, v1 = S.curves.greedy[k1 - 1];
     let g = "";
     for (const v of [0, 0.25, 0.5, 0.75, 1]) g += `<line class="grid" x1="${l}" x2="${w - r}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${l - 6}" y="${Y(v) + 4}" text-anchor="end">${v * 100}%</text>`;
     for (let k = 1; k <= K; k++) g += `<text x="${X(k)}" y="${h - b + 18}" text-anchor="middle">${k}</text>`;
     g += `<text x="${(l + w - r) / 2}" y="${h - 8}" text-anchor="middle">Number of sensors</text>`;
     g += `<text transform="translate(12 ${(t + h - b) / 2}) rotate(-90)" text-anchor="middle">Growth seen, worst weather case</text>`;
     g += `<path class="draw" style="--len:${len}" d="${line(S.curves.random)}" fill="none" stroke="var(--chart-random)" stroke-width="2"/>`;
-    g += `<path class="draw" style="--len:${len}" d="${line(S.curves.greedy)}" fill="none" stroke="var(--chart-greedy)" stroke-width="2" stroke-dasharray="0"/>`;
-    g += `<path class="draw" style="--len:${len}" d="${line(S.curves.optimum)}" fill="none" stroke="var(--canvas-ink)" stroke-width="3"/>`;
+    g += `<path class="draw" style="--len:${len}" d="${line(S.curves.greedy)}" fill="none" stroke="var(--canvas-ink)" stroke-width="3"/>`;
     g += `<g class="pop"><line x1="${X(k1)}" x2="${X(k1)}" y1="${Y(0)}" y2="${Y(v1)}" stroke="var(--canvas-ink)" stroke-dasharray="3 3"/>`;
-    S.curves.optimum.forEach((v, i) => { g += `<circle cx="${X(i + 1)}" cy="${Y(v)}" r="${i + 1 === k1 ? 5 : 2.6}" fill="var(--canvas-ink)" stroke="var(--canvas-white)" stroke-width="1.5"/>`; });
+    S.curves.greedy.forEach((v, i) => { g += `<circle cx="${X(i + 1)}" cy="${Y(v)}" r="${i + 1 === k1 ? 5 : 2.6}" fill="var(--canvas-ink)" stroke="var(--canvas-white)" stroke-width="1.5"/>`; });
     g += `<text class="val" x="${X(k1) + 8}" y="${Y(v1) + 16}">${pctTxt(v1)}</text>`;
-    g += `<text x="${X(K) - 2}" y="${Y(S.curves.optimum[K - 1]) - 9}" text-anchor="end" style="fill:var(--canvas-ink);font-weight:600">Best possible (proven)</text>`;
-    g += `<text x="${X(K) - 2}" y="${Y(Math.min(...S.curves.greedy.slice(-4))) + 14}" text-anchor="end">Greedy (one at a time)</text>`;
+    g += `<text x="${X(K) - 2}" y="${Y(S.curves.greedy[K - 1]) - 9}" text-anchor="end" style="fill:var(--canvas-ink);font-weight:600">Our plan (one at a time)</text>`;
     g += `<text x="${X(K) - 2}" y="${Y(Math.min(...S.curves.random.slice(-5))) + 15}" text-anchor="end">Random (best of 20 sets)</text></g>`;
     return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Share of growth seen in the worst weather case, by number of sensors">${g}</svg>`;
   }
@@ -756,8 +752,7 @@
   function chartBeats() {
     const k = FACTS.plan_k1 - 1, c = S.curves;
     return chartBars([
-      { label: "Our plan", v: c.optimum[k], col: "var(--canvas-ink)" },
-      { label: "Greedy (one at a time)", v: c.greedy[k], col: "var(--chart-greedy)" },
+      { label: "Our plan", v: c.greedy[k], col: "var(--canvas-ink)" },
       { label: "Random (best of 20 sets)", v: c.random[k], col: "var(--chart-other)" },
       { label: "Deepest flow today", v: c.trunk[k], col: "var(--chart-other)" },
       { label: "Most exposed alone", v: c.exposed[k], col: "var(--chart-other)" },
@@ -785,12 +780,15 @@
       <rect x="30" y="4" width="60" height="150" rx="3" fill="var(--canvas-paper)" stroke="var(--chart-greedy)" stroke-width="2"/>
       <rect x="4" y="132" width="112" height="24" rx="12" fill="var(--canvas-white)" stroke="var(--chart-greedy)" stroke-width="2"/>
       <rect id="gW" x="31" y="156" width="58" height="0" fill="var(--water)" opacity=".85"/>
+      <g id="gAx"></g>
+      <line id="gN" x1="22" x2="98" y1="0" y2="0" stroke="var(--ink-muted)" stroke-width="1.6"/>
       <line id="gR" x1="22" x2="98" y1="0" y2="0" stroke="var(--canvas-ink)" stroke-width="1.6" stroke-dasharray="4 3"/>
       <line id="gA" x1="22" x2="98" y1="0" y2="0" stroke="var(--rust)" stroke-width="1.6" stroke-dasharray="4 3"/>
+      <text id="gNt" x="100" y="0" font-size="9" fill="var(--ink-muted)" font-weight="700"></text>
       <text id="gRt" x="100" y="0" font-size="9" fill="var(--canvas-ink)" font-weight="700">+${FACTS.rise_focus_mm}</text>
       <text id="gAt" x="100" y="0" font-size="9" fill="var(--rust)" font-weight="700">${FACTS.alarm_mm}</text>
       <rect x="36" y="2" width="48" height="5" rx="2" fill="var(--ink-muted)"/></svg>
-      <div class="read" id="gRead"></div></div>`;
+      <div><div class="read" id="gRead"></div><div class="gkey" id="gKey"></div></div></div>`;
   }
 
   // One shared source/info card, outside the scrolling slide.
@@ -839,7 +837,10 @@
       h += (src.lib || []).map((item) => {
         const doc = LIB.docs[item.doc];
         return `<section><h3>${esc(doc.title)}</h3><p>${esc(item.says)}</p>${libraryLink(doc, item.page, item.at)}</section>`;
-      }).join("") + teamHtml(src.team);
+      }).join("");
+      h += (src.web || []).map(({ title, url, says }) =>
+        `<section><h3>${esc(title)}</h3><p>${esc(says)}</p><a href="${esc(url)}" target="_blank" rel="noopener">Open the source</a></section>`
+      ).join("") + teamHtml(src.team);
       if (src.gap) h += `<p class="source-gap">${esc(src.gap)}</p>`;
     }
     if (sourceAnchor && sourceAnchor !== el) sourceAnchor.setAttribute("aria-expanded", "false");
@@ -1098,18 +1099,40 @@
       // the wet-weather sensor and the growth site that raises it most while it stays under the alarm
       const resp = S.response["1"];
       let sIdx = phase1[S.plan.roles.findIndex((r) => r.case === "Design wet")] ?? phase1[0], best = null;
-      resp.forEach((l, site) => l.forEach(([i, mm]) => { if (i === sIdx && (!best || mm > best.mm)) best = { site, mm }; }));
-      const base = S.base_depth["1"][sIdx];
+      const base = S.base_depth["1"][sIdx], normal = base * 1000;
+      resp.forEach((l, site) => l.forEach(([i, mm]) => { if (i === sIdx && mm >= FACTS.rise_focus_mm && normal + mm < FACTS.alarm_mm && (!best || mm > best.mm)) best = { site, mm }; }));
+      if (!best) resp.forEach((l, site) => l.forEach(([i, mm]) => { if (i === sIdx && (!best || mm > best.mm)) best = { site, mm }; }));
       flyTo(fit(boxOf([sIdx, best.site], 260), { pitch: 60, bearing: -38, ve: 9, z: CH[sIdx].cover - 2, pad: 0.12, persp: 2.4 }), 1800);
       respond(best.site, 1);
       setLabels([{ ch: best.site, html: `+${S.focus_size} homes`, cls: "growth", dy: -10 }, { ch: sIdx, html: `Sensor ${phase1.indexOf(sIdx) + 1}`, cls: "accent", dy: -12 }]);
-      const normal = base * 1000, rise = best.mm, alarm = FACTS.alarm_mm, thr = FACTS.rise_focus_mm;
+      const rise = best.mm, alarm = FACTS.alarm_mm, thr = FACTS.rise_focus_mm;
       const maxMM = Math.max(220, Math.ceil((normal + rise + 60) / 50) * 50);
       const yOf = (mm) => 154 - mm * 150 / maxMM;
-      const gR = $("gR"), gA = $("gA"), gW = $("gW");
+      const gN = $("gN"), gR = $("gR"), gA = $("gA"), gW = $("gW");
       const set = (el, mm) => { el.setAttribute("y1", yOf(mm)); el.setAttribute("y2", yOf(mm)); };
-      set(gR, normal + thr); set(gA, alarm);
-      $("gRt").setAttribute("y", yOf(normal + thr) + 3); $("gAt").setAttribute("y", yOf(alarm) + 3);
+      set(gN, normal); set(gR, normal + thr); set(gA, alarm);
+      $("gNt").setAttribute("y", yOf(normal) + 3); $("gRt").setAttribute("y", yOf(normal + thr) + 3); $("gAt").setAttribute("y", yOf(alarm) + 3);
+      $("gNt").textContent = Math.round(normal); $("gRt").textContent = Math.round(normal + thr); $("gAt").textContent = alarm;
+      const gAx = $("gAx"), step = maxMM <= 250 ? 50 : 100;
+      gAx.innerHTML = "";
+      for (let t = 0; t <= maxMM; t += step) {
+        const tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        tick.setAttribute("x1", 25); tick.setAttribute("x2", 30);
+        tick.setAttribute("y1", yOf(t)); tick.setAttribute("y2", yOf(t));
+        tick.setAttribute("stroke", "var(--ink-muted)"); tick.setAttribute("stroke-width", 1);
+        gAx.appendChild(tick);
+        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        label.setAttribute("text-anchor", "end"); label.setAttribute("x", 23); label.setAttribute("y", yOf(t) + 3);
+        label.setAttribute("font-size", 8); label.setAttribute("fill", "var(--ink-muted)"); label.textContent = t;
+        gAx.appendChild(label);
+      }
+      const unit = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      unit.setAttribute("text-anchor", "end"); unit.setAttribute("x", 23); unit.setAttribute("y", 167);
+      unit.setAttribute("font-size", 8); unit.setAttribute("fill", "var(--ink-muted)"); unit.textContent = "mm";
+      gAx.appendChild(unit);
+      $("gKey").innerHTML = `<span class="k"><i class="n"></i>Normal level, ${Math.round(normal)} mm</span>
+        <span class="k"><i class="r"></i>Rise rule: normal + ${thr} mm = ${Math.round(normal + thr)} mm</span>
+        <span class="k"><i class="a"></i>Float-switch alarm, ${alarm} mm</span>`;
       const read = $("gRead"), name = "sensor " + (phase1.indexOf(sIdx) + 1);
       const verdict = normal >= alarm
         ? `Already over the ${alarm} mm alarm before any growth, so a fixed alarm can never report it. Against its own normal level the rise is clear.`

@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
-"""Tests the recommended sensor plan against everything we could compare it with.
+"""Compare the recommended sensor plan with baselines and held-out weather cases.
 
-The deck recommends the greedy plan for the 25 mm rise rule, chosen for the worst of the five
-weather cases. This script asks four questions of that plan, on the same 8,200 simulations, and
-writes the answers to data/proof.json (and .js) for the story page:
+The default greedy mode chooses chambers in greedy order for the 25 mm rise rule,
+maximising the worst share across the five weather cases. It does not compute an
+exact optimum or need PuLP. Held-out plans use greedy on the other four cases.
 
-  1. Is it the best possible? An exact integer program (HiGHS via PuLP) finds the true optimum
-     worst-case share for each number of sensors, so the greedy plan's gap to it is a measured
-     figure, not a claim.
-  2. Does it beat the obvious picks? The chambers with the deepest flow today (the trunk), the
-     most-exposed single chambers, and the best of 20 random sets, all scored the same way.
-  3. Does it hold on a case it never saw? Leave one weather case out, choose with the other four,
-     score on the one left out.
-  4. Which sensors keep being chosen? Greedy run on each case alone; how often each recommended
-     chamber appears.
+Optional OSP_PLAN=optimum mode uses an exact integer program (HiGHS via PuLP) to
+compare every sensor count, choose phase 1 and its best additions, and choose
+held-out plans. This mode needs pulp and highspy.
 
-    pip install pulp highspy      # only this script needs them
-    python presentation/build/prove_placement.py
+Both modes score the plan, deepest-flow and most-exposed chambers, and the best
+of 20 random sets on the same 8,200 simulations. They also report each recommended
+sensor's individual share per case and write data/proof.json (and .js).
+
+    python presentation/build/prove_placement.py  # greedy, the default
+    pip install pulp highspy                     # optional exact mode only
+    OSP_PLAN=optimum python presentation/build/prove_placement.py
 """
 import json
 import os
@@ -32,6 +31,7 @@ RULE_ID = "r25"
 OBJECTIVE = "worst"
 TIME_LIMIT_S = 120
 PHASE1_K = 5
+PLAN_METHOD = os.environ.get('OSP_PLAN', 'greedy')
 
 
 def setup():
@@ -94,26 +94,33 @@ def top_by(score, k):
 
 
 def main():
+    if PLAN_METHOD not in ("greedy", "optimum"):
+        raise ValueError(f"unknown OSP_PLAN: {PLAN_METHOD}")
     cfg, summaries, cases, chambers, index, mats, k_max = setup()
     n = len(chambers)
     order, g_worst, g_mean = ex.greedy(mats, k_max, OBJECTIVE)
 
-    # 1. exact optimum
+    # 1. optional exact optimum and the recommended plan
     opt = []
-    for k in range(1, k_max + 1):
-        chosen, proven, bound, secs = optimum(mats, k)
-        s = shares(mats, chosen)
-        opt.append({"k": k, "worst": round(min(s), 4), "mean": round(sum(s) / len(s), 4),
-                    "proven": proven, "bound": None if bound is None else round(min(bound, 1.0), 4), "seconds": secs, "set": [chambers[c] for c in chosen]})
-        print(f"k={k}: optimum worst {min(s):.4f} ({'proven' if proven else 'time limit'}, {secs}s)"
-              f"  greedy {g_worst[k - 1]:.4f}")
-
-    # the recommendation: the proven-best phase 1, then the best additions to it
     phase1_k = PHASE1_K
-    p1 = next(o for o in opt if o["k"] == phase1_k)
-    p1_idx = [index[c] for c in p1["set"]]
-    p2_idx, p2_proven, _, _ = optimum(mats, k_max, fixed=p1_idx)
-    added = [c for c in p2_idx if c not in p1_idx]
+    if PLAN_METHOD == "optimum":
+        for k in range(1, k_max + 1):
+            chosen, proven, bound, secs = optimum(mats, k)
+            s = shares(mats, chosen)
+            opt.append({"k": k, "worst": round(min(s), 4), "mean": round(sum(s) / len(s), 4),
+                        "proven": proven, "bound": None if bound is None else round(min(bound, 1.0), 4), "seconds": secs, "set": [chambers[c] for c in chosen]})
+            print(f"k={k}: optimum worst {min(s):.4f} ({'proven' if proven else 'time limit'}, {secs}s)"
+                  f"  greedy {g_worst[k - 1]:.4f}")
+
+        # the proven-best phase 1, then the best additions to it
+        p1 = next(o for o in opt if o["k"] == phase1_k)
+        p1_idx = [index[c] for c in p1["set"]]
+        p2_idx, p2_proven, _, _ = optimum(mats, k_max, fixed=p1_idx)
+        added = [c for c in p2_idx if c not in p1_idx]
+    else:
+        p1_idx = order[:phase1_k]
+        added = order[phase1_k:k_max]
+        p2_proven = None
     plan_order = p1_idx + added
     plan_rows = [shares(mats, plan_order[:k]) for k in range(phase1_k, k_max + 1)]
     plan = {"phase1": [chambers[c] for c in p1_idx], "phase2": [chambers[c] for c in added],
@@ -122,7 +129,7 @@ def main():
             "per_case_phase1": [round(v, 4) for v in shares(mats, p1_idx)],
             "per_case_full": [round(v, 4) for v in shares(mats, plan_order)]}
     print(f"plan: phase 1 {plan['phase1']} worst {plan['worst'][0]}, full {plan['worst'][-1]} "
-          f"(unconstrained best {opt[-1]['worst']})")
+          + (f"(unconstrained best {opt[-1]['worst']})" if opt else "(greedy)"))
 
     # 2. the obvious picks
     design = next(c for c in cases if c["label"] == "Design wet")
@@ -138,13 +145,18 @@ def main():
     baselines["random_best_of_20"] = {"worst": [round(v, 4) for v in r_worst],
                                       "mean": [round(v, 4) for v in r_mean]}
 
-    # 3. leave one case out: the same exact choice, made without the case it is scored on
+    # 3. leave one case out: choose without the case the plan is scored on
     held = []
     for c in range(len(mats)):
         train = [m for i, m in enumerate(mats) if i != c]
         row = {"case": cases[c]["label"]}
+        if PLAN_METHOD == "greedy":
+            train_order, _, _ = ex.greedy(train, k_max, OBJECTIVE)
         for k in (PHASE1_K, k_max):
-            chosen, _, _, _ = optimum(train, k)
+            if PLAN_METHOD == "optimum":
+                chosen, _, _, _ = optimum(train, k)
+            else:
+                chosen = train_order[:k]
             row[f"unseen_k{k}"] = round(shares([mats[c]], chosen)[0], 4)
             row[f"seen_k{k}"] = round(shares([mats[c]], plan_order[:k])[0], 4)
         held.append(row)
@@ -159,7 +171,7 @@ def main():
         print(f"{name}: k=5 worst {b['worst'][4]} mean {b['mean'][4]}, k=10 worst {b['worst'][-1]}")
 
     result = {
-        "rule": RULE_ID, "objective": OBJECTIVE, "k_max": k_max,
+        "rule": RULE_ID, "objective": OBJECTIVE, "k_max": k_max, "method": PLAN_METHOD,
         "scenarios_per_case": [int(m.shape[0]) for m in mats],
         "greedy": {"worst": [round(v, 4) for v in g_worst], "mean": [round(v, 4) for v in g_mean],
                    "set": [chambers[c] for c in order]},
