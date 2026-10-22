@@ -28,6 +28,12 @@ window.OSP_STATIC = {
   // Carried over from the detailed deck (cloud-run/presentation/content/slides.js, STATIC_FACTS)
   us_event_share: 26,         // US EPA (2004) SSO report: wet-weather/I&I share of events with a known cause
   us_volume_share: 75,        // same report: about three-quarters of SSO volume
+  // Pump stations: sandbox register L7 and X1 (simulation25/data/index.js at e6232db), from the
+  // council's pump structures (layer 5) and rising mains (layer 8)
+  pump_stations: 3,           // stations in the published layers
+  pump_modelled: 2,           // the two that discharge into the modelled network (14 + 41 homes)
+  pump_homes: 55,             // connections behind the two modelled stations
+  pump_outside_homes: 11,     // connections behind the third, which pumps out of the modelled area
 };
 
 window.OSP_SCENES = [
@@ -377,15 +383,16 @@ window.OSP_SCENES = [
   {
     id: "fall", act: "Below the street", view: "side", fx: "fall", style: "path", ms: 2400,
     info: { params: "params" },
-    show: { terrain: 0.45, pipes: 1, shafts: 0.5, flow: 1 },
+    show: { terrain: 0.45, pipes: 1, shafts: 0.5, flow: 1, pumps: 1 },
     kicker: "Parameter · slope",
     title: "Gravity does the work",
     html: `<p>The longest drainage path falls {{path_fall_m}} m over {{path_km}} km. Slope sets how much each pipe carries and which way the water goes.</p>
       <div class="params">
         <div><span class="k">Flow direction</span><span class="v">recorded</span><span class="s">SA Water's own direction field, checked against the levels at shared manholes. <span class="chip checked" data-src="direction">checked</span></span></div>
         <div><span class="k">Slope</span><span class="v">from levels</span><span class="s">Computed from pipe-floor levels; the published gradient field agrees (median ratio {{gradient_ratio}}). <span class="chip checked" data-src="slope">checked</span></span></div>
+        <div><span class="k">Pump stations</span><span class="v">{{pump_modelled}} of {{pump_stations}} modelled</span><span class="s">Where gravity cannot reach the main, {{pump_homes}} homes drain to a pump well that lifts the sewage into it. The third, serving {{pump_outside_homes}} homes, pumps out of the area modelled. No pump rates are published, so each passes on all the flow it receives at once. <span class="chip measured" data-src="pumpsites">measured</span> <span class="chip declared" data-src="pumps">ideal</span></span></div>
       </div>`,
-    legend: "flow",
+    legend: "pumps",
   },
   {
     id: "pipes", act: "Below the street", view: (V) => V.close(V.phase1(2), 230), fx: "pipes", style: "size", ms: 2200,

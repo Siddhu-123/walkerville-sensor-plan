@@ -31,6 +31,7 @@ python presentation/build/export_scenario.py --check   # the 8,200-run tables (m
 pip install pulp highspy                               # only prove_placement.py needs these
 python presentation/build/prove_placement.py           # optimum, alternatives, held-out cases -> data/proof.json
 python presentation/build/export_story.py              # 3D network, homes, responses, facts -> data/story.json
+python presentation/build/export_pumps.py              # pump stations and rising mains -> data/pumps.json and the repo's demo/pump-data.js
 python presentation/build/check_copy.py --story        # every {{token}} in content/story.js resolves
 node presentation/build/story_smoke.js [shots-folder]  # every scene at desktop and tablet sizes
 ```
