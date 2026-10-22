@@ -182,6 +182,38 @@ window.OSP_SCENES = [
       <blockquote class="quote">"Optimal sensor placement is not the problem… optimal sensor placement is a solution for the data collection problem."<cite>Vineeth Maruvada, SA Water · meeting with the capstone team</cite></blockquote>`,
   },
 
+  // ---------------------------------------------------------------- our approach
+  // Approach: ProjectScopingDocument_v3.1.7 §2.5 (alternatives, proposed approach A6). Why Manning first:
+  // presentation/modelling/06_DECISIONS_AND_OPEN_QUESTIONS.md DEC-02; its limits: 07_GROWTH_OVERFLOW_MECHANISM.md §2.5, §5.7.
+  {
+    id: "approach", act: "Our approach", view: "all",
+    show: { terrain: 1, pipes: 0.75, chambers: 0.8, homes: 0.4 },
+    kicker: "The approach we adopted",
+    title: "Simulate the growth, then pick the sensors that see it",
+    html: `<ol class="steps">
+        <li><b>Model the network</b><span>Walkerville's {{sites}} manholes and their pipes, from SA Water's public records, in EPA SWMM.</span></li>
+        <li><b>Add growth everywhere</b><span>New homes at every manhole, at five sizes and in {{cases}} weather cases: {{runs}} runs.</span></li>
+        <li><b>Decide what a sensor sees</b><span>A rise of {{rise_focus_mm}} mm or more at its manhole, against the same case with no growth.</span></li>
+        <li class="kept"><b>Choose the sites</b><span>The set that sees the most growth in its worst weather case, solved exactly. The count is where one more sensor adds little.</span></li>
+      </ol>
+      <p class="note">Six approaches were compared. This one, simulation plus coverage, was chosen because it works on public data, each site can be explained by what it sees, and the same steps re-run on any network.</p>`,
+  },
+  {
+    id: "capacity", act: "Our approach", view: "all",
+    show: { terrain: 0.9, pipes: 0.9, flow: 0.5, chambers: 0.6 },
+    kicker: "Why simulation",
+    title: "We started with a capacity check, then moved to simulation",
+    html: `<p>Our first screen used <strong>Manning's equation</strong>: how much each pipe carries when full, against the load new homes add. It needs only pipe size, slope and roughness, it is the design code's capacity rule, and it tracks full hydraulic models closely (Simone et al. 2023).</p>
+      <div class="vs">
+        <b></b><b>Capacity check</b><b>Simulation</b>
+        <span>Tells you</span><span>Which pipe fills</span><span>Water level at each manhole</span>
+        <span>Backing up</span><span>Not computed</span><span>Routed</span>
+        <span>Sensor view</span><span>Guessed</span><span>Read off</span>
+      </div>
+      <p>A sensor measures water level, and growth shows where water backs up behind a full pipe. <strong>So we moved to EPA SWMM</strong>, which computes that level at every manhole.</p>`,
+    legend: "flow",
+  },
+
   // ---------------------------------------------------------------- the answer
   {
     id: "answer", act: "The answer", view: "all", fx: "answer",
@@ -388,23 +420,6 @@ window.OSP_SCENES = [
   },
 
   // ---------------------------------------------------------------- what next
-  {
-    id: "register", act: "What's next", view: "plan", ms: 2600,
-    info: { params: "register" },
-    show: { terrain: 1, pipes: 0.7, chambers: 0.25, sensors: 1, phase2: 1 },
-    kicker: "Honest limits",
-    title: "What is assumed, and what removes it",
-    html: `<div class="params">
-        <div><span class="k">Steady busiest-hour flows</span><span class="v"><span class="chip declared" data-src="steady">declared</span></span><span class="s">No storms or daily cycle yet. Removed by SA Water's calibrated model or level records.</span></div>
-        <div><span class="k">Leakage into pipes</span><span class="v"><span class="chip declared" data-src="infiltration">declared</span></span><span class="s">Removed by a flow survey or treatment-plant inflow records.</span></div>
-        <div><span class="k">Detection thresholds</span><span class="v"><span class="chip declared" data-src="alarm">declared</span></span><span class="s">{{rise_focus_mm}} mm rise and {{alarm_mm}} mm alarm. Removed by normal-day level records and the alarm settings in use.</span></div>
-        <div><span class="k">Water use and peak factor</span><span class="v"><span class="chip sourced" data-src="wateruse">sourced</span></span><span class="s">Interstate values. Removed by SA Water's design figures.</span></div>
-        <div><span class="k">Pump stations</span><span class="v"><span class="chip declared" data-src="pumps">ideal</span></span><span class="s">Modelled as passing all flow at once. Removed by pump rates and controls.</span></div>
-        <div><span class="k">One model fix pending</span><span class="v"><span class="chip confirm" data-src="modelfix">to fix</span></span><span class="s">Relief pipes return everyday flow to a pump well. A corrected run is needed before final numbers.</span></div>
-        <div><span class="k">No field validation yet</span><span class="v"><span class="chip confirm" data-src="validation">to confirm</span></span><span class="s">Checked against overflow and blockage history once it is shared.</span></div>
-      </div>`,
-    legend: "plan",
-  },
   {
     id: "asks", act: "What's next", view: "all",
     show: { terrain: 1, pipes: 0.8, chambers: 0.3, sensors: 1, phase2: 0.6 },
