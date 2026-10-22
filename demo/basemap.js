@@ -12,6 +12,31 @@ const PALETTE = {
   primaryRoad: { hex: "#b5a68d" },
   minorStreet: { hex: "#d8ccb6" }
 };
+// Every colour in the light style has a dark counterpart, including expression stops.
+const BASEMAP_DARK_COLOURS = {
+  "#a2c2ac": "#243d38", "#97bda2": "#2b4940", "#f7ead9": "#14130f",
+  "#f2e7d4": "#1d1b17", "#d8d4b5": "#303629", "#e5e0c2": "#282d22",
+  "#ecddb2": "#3b3323", "#94866e": "#827562", "#b5a68d": "#615849",
+  "#d8ccb6": "#3f3a30", "#e9dcc4": "#302c24", "#d8cab0": "#494235",
+  "#a6bfa8": "#34493e", "#8cb398": "#416956", "#b8ad96": "#645d4c",
+  "#a89a82": "#796e5b", "#2d6a6e": "#5fb3b3", "#b8523b": "#e07a5f",
+  "#1f4e52": "#5fb3b3"
+};
+const basemapColour = (value, dark) => Array.isArray(value)
+  ? value.map((part) => basemapColour(part, dark))
+  : dark && typeof value === "string" ? BASEMAP_DARK_COLOURS[value] || value : value;
+let basemapPaints = [], themedBasemap = null;
+window.applyBasemapTheme = function (theme, map = themedBasemap) {
+  if (!map) return;
+  themedBasemap = map;
+  for (const { id, paint } of basemapPaints) {
+    if (!map.getLayer(id)) continue;
+    for (const [property, value] of Object.entries(paint)) {
+      map.setPaintProperty(id, property, basemapColour(value, theme === "dark"));
+    }
+  }
+};
+
 let sewerVisible = false;
 
 // Vintage basemap style, taken unchanged from index.html (buildMapStyle). The demo draws the sewer itself.
@@ -391,6 +416,16 @@ function buildMapStyle() {
       }
     }
   );
+
+  // Retain the original paints for exact light restoration. No sources or style reload on toggle.
+  basemapPaints = layers.map(({ id, paint }) => ({ id, paint: Object.fromEntries(
+    Object.entries(paint || {}).filter(([property]) => property.endsWith("-color"))
+  ) }));
+  if (document.documentElement.dataset.theme === "dark") {
+    for (const layer of layers) for (const [property, value] of Object.entries(layer.paint || {})) {
+      if (property.endsWith("-color")) layer.paint[property] = basemapColour(value, true);
+    }
+  }
 
   return {
     version: 8,

@@ -164,10 +164,24 @@ window.OSP_SCENES = [
     show: { terrain: 0.9, pipes: 0.6, chambers: 0.35, alarm: 1 },
     kicker: "The unknowns",
     title: "Five weather cases, not one",
-    html: `<p>We do not yet have measured data on how much groundwater and rain leaks into Walkerville's pipes, so every growth test ran under five cases, from a dry day to a heavy wet period.</p>`,
+    html: `<p>We do not yet have measured data on how much groundwater and rain leaks into Walkerville's pipes, so every growth test ran under five cases, from a dry day to a heavy wet period.</p>
+      <p>Each case is a leakage rate into the pipes, in litres per second for every 100 m of pipe: dry 0, design wet 0.11, severe 0.40. The other two cases use 0.11, one spread by pipe age and one with 1.5 times the flow arriving from outside Walkerville.</p>`,
     seg: [0, 1, 2, 3, 4], readout: true,
-    after: `<p class="note">In a storm, {{base_surcharged_severe}} manholes are already surcharged before any growth. A sensor there can't show growth, which is why the plan puts its storm watchers elsewhere.</p>`,
+    after: `<p class="note">In a storm, {{base_surcharged_severe}} manholes are already surcharged before any growth. A sensor there can't show growth, which is why the plan puts its storm watchers elsewhere.</p>
+      <p class="note">The model has no rainfall input, so these rates do not convert to millimetres of rain. Linking them needs SA Water's rain and flow-gauge records.</p>`,
     legend: "alarm",
+  },
+
+  {
+    id: "stress", act: "How we found it", view: "all", fx: "stress", style: "stress",
+    info: { seg: "stress" },
+    show: { terrain: 0.9, pipes: 1 },
+    kicker: "Before any growth",
+    title: "Where the pipes are already under strain",
+    html: `<p>Colour shows how full each pipe runs before a single new home: the water depth at its manholes as a share of the pipe's width. In design wet weather {{stress_half_wet}} pipes already run more than half full; in the severe case {{stress_half_severe}} do, and {{base_surcharged_severe}} manholes are surcharged.</p>`,
+    seg: [0, 1, 2, 3, 4], readout: true,
+    after: `<p class="note">These are the places with the least spare room. New homes upstream of them use it up first.</p>`,
+    legend: "stress",
   },
 
   // ---------------------------------------------------------------- the proof
@@ -179,7 +193,7 @@ window.OSP_SCENES = [
     title: "The first five do most of the work",
     html: `<p>The best share of growth any plan can see in its worst weather case, for 1 to {{plan_kmax}} sensors. Every point on the black line is the proven best for that number. The curve is still rising at {{plan_kmax}}.</p>`,
     chart: "frontier",
-    after: `<p class="note">The first five reach {{opt_k1_worst}}%; the next five add {{kmax_gain}} points between them. Picking one sensor at a time, the usual method, falls short of the best by up to {{greedy_gap_max}} points, so we solved for the best set directly.</p>`,
+    after: `<p class="note">The first five reach {{opt_k1_worst}}%; the next five add {{kmax_gain}} points between them. Picking one sensor at a time, the usual method, reaches {{greedy_k1_worst}}% with five sensors, {{greedy_gap_k1}} points behind. The gap is widest at {{greedy_gap_max_at}} sensors, {{greedy_gap_max}} points, which is why we solved for the best set directly.</p>`,
   },
   {
     id: "beats", act: "Why it holds", view: "beats", fx: "beats",

@@ -16,6 +16,43 @@
       --ink-body: #36332e;
       --ink-muted: #6e675d;
       --ink-faint: #968d80;
+      --sheet-top: #ffffff;
+      --sheet-mid: #fdf9f2;
+      --sheet-low: #f8eee0;
+      --sheet-edge: #f5e8d6;
+      --texture-clear: rgba(247, 234, 217, 0);
+      --texture-vignette: rgba(165, 151, 128, 0.13);
+      --texture-line: rgba(148, 134, 110, 0.012);
+      --surface-hover: rgba(148, 134, 110, 0.10);
+      --welcome-rule: rgba(148, 134, 110, 0.18);
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --ocean-sage: #243d38;
+      --inland-water: #2b4940;
+      --salt-pans: #34493e;
+      --land-cream: #14130f;
+      --urban-cream: #1d1b17;
+      --park-sage: #303629;
+      --hills-sage: #282d22;
+      --civic-amber: #3b3323;
+      --road-highway-core: #827562;
+      --road-primary: #615849;
+      --road-minor: #3f3a30;
+      --ink: #ece4d6;
+      --ink-body: #ece4d6;
+      --ink-muted: #b3a996;
+      --ink-faint: #b3a996;
+      --sheet-top: #25221d;
+      --sheet-mid: #24211c;
+      --sheet-low: #201e19;
+      --sheet-edge: #1d1b17;
+      --texture-clear: rgba(20, 19, 15, 0);
+      --texture-vignette: rgba(0, 0, 0, 0.18);
+      --texture-line: rgba(179, 169, 150, 0.018);
+      --surface-hover: rgba(179, 169, 150, 0.10);
+      --welcome-rule: rgba(179, 169, 150, 0.22);
     }
 
     * {
@@ -55,11 +92,11 @@
       pointer-events: none;
       z-index: 2;
       background:
-        radial-gradient(circle at 65% 50%, rgba(247, 234, 217, 0) 55%, rgba(165, 151, 128, 0.13) 100%),
+        radial-gradient(circle at 65% 50%, var(--texture-clear) 55%, var(--texture-vignette) 100%),
         repeating-linear-gradient(
           0deg,
-          rgba(148, 134, 110, 0.012) 0px,
-          rgba(148, 134, 110, 0.012) 1px,
+          var(--texture-line) 0px,
+          var(--texture-line) 1px,
           transparent 1px,
           transparent 3px
         );
@@ -115,11 +152,11 @@
       border-top-right-radius: 108px;
       background: linear-gradient(
         138deg,
-        #ffffff 0%,
-        #ffffff 42%,
-        #fdf9f2 66%,
-        #f8eee0 86%,
-        #f5e8d6 100%
+        var(--sheet-top) 0%,
+        var(--sheet-top) 42%,
+        var(--sheet-mid) 66%,
+        var(--sheet-low) 86%,
+        var(--sheet-edge) 100%
       );
     }
 
@@ -226,7 +263,7 @@
     }
 
     .dataset-item:hover {
-      background: rgba(148, 134, 110, 0.10);
+      background: var(--surface-hover);
       transform: translateX(3px);
     }
 
@@ -253,7 +290,7 @@
     .welcome-footer {
       margin-top: auto;
       padding-top: 24px;
-      border-top: 1px solid rgba(148, 134, 110, 0.18);
+      border-top: 1px solid var(--welcome-rule);
       display: flex;
       flex-direction: column;
       gap: 12px;

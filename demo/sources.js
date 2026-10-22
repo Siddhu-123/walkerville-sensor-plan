@@ -125,13 +125,14 @@ window.OSP_LIB = {
       html: `<p><b>x-axis:</b> number of sensors in the plan, 1 to 10.<br><b>y-axis:</b> share of detectable growth the plan sees, in the weather case where it does worst.</p>
         <p>Each simulation connects new homes at one manhole (328 manholes × 5 sizes × 5 weather cases = 8,200 runs). A run is <b>detectable</b> when at least one manhole rises 25 mm or more; 3,448 runs are. The plan <b>sees</b> a run when one of its sensors rises 25 mm or more. 100% would mean every detectable run is seen.</p>
         <p>For five sensors the worst case is the dry day: 61% of the 380 detectable dry-day runs are seen. The other 39% only raise the water at manholes without a sensor.</p>
-        <p><b>Black:</b> best set for each size, found by an exact integer program. <b>Dark grey:</b> one sensor at a time (greedy). <b>Light:</b> best of 20 random sets.</p>`,
+        <p><b>Black:</b> best set for each size, found by an exact integer program. <b>Dark grey:</b> Greedy (one at a time). <b>Light:</b> Random (best of 20 sets).</p>`,
       team: { page: 20, quote: "Exact and convex methods can be accurate but do not scale easily; greedy methods are efficient but can be locally suboptimal; evolutionary methods explore more alternatives but cost more computation." },
     },
     beats: {
       title: "Reading this chart",
       html: `<p><b>x-axis:</b> share of detectable growth seen in the worst weather case, same measure as the previous chart.<br><b>y-axis:</b> five ways to pick five sensors.</p>
-        <p><b>Our plan:</b> the best set of five. <b>One at a time:</b> add whichever sensor adds most, five times. <b>Best of 20 random:</b> twenty random sets of five, best kept. <b>Deepest flow today:</b> the five manholes with the deepest normal flow, all on the trunk. <b>Most exposed alone:</b> the five manholes that each see the most growth on their own.</p>`,
+        <p><b>Our plan:</b> the best set of five. <b>Greedy (one at a time):</b> adds whichever sensor raises the score most, five times over. <b>Random (best of 20 sets):</b> twenty random sets of five, keeping the best. <b>Deepest flow today:</b> the five manholes with the deepest normal flow, all on the trunk. <b>Most exposed alone:</b> the five manholes that each see the most growth on their own.</p>
+        <p><b>Why two of them score so low:</b> deepest flow today puts four of its five sensors on 300 mm trunk manholes that already run 118 to 199 mm deep on a dry day. Even 150 new homes raise the level there by at most 19.6 mm, under the 25 mm a sensor needs to notice, and the chart scores each plan on its weakest weather case. Most exposed alone shares four of those five manholes, so it sees almost nothing new. In the workbench, the rule-of-thumb methods (largest catchment; two up, two down) pick the trunk too and stay at 0% up to ten sensors.</p>`,
       team: { page: 13, quote: "The objective is nondecreasing and submodular under the stated conditions, which gives the standard greedy algorithm an approximately 63% lower-bound guarantee relative to the optimum." },
     },
     holdout: {
@@ -163,6 +164,10 @@ window.OSP_LIB = {
     cases: {
       title: "The five weather cases",
       html: `<p>Infiltration into the pipes is not measured yet, so each growth test ran five ways: <b>Dry day</b> (sewage only), <b>Design wet</b> (0.11 L/s per 100 m, the utility's design rating), <b>Storm</b> (0.4 L/s per 100 m), <b>Leaky old pipes</b> (design wet, more in older pipes), and <b>Extra inflow</b> (design wet, outside inflow × 1.5).</p>`,
+    },
+    stress: {
+      title: "Reading this map",
+      html: `<p>Each pipe's ratio is the average water depth at its end manholes divided by its diameter; pipes with no end manhole are faint. Colours show under 25%, 25–50%, 50–75%, 75–100%, and over 100% (surcharged), from pale amber to deep red.</p>`,
     },
     params: {
       title: "Reading this table",

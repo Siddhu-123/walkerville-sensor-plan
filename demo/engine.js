@@ -8,6 +8,12 @@
   "use strict";
   const S = window.OSP_STORY, SCENES = window.OSP_SCENES, LIB = window.OSP_LIB, STATIC = window.OSP_STATIC || {};
   const FACTS = Object.assign({}, S.facts, STATIC);
+  const greedyGaps = S.curves.optimum.map((v, i) => v - S.curves.greedy[i]);
+  const greedyGapMax = Math.max(...greedyGaps);
+  FACTS.greedy_k1_worst = Math.round(100 * S.curves.greedy[4]);
+  FACTS.greedy_gap_k1 = Math.round(100 * greedyGaps[4]);
+  FACTS.greedy_gap_max = Math.round(100 * greedyGapMax);
+  FACTS.greedy_gap_max_at = greedyGaps.indexOf(greedyGapMax) + 1;
   const $ = (id) => document.getElementById(id);
   const canvas = $("stage-canvas"), ctx = canvas.getContext("2d");
   const card = $("card"), sheet = $("sheet") || card, labelsEl = $("labels"), tip = $("tip");
@@ -55,6 +61,21 @@
   const N = S.nodes, nn = N.x.length;
   const CH = S.chambers, nch = CH.length;
   const chIndex = new Map(CH.map((c, i) => [c.id, i]));
+  const chamberAtNode = new Map(CH.map((c, i) => [c.n, i]));
+  function pipeStress(p, c) {
+    const ends = [p.a, p.b].filter((n) => chamberAtNode.has(n));
+    if (!ends.length || !(p.d > 0)) return null;
+    const depth = S.base_depth[String(c)];
+    return ends.reduce((sum, n) => sum + depth[chamberAtNode.get(n)], 0) / ends.length * 1000 / p.d;
+  }
+  const stressRatios = S.cases.map((_, c) => S.pipes.map((p) => pipeStress(p, c)));
+  const stressOrders = stressRatios.map((ratios) => ratios.map((_, i) => i)
+    .sort((a, b) => (ratios[a] ?? -Infinity) - (ratios[b] ?? -Infinity)));
+  const stressWidths = [1, 1.4, 1.8, 2.3, 2.8];
+  const stressBand = (v) => v === null || v < 0.25 ? 0 : v <= 0.5 ? 1 : v <= 0.75 ? 2 : v <= 1 ? 3 : 4;
+  FACTS.stress_half_wet = stressRatios[1].filter((v) => v !== null && v > 0.5).length;
+  FACTS.stress_half_severe = stressRatios[2].filter((v) => v !== null && v > 0.5).length;
+  let stressCase = 1;
   const cover = N.cover.map((v, i) => (v > 0 ? v : N.inv[i] + 2.9));
 
   const pipes = S.pipes.map((p) => {
@@ -151,7 +172,8 @@
     const h = ((gz[a] - zLo) / (zHi - zLo || 1));
     const base = [240 - 14 * h, 229 - 8 * h, 210 - 20 * h];   // the basemap's land tones, cream to sage
     const f = 0.86 + 0.22 * shade;
-    quads.push({ i, j, m, rgb: base.map((c) => Math.min(255, Math.round(c * f))) });
+    quads.push({ i, j, m, rgb: base.map((c) => Math.min(255, Math.round(c * f))),
+      darkRgb: [35 - 5 * h, 33 - 3 * h, 26 - 4 * h].map((c) => Math.round(c * f)) });
   }
 
   // homes on the ground
@@ -169,6 +191,10 @@
     "Design-wet leakage, shifted toward the older pipes.",
     "Design wet, with half as much again arriving from outside the area."];
   const caseIdx = {}; S.cases.forEach((c, i) => { caseIdx[c.label] = i; });
+  const caseRate = (c) => {
+    const rate = c === 0 ? "0" : (c === 2 ? S.facts.ii_severe : S.facts.ii_design).toFixed(2);
+    return `${rate} L/s per 100 m${c === 3 ? ", by pipe age" : c === 4 ? ", outside flow x1.5" : ""}`;
+  };
   const CASE_SHORT = ["Dry day", "Design wet", "Storm", "Leaky old pipes", "Extra inflow"];
 
   // ------------------------------------------------------------------ colour helpers
@@ -182,18 +208,32 @@
     }
     return stops[stops.length - 1][1];
   }
-  const C = { ink: hex("#16130f"), accent: hex("#16130f"), pipe: hex("#2d6a6e"), faint: hex("#c9bfa9"), water: hex("#2c7f95"),
-    growth: hex("#c27a2c"), warn: hex("#b8523b"), alarm: hex("#b8523b"), sur: hex("#7a2a1d"), white: [255, 255, 255], paper: hex("#fbf6ee"), home: hex("#bfae90") };
-  const AGE = [[0, hex("#16130f")], [0.35, hex("#2d6a6e")], [0.7, hex("#79a59f")], [1, hex("#b9d0c8")]];
-  const RISE = [[0, hex("#ecd39a")], [0.3, hex("#d39a45")], [0.6, hex("#b8523b")], [1, hex("#6e2417")]];
+  // CSS is the shared palette for canvas marks, legend swatches and inline charts.
+  const C = {}, AGE = [], RISE = [], sizes = [], pipeCols = {};
+  let darkTheme = false;
+  const SIZE = (d) => sizes[d <= 150 ? 0 : d <= 225 ? 1 : d <= 300 ? 2 : 3];
   const riseCol = (mm) => ramp(RISE, Math.log(1 + mm) / Math.log(1 + 80));
-  const SIZE = (d) => (d <= 150 ? hex("#a9c7bf") : d <= 225 ? hex("#5f9690") : d <= 300 ? hex("#2d6a6e") : hex("#123a3d"));
-  const pipeCols = {
-    plain: pipes.map(() => C.pipe),
-    age: pipes.map((p) => ramp(AGE, ((p.y || 1950) - 1896) / (2010 - 1896))),
-    size: pipes.map((p) => SIZE(p.d)),
-    path: pipes.map((p) => (p.onPath ? C.accent : C.faint)),
-  };
+  function updateStressColours() {
+    const colours = [C.faint, mix(RISE[0][1], RISE[1][1], 0.5), RISE[1][1], RISE[2][1], RISE[3][1]];
+    pipeCols.stress = stressRatios[stressCase].map((v) => colours[stressBand(v)]);
+  }
+  function updatePalette() {
+    darkTheme = document.documentElement.dataset.theme === "dark";
+    const css = getComputedStyle(document.documentElement);
+    const colour = (token) => hex(css.getPropertyValue("--" + token).trim());
+    for (const [key, token] of Object.entries({ ink: "canvas-ink", accent: "canvas-ink", pipe: "teal",
+      faint: "canvas-faint", water: "water", growth: "amber", warn: "rust", alarm: "rust", sur: "canvas-sur",
+      white: "canvas-white", paper: "canvas-paper", home: "canvas-home", trunk: "canvas-trunk", rain: "canvas-rain" })) C[key] = colour(token);
+    AGE.splice(0, AGE.length, ...[0, 0.35, 0.7, 1].map((t, i) => [t, colour("age-" + i)]));
+    RISE.splice(0, RISE.length, ...[0, 0.3, 0.6, 1].map((t, i) => [t, colour("rise-" + i)]));
+    sizes.splice(0, sizes.length, ...[0, 1, 2, 3].map((i) => colour("size-" + i)));
+    pipeCols.plain = pipes.map(() => C.pipe);
+    pipeCols.age = pipes.map((p) => ramp(AGE, ((p.y || 1950) - 1896) / (2010 - 1896)));
+    pipeCols.size = pipes.map((p) => SIZE(p.d));
+    pipeCols.path = pipes.map((p) => p.onPath ? C.accent : C.faint);
+    updateStressColours();
+  }
+  updatePalette();
 
   // ------------------------------------------------------------------ camera
   const cam = { x: (bx0 + bx1) / 2, y: (by0 + by1) / 2, z: zMid, zoom: 0.2, pitch: 0, bearing: 0, ve: 0, D: 9000, sx: 0, sy: 0 };
@@ -299,7 +339,10 @@
     try {
       gl = new maplibregl.Map({ container: mapEl, style: buildMapStyle(), interactive: false, attributionControl: false,
         maxPitch: 85, fadeDuration: 0, center: [138.578, -34.922], zoom: 12.15 });
-      gl.on("load", () => { glReady = true; glKey = ""; });
+      gl.on("load", () => {
+        glReady = true; glKey = "";
+        window.applyBasemapTheme(document.documentElement.dataset.theme || "light", gl);
+      });
     } catch (e) { gl = null; }   // no WebGL: the overlay still tells the story on the cream ground
   }
   function syncMap() {
@@ -367,7 +410,7 @@
     ctx.lineWidth = 1; ctx.lineJoin = "round";
     const alpha = L.terrain * 0.62 * (1 - flat);
     for (const s of q) {
-      const t = s[9], col = rgba(t.rgb, alpha * t.m);
+      const t = s[9], col = rgba(darkTheme ? t.darkRgb : t.rgb, alpha * t.m);
       ctx.fillStyle = col; ctx.strokeStyle = col;
       ctx.beginPath(); ctx.moveTo(s[0], s[1]); ctx.lineTo(s[2], s[3]); ctx.lineTo(s[4], s[5]); ctx.lineTo(s[6], s[7]); ctx.closePath();
       ctx.fill(); ctx.stroke();
@@ -390,29 +433,32 @@
     const R = reveal * (maxOut + 400);
     const prev = pipeCols[fx.prevStyle], cur = pipeCols[fx.style], m = fx.styleMix;
     ctx.lineCap = "round"; ctx.lineJoin = "round";
-    const pathMode = fx.style === "path";
+    const pathMode = fx.style === "path", stressMode = fx.style === "stress";
+    const order = stressMode ? stressOrders[stressCase] : null;
+    const widthMul = (i) => stressMode ? 1 + (stressWidths[stressBand(stressRatios[stressCase][i])] - 1) * m : 1;
     // a paper casing first, so the network reads apart from the basemap's streets
     if (L.basemap > 0.05) {
       ctx.strokeStyle = rgba(C.paper, 0.8 * L.pipes * Math.min(1, L.basemap * 1.6));
-      for (let i = 0; i < pipes.length; i++) {
-        const p = pipes[i];
+      for (let j = 0; j < pipes.length; j++) {
+        const i = order ? order[j] : j, p = pipes[i];
         if (reveal < 1 && R - p.dOut < 0) continue;
-        ctx.lineWidth = pipeWidth(p, zs) * (pathMode && p.onPath ? 2 : 1) + 2.4;
+        ctx.lineWidth = pipeWidth(p, zs) * (pathMode && p.onPath ? 2 : 1) * widthMul(i) + 2.4;
         ctx.beginPath();
         for (let v = 0; v < p.n; v++) { P(p.xs[v], p.ys[v], p.zs[v]); v ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1]); }
         ctx.stroke();
       }
     }
     for (let pass = 0; pass < (pathMode ? 2 : 1); pass++) {
-      for (let i = 0; i < pipes.length; i++) {
-        const p = pipes[i];
+      for (let j = 0; j < pipes.length; j++) {
+        const i = order ? order[j] : j, p = pipes[i];
         if (pathMode && (pass === 0) === p.onPath) continue;
         let a = L.pipes;
+        if (fx.style === "stress" && stressRatios[stressCase][i] === null) a *= 0.18;
         if (reveal < 1) a *= Math.max(0, Math.min(1, (R - p.dOut) / 380));
         if (a < 0.01) continue;
         const col = m >= 1 ? cur[i] : mix(prev[i], cur[i], m);
         ctx.strokeStyle = rgba(col, a * 0.95);
-        ctx.lineWidth = pipeWidth(p, zs) * (pathMode && p.onPath ? 2 : 1);
+        ctx.lineWidth = pipeWidth(p, zs) * (pathMode && p.onPath ? 2 : 1) * widthMul(i);
         ctx.beginPath();
         for (let v = 0; v < p.n; v++) { P(p.xs[v], p.ys[v], p.zs[v]); v ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1]); }
         ctx.stroke();
@@ -554,7 +600,7 @@
         ctx.fillStyle = rgba(C.accent, al); ctx.font = "700 10px Inter, system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText(String(k + 6), x, y + 0.5);
       } else {
-        ctx.fillStyle = rgba([143, 130, 112], al * 0.9); ctx.strokeStyle = rgba(C.white, al); ctx.lineWidth = 2;
+        ctx.fillStyle = rgba(C.trunk, al * 0.9); ctx.strokeStyle = rgba(C.white, al); ctx.lineWidth = 2;
         ctx.beginPath(); ctx.rect(x - 6.5, y - 6.5, 13, 13); ctx.fill(); ctx.stroke();
       }
     });
@@ -568,7 +614,7 @@
 
   const drops = Array.from({ length: 140 }, () => [Math.random(), Math.random(), 0.6 + Math.random() * 0.8]);
   function drawRain(now) {
-    ctx.strokeStyle = rgba([70, 100, 110], 0.26 * L.rain); ctx.lineWidth = 1;
+    ctx.strokeStyle = rgba(C.rain, 0.26 * L.rain); ctx.lineWidth = 1;
     ctx.beginPath();
     for (const d of drops) {
       const y = ((d[1] + now / 1000 * 0.55 * d[2]) % 1) * (H + 40) - 20, x = d[0] * W + y * 0.12;
@@ -652,15 +698,16 @@
 
   function legendHtml(key) {
     const L1 = {
-      plan1: `<span class="key"><i style="background:#16130f"></i>Recommended sensor</span><span class="key"><i style="background:#fff;border:1.5px solid #6e675d"></i>Manhole in the model</span>`,
-      plan: `<span class="key"><i style="background:#16130f"></i>Sensor, phase 1</span><span class="key"><i class="ring"></i>Phase 2</span>`,
-      age: `<div class="ramp">1896<i style="background:linear-gradient(90deg,#16130f,#2d6a6e,#79a59f,#b9d0c8)"></i>2010</div><span class="key"><i style="background:#bfae90;border-radius:2px"></i>Connected property</span>`,
-      flow: `<span class="key"><i class="line" style="background:#2c7f95"></i>Sewage, moving downhill</span><span class="key"><i style="background:#fff;border:1.5px solid #6e675d"></i>Manhole in the model</span>`,
-      resp: `<div class="ramp">2 mm<i style="background:linear-gradient(90deg,#ecd39a,#d39a45,#b8523b,#6e2417)"></i>80 mm rise</div><span class="key"><i style="background:#c27a2c"></i>New homes connect here</span><span class="key"><i style="background:#d39a45;border:1.5px solid #16130f"></i>Rises 25 mm or more</span>`,
-      alarm: `<span class="key"><i style="background:#b8523b"></i>Over the 150 mm alarm already</span><span class="key"><i style="background:#7a2a1d"></i>Pipe running full</span>`,
-      beats: `<span class="key"><i style="background:#16130f"></i>Our five</span><span class="key"><i style="background:#8f8270;border-radius:2px"></i>Five with the deepest flow today</span>`,
-      size: `<span class="key"><i class="line" style="background:#a9c7bf"></i>150 mm</span><span class="key"><i class="line" style="background:#5f9690"></i>225 mm</span><span class="key"><i class="line" style="background:#2d6a6e"></i>300 mm</span><span class="key"><i class="line" style="background:#123a3d"></i>Larger</span>`,
-      water: `<span class="key"><i class="line" style="background:#2c7f95"></i>Normal water depth at each manhole (bar height)</span><span class="key"><i class="line" style="background:#7a2a1d"></i>Pipe running full</span>`,
+      plan1: `<span class="key"><i style="background:var(--canvas-ink)"></i>Recommended sensor</span><span class="key"><i style="background:var(--canvas-white);border:1.5px solid var(--ink-muted)"></i>Manhole in the model</span>`,
+      plan: `<span class="key"><i style="background:var(--canvas-ink)"></i>Sensor, phase 1</span><span class="key"><i class="ring"></i>Phase 2</span>`,
+      age: `<div class="ramp">1896<i style="background:linear-gradient(90deg,var(--canvas-ink),var(--teal),var(--age-2),var(--age-3))"></i>2010</div><span class="key"><i style="background:var(--canvas-home);border-radius:2px"></i>Connected property</span>`,
+      flow: `<span class="key"><i class="line" style="background:var(--water)"></i>Sewage, moving downhill</span><span class="key"><i style="background:var(--canvas-white);border:1.5px solid var(--ink-muted)"></i>Manhole in the model</span>`,
+      resp: `<div class="ramp">2 mm<i style="background:linear-gradient(90deg,var(--rise-0),var(--rise-1),var(--rust),var(--rise-3))"></i>80 mm rise</div><span class="key"><i style="background:var(--amber)"></i>New homes connect here</span><span class="key"><i style="background:var(--rise-1);border:1.5px solid var(--canvas-ink)"></i>Rises 25 mm or more</span>`,
+      stress: `<b>How full each pipe runs</b>${["Under 25%", "25–50%", "50–75%", "75–100%", "Over 100% (surcharged)"].map((label, i) => `<span class="key"><i class="line" style="background:${["var(--canvas-faint)", "color-mix(in srgb, var(--rise-0), var(--rise-1))", "var(--rise-1)", "var(--rise-2)", "var(--rise-3)"][i]}"></i>${label}</span>`).join("")}`,
+      alarm: `<span class="key"><i style="background:var(--rust)"></i>Over the 150 mm alarm already</span><span class="key"><i style="background:var(--canvas-sur)"></i>Pipe running full</span>`,
+      beats: `<span class="key"><i style="background:var(--canvas-ink)"></i>Our five</span><span class="key"><i style="background:var(--canvas-trunk);border-radius:2px"></i>Five with the deepest flow today</span>`,
+      size: `<span class="key"><i class="line" style="background:var(--size-0)"></i>150 mm</span><span class="key"><i class="line" style="background:var(--size-1)"></i>225 mm</span><span class="key"><i class="line" style="background:var(--teal)"></i>300 mm</span><span class="key"><i class="line" style="background:var(--size-3)"></i>Larger</span>`,
+      water: `<span class="key"><i class="line" style="background:var(--water)"></i>Normal water depth at each manhole (bar height)</span><span class="key"><i class="line" style="background:var(--canvas-sur)"></i>Pipe running full</span>`,
     };
     return key ? `<div class="legend">${L1[key] || ""}</div>` : "";
   }
@@ -677,15 +724,15 @@
     for (let k = 1; k <= K; k++) g += `<text x="${X(k)}" y="${h - b + 18}" text-anchor="middle">${k}</text>`;
     g += `<text x="${(l + w - r) / 2}" y="${h - 8}" text-anchor="middle">Number of sensors</text>`;
     g += `<text transform="translate(12 ${(t + h - b) / 2}) rotate(-90)" text-anchor="middle">Growth seen, worst weather case</text>`;
-    g += `<path class="draw" style="--len:${len}" d="${line(S.curves.random)}" fill="none" stroke="#d3c7b1" stroke-width="2"/>`;
-    g += `<path class="draw" style="--len:${len}" d="${line(S.curves.greedy)}" fill="none" stroke="#9a8d78" stroke-width="2" stroke-dasharray="0"/>`;
-    g += `<path class="draw" style="--len:${len}" d="${line(S.curves.optimum)}" fill="none" stroke="#16130f" stroke-width="3"/>`;
-    g += `<g class="pop"><line x1="${X(k1)}" x2="${X(k1)}" y1="${Y(0)}" y2="${Y(v1)}" stroke="#16130f" stroke-dasharray="3 3"/>`;
-    S.curves.optimum.forEach((v, i) => { g += `<circle cx="${X(i + 1)}" cy="${Y(v)}" r="${i + 1 === k1 ? 5 : 2.6}" fill="#16130f" stroke="#fff" stroke-width="1.5"/>`; });
+    g += `<path class="draw" style="--len:${len}" d="${line(S.curves.random)}" fill="none" stroke="var(--chart-random)" stroke-width="2"/>`;
+    g += `<path class="draw" style="--len:${len}" d="${line(S.curves.greedy)}" fill="none" stroke="var(--chart-greedy)" stroke-width="2" stroke-dasharray="0"/>`;
+    g += `<path class="draw" style="--len:${len}" d="${line(S.curves.optimum)}" fill="none" stroke="var(--canvas-ink)" stroke-width="3"/>`;
+    g += `<g class="pop"><line x1="${X(k1)}" x2="${X(k1)}" y1="${Y(0)}" y2="${Y(v1)}" stroke="var(--canvas-ink)" stroke-dasharray="3 3"/>`;
+    S.curves.optimum.forEach((v, i) => { g += `<circle cx="${X(i + 1)}" cy="${Y(v)}" r="${i + 1 === k1 ? 5 : 2.6}" fill="var(--canvas-ink)" stroke="var(--canvas-white)" stroke-width="1.5"/>`; });
     g += `<text class="val" x="${X(k1) + 8}" y="${Y(v1) + 16}">${pctTxt(v1)}</text>`;
-    g += `<text x="${X(K) - 2}" y="${Y(S.curves.optimum[K - 1]) - 9}" text-anchor="end" style="fill:#16130f;font-weight:600">Best possible (proven)</text>`;
-    g += `<text x="${X(K - 2)}" y="${Y(S.curves.greedy[K - 3]) + 16}" text-anchor="middle">One at a time</text>`;
-    g += `<text x="${X(K) - 2}" y="${Y(S.curves.random[K - 1]) + 15}" text-anchor="end">Best of 20 random</text></g>`;
+    g += `<text x="${X(K) - 2}" y="${Y(S.curves.optimum[K - 1]) - 9}" text-anchor="end" style="fill:var(--canvas-ink);font-weight:600">Best possible (proven)</text>`;
+    g += `<text x="${X(K) - 2}" y="${Y(Math.min(...S.curves.greedy.slice(-4))) + 14}" text-anchor="end">Greedy (one at a time)</text>`;
+    g += `<text x="${X(K) - 2}" y="${Y(Math.min(...S.curves.random.slice(-5))) + 15}" text-anchor="end">Random (best of 20 sets)</text></g>`;
     return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Share of growth seen in the worst weather case, by number of sensors">${g}</svg>`;
   }
   function chartAxis(l, r, y, title, w) {
@@ -695,7 +742,7 @@
     }).join("") + `<text x="${w / 2}" y="${y + 43}" text-anchor="middle">${title}</text>`;
   }
   function chartBars(rows, max) {
-    const w = 380, rh = 30, l = 150, t = 26, y0 = t + rows.length * rh, h = y0 + 52;
+    const w = 380, rh = 30, l = 174, t = 26, y0 = t + rows.length * rh, h = y0 + 52;
     let g = `<text x="0" y="12">Plan (five sensors each)</text>`;
     rows.forEach((row, i) => {
       const y = t + i * rh + 4, bw = (w - l - 44) * row.v / (max || 1);
@@ -709,11 +756,11 @@
   function chartBeats() {
     const k = FACTS.plan_k1 - 1, c = S.curves;
     return chartBars([
-      { label: "Our plan", v: c.optimum[k], col: "#16130f" },
-      { label: "One at a time", v: c.greedy[k], col: "#9a8d78" },
-      { label: "Best of 20 random", v: c.random[k], col: "#cbbfa8" },
-      { label: "Deepest flow today", v: c.trunk[k], col: "#cbbfa8" },
-      { label: "Most exposed alone", v: c.exposed[k], col: "#cbbfa8" },
+      { label: "Our plan", v: c.optimum[k], col: "var(--canvas-ink)" },
+      { label: "Greedy (one at a time)", v: c.greedy[k], col: "var(--chart-greedy)" },
+      { label: "Random (best of 20 sets)", v: c.random[k], col: "var(--chart-other)" },
+      { label: "Deepest flow today", v: c.trunk[k], col: "var(--chart-other)" },
+      { label: "Most exposed alone", v: c.exposed[k], col: "var(--chart-other)" },
     ], 1);
   }
   function chartHoldout() {
@@ -723,26 +770,26 @@
       const y = t + i * rh + 2, a = row["seen_k" + k], b = row["unseen_k" + k], sc = (w - l - 44);
       const name = CASE_SHORT[i];
       g += `<text class="lab" x="0" y="${y + 17}">${name}</text>`;
-      g += `<rect class="bar" style="transition-delay:${0.1 + i * 0.1}s" x="${l}" y="${y + 4}" width="${sc * a}" height="12" rx="2" fill="#16130f"/>`;
+      g += `<rect class="bar" style="transition-delay:${0.1 + i * 0.1}s" x="${l}" y="${y + 4}" width="${sc * a}" height="12" rx="2" fill="var(--canvas-ink)"/>`;
       g += `<text class="val pop" x="${l + sc * a + 5}" y="${y + 14}">${pctTxt(a)}</text>`;
-      g += `<rect class="bar" style="transition-delay:${0.2 + i * 0.1}s" x="${l}" y="${y + 19}" width="${Math.max(2, sc * b)}" height="12" rx="2" fill="${b < a - 0.05 ? "#b8523b" : "#cbbfa8"}"/>`;
-      g += `<text class="val pop" x="${l + Math.max(2, sc * b) + 5}" y="${y + 29}" style="fill:${b < a - 0.05 ? "#b8523b" : "#6e675d"}">${pctTxt(b)}</text>`;
+      g += `<rect class="bar" style="transition-delay:${0.2 + i * 0.1}s" x="${l}" y="${y + 19}" width="${Math.max(2, sc * b)}" height="12" rx="2" fill="${b < a - 0.05 ? "var(--rust)" : "var(--chart-other)"}"/>`;
+      g += `<text class="val pop" x="${l + Math.max(2, sc * b) + 5}" y="${y + 29}" style="fill:${b < a - 0.05 ? "var(--rust)" : "var(--ink-muted)"}">${pctTxt(b)}</text>`;
     });
     const y0 = t + S.held_out.length * rh, h = y0 + 52;
     g += chartAxis(l, w - 44, y0, "Share of that case’s detectable growth seen (five sensors)", w);
     return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Share of detectable growth seen for each weather case left out">${g}</svg>
-      <div class="legend"><span class="key"><i style="background:#16130f;border-radius:2px"></i>Planned with this case</span><span class="key"><i style="background:#b8523b;border-radius:2px"></i>Planned without it (grey: no change)</span></div>`;
+      <div class="legend"><span class="key"><i style="background:var(--canvas-ink);border-radius:2px"></i>Planned with this case</span><span class="key"><i style="background:var(--rust);border-radius:2px"></i>Planned without it (grey: no change)</span></div>`;
   }
   function gaugeHtml() {
     return `<div class="gauge"><svg viewBox="0 0 120 170" aria-hidden="true">
-      <rect x="30" y="4" width="60" height="150" rx="3" fill="#fbf6ee" stroke="#9a8d78" stroke-width="2"/>
-      <rect x="4" y="132" width="112" height="24" rx="12" fill="#fff" stroke="#9a8d78" stroke-width="2"/>
-      <rect id="gW" x="31" y="156" width="58" height="0" fill="#2c7f95" opacity=".85"/>
-      <line id="gR" x1="22" x2="98" y1="0" y2="0" stroke="#16130f" stroke-width="1.6" stroke-dasharray="4 3"/>
-      <line id="gA" x1="22" x2="98" y1="0" y2="0" stroke="#b8523b" stroke-width="1.6" stroke-dasharray="4 3"/>
-      <text id="gRt" x="100" y="0" font-size="9" fill="#16130f" font-weight="700">+${FACTS.rise_focus_mm}</text>
-      <text id="gAt" x="100" y="0" font-size="9" fill="#b8523b" font-weight="700">${FACTS.alarm_mm}</text>
-      <rect x="36" y="2" width="48" height="5" rx="2" fill="#6e675d"/></svg>
+      <rect x="30" y="4" width="60" height="150" rx="3" fill="var(--canvas-paper)" stroke="var(--chart-greedy)" stroke-width="2"/>
+      <rect x="4" y="132" width="112" height="24" rx="12" fill="var(--canvas-white)" stroke="var(--chart-greedy)" stroke-width="2"/>
+      <rect id="gW" x="31" y="156" width="58" height="0" fill="var(--water)" opacity=".85"/>
+      <line id="gR" x1="22" x2="98" y1="0" y2="0" stroke="var(--canvas-ink)" stroke-width="1.6" stroke-dasharray="4 3"/>
+      <line id="gA" x1="22" x2="98" y1="0" y2="0" stroke="var(--rust)" stroke-width="1.6" stroke-dasharray="4 3"/>
+      <text id="gRt" x="100" y="0" font-size="9" fill="var(--canvas-ink)" font-weight="700">+${FACTS.rise_focus_mm}</text>
+      <text id="gAt" x="100" y="0" font-size="9" fill="var(--rust)" font-weight="700">${FACTS.alarm_mm}</text>
+      <rect x="36" y="2" width="48" height="5" rx="2" fill="var(--ink-muted)"/></svg>
       <div class="read" id="gRead"></div></div>`;
   }
 
@@ -909,7 +956,7 @@
     const { list, hit } = seenBy(site, c, phase1);
     const n25 = list.filter((t) => t[1] >= FACTS.rise_focus_mm).length;
     const top = list[0];
-    let s = `<b>${S.focus_size} new homes at manhole ${CH[site].id}</b> (${CASE_SHORT[c].toLowerCase()}): `;
+    let s = `<b>${S.focus_size} new homes at manhole ${CH[site].id}</b> (${CASE_SHORT[c].toLowerCase()}, ${caseRate(c)}): `;
     if (!n25) return s + `no manhole rises ${FACTS.rise_focus_mm} mm${top ? `; the largest rise is ${top[1]} mm` : ""}. Growth this small here is not detectable by any sensor, so it does not count against the plan.`;
     s += `${n25} manhole${n25 > 1 ? "s" : ""} rise ${FACTS.rise_focus_mm} mm or more. `;
     if (hit.length) s += `<b class="hit">Seen by sensor ${phase1.indexOf(hit[0][0]) + 1}</b> (+${hit[0][1]} mm).`;
@@ -974,11 +1021,20 @@
         card.querySelectorAll(".seg button").forEach((b) => b.classList.toggle("on", +b.dataset.case === c));
         const ro = $("readout");
         const b = S.base_alarm[String(c)].length, s = S.base_surcharged[String(c)].length;
-        if (ro) ro.innerHTML = `<span class="casepill">${CASE_SHORT[c]}</span> ${CASE_NOTE[c]}<br><b>${b}</b> manholes over the ${FACTS.alarm_mm} mm alarm and <b>${s}</b> pipes running full, before any new home connects.`;
+        if (ro) ro.innerHTML = `<span class="casepill">${CASE_SHORT[c]}</span> ${caseRate(c)}. ${CASE_NOTE[c]}<br><b>${b}</b> manholes over the ${FACTS.alarm_mm} mm alarm and <b>${s}</b> pipes running full, before any new home connects.`;
       };
       show(0);
       every(() => show(order[++k % order.length]), 2600);
       card.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => { clearTimers(); show(+b.dataset.case); }));
+    },
+    stress() {
+      const show = (c) => {
+        stressCase = c; updateStressColours();
+        card.querySelectorAll(".seg button").forEach((b) => b.classList.toggle("on", +b.dataset.case === c));
+        $("readout").innerHTML = `<span class="casepill">${CASE_SHORT[c]}</span> ${caseRate(c)}`;
+      };
+      show(1);
+      card.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => show(+b.dataset.case)));
     },
     beats() { setLabels([{ ch: trunk[0], html: "Deepest flow today", cls: "quiet", dy: -6 }, { ch: phase1[0], html: "Our plan", cls: "accent", dy: -8 }]); },
     tryit() {
@@ -1033,7 +1089,7 @@
         fx.waterCase = c; L.rain = 0; LT.rain = c === 2 ? 1 : c === 1 ? 0.45 : 0;
         card.querySelectorAll(".seg button").forEach((b) => b.classList.toggle("on", +b.dataset.case === c));
         const ro = $("readout");
-        if (ro) ro.innerHTML = `<span class="casepill">${CASE_SHORT[c]}</span> ${CASE_NOTE[c]} <b>${S.base_surcharged[String(c)].length}</b> pipes running full before any growth.`;
+        if (ro) ro.innerHTML = `<span class="casepill">${CASE_SHORT[c]}</span> ${caseRate(c)}. ${CASE_NOTE[c]} <b>${S.base_surcharged[String(c)].length}</b> pipes running full before any growth.`;
       };
       show(0); every(() => show(order[++k % order.length]), 3200);
       card.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => { clearTimers(); show(+b.dataset.case); }));
@@ -1117,12 +1173,39 @@
       b.classList.toggle("cur", cur >= a.first && cur < a.first + a.n);
     });
   }
+  const themeButton = $("theme-toggle");
+  function updateThemeButton() {
+    const dark = document.documentElement.dataset.theme === "dark";
+    themeButton.textContent = dark ? "Light" : "Dark";
+    themeButton.setAttribute("aria-pressed", String(dark));
+  }
+  function toggleTheme() {
+    const theme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    if (theme === "dark") document.documentElement.dataset.theme = "dark";
+    else document.documentElement.removeAttribute("data-theme");
+    try { localStorage.setItem("walkerville-theme", theme); } catch (e) { /* Keep the session choice. */ }
+    document.dispatchEvent(new CustomEvent("themechange", { detail: { theme } }));
+  }
+  themeButton.addEventListener("click", toggleTheme);
+  document.addEventListener("themechange", () => {
+    updatePalette();
+    updateThemeButton();
+    if (glReady) window.applyBasemapTheme(document.documentElement.dataset.theme || "light");
+    draw(performance.now());
+  });
+  updateThemeButton();
+  document.addEventListener("keydown", (e) => {
+    if (e.defaultPrevented || e.repeat || e.isComposing || e.ctrlKey || e.metaKey || e.altKey || e.key.toLowerCase() !== "t") return;
+    const focused = document.activeElement;
+    if (focused && (focused.isContentEditable || focused.closest("input, textarea, select, [role=textbox]"))) return;
+    e.preventDefault(); toggleTheme();
+  });
   $("prev").addEventListener("click", () => enter(cur - 1));
   $("next").addEventListener("click", () => enter(cur + 1));
   document.addEventListener("keydown", (e) => {
     if (e.target.closest && e.target.closest("input, select, textarea, .source-card")) return;
     const k = e.key;
-    if ((k === " " || k === "Enter") && e.target.closest && e.target.closest("a, [role=button]")) return;
+    if ((k === " " || k === "Enter") && e.target.closest && e.target.closest("a, [role=button], #theme-toggle")) return;
     if (["ArrowRight", "ArrowDown", "PageDown", " "].includes(k)) { e.preventDefault(); enter(cur + 1); }
     else if (["ArrowLeft", "ArrowUp", "PageUp"].includes(k)) { e.preventDefault(); enter(cur - 1); }
     else if (k === "Home") enter(0);

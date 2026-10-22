@@ -4,12 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Walkerville Sensor Plan</title>
+  <script>
+    try {
+      if (localStorage.getItem("walkerville-theme") === "dark") document.documentElement.dataset.theme = "dark";
+    } catch (e) { /* Storage may be unavailable. Light remains the default. */ }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="vendor/maplibre-gl.css" />
-  <link rel="stylesheet" href="demo/welcome.css" />
-  <link rel="stylesheet" href="demo/demo.css" />
+  <link rel="stylesheet" href="demo/welcome.css?v=20261022-theme1" />
+  <link rel="stylesheet" href="demo/demo.css?v=20261022-items2" />
 </head>
 <body class="is-welcome">
   <div id="loading">Loading Walkerville…</div>
@@ -21,6 +26,7 @@
     <div id="labels"></div>
   </div>
 
+  <a class="nav" id="simulation-tool" href="https://abrahampaulj.github.io/gravity-sewer-osp/simulation25/index.html" target="_blank" rel="noopener">Open the simulation tool <span aria-hidden="true">↗</span></a>
   <div id="source">Walkerville sample network · EPA SWMM · Simulation 2.5 · Basemap © OpenStreetMap contributors, © CARTO</div>
   <div id="furniture" aria-hidden="true">
     <div id="scale"><i></i><span></span></div>
@@ -42,6 +48,7 @@
       <div class="bar-row">
         <span id="actname"></span>
         <span id="count"></span>
+        <button class="nav" id="theme-toggle" type="button" aria-label="Dark theme" aria-pressed="false" aria-keyshortcuts="t">Dark</button>
         <button class="nav" id="prev" type="button" aria-label="Previous"><svg viewBox="0 0 16 16"><path d="M10 3 L5 8 L10 13" /></svg></button>
         <button class="nav" id="next" type="button" aria-label="Next"><svg viewBox="0 0 16 16"><path d="M6 3 L11 8 L6 13" /></svg></button>
       </div>
@@ -52,10 +59,10 @@
 
   <script src="vendor/maplibre-gl.js"></script>
   <script src="demo/basemap-data.js"></script>
-  <script src="demo/basemap.js"></script>
+  <script src="demo/basemap.js?v=20261022-theme1"></script>
   <script src="demo/story-data.js"></script>
-  <script src="demo/sources.js"></script>
-  <script src="demo/scenes.js"></script>
-  <script src="demo/engine.js"></script>
+  <script src="demo/sources.js?v=20261022-items2"></script>
+  <script src="demo/scenes.js?v=20261022-items2"></script>
+  <script src="demo/engine.js?v=20261022-stress1"></script>
 </body>
 </html>
