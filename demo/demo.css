@@ -166,6 +166,17 @@ body.is-welcome .card { justify-content: space-between; max-width: none; }
   transition: opacity .2s ease, transform .2s ease; }
 .dataset-item[data-go]:hover .dataset-go, .dataset-item[data-go]:focus-visible .dataset-go { opacity: 1; transform: none; }
 .welcome-hint { margin-top: 18px; font-size: 11.5px; color: var(--ink-faint); }
+/* start page: project topic and a single Start button */
+.welcome-kicker { margin-bottom: 14px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
+.welcome-heading.welcome-topic { font-size: clamp(26px, 2.5vw, 36px); line-height: 1.12; }
+.welcome-start { display: flex; align-items: center; gap: 14px; margin-top: 28px; }
+.welcome-start .welcome-hint { margin: 0; }
+.start-btn { display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px 12px 18px; border: 0; border-radius: 999px;
+  background: var(--ink); color: var(--paper); font-family: inherit; font-size: 15px; font-weight: 500; line-height: 1; cursor: pointer;
+  transition: transform .18s var(--ease), opacity .18s var(--ease); }
+.start-btn svg { width: 12px; height: 12px; fill: currentColor; }
+.start-btn:hover { transform: translateY(-1px); opacity: .88; }
+.start-btn:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
 
 /* story type: the welcome page's scale, one step down */
 .kicker { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; margin: 0 0 14px;

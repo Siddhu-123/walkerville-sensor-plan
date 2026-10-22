@@ -36,22 +36,17 @@ window.OSP_SCENES = [
     id: "welcome", welcome: true, act: "", view: "region", fx: "welcome", ms: 2400,
     show: { basemap: 1 },
     html: `<div class="welcome-top">
-        <h1 class="welcome-heading">Welcome</h1>
-        <div class="welcome-subheading">SA Water</div>
-        <p class="welcome-greeting">A walk-through of the <strong>Optimal Sensor Placement for Wastewater Network Monitoring</strong> capstone: where we would put sensors to watch infill growth, how we found those places, and what still waits on SA Water's data.</p>
-        <div class="dataset-section">
-          <h2 class="dataset-title">Choose dataset</h2>
-          <ul class="dataset-list">
-            <li class="dataset-item" data-go tabindex="0"><span class="dataset-bullet"></span><span>Walkerville</span><span class="dataset-meta">{{pipes_total}} pipes · {{manholes_published}} manholes</span><span class="dataset-go" aria-hidden="true">→</span></li>
-            <li class="dataset-item active"><span class="dataset-bullet" style="opacity:.35"></span><span style="color:var(--ink-muted);font-size:13.5px">Greater Adelaide Overview</span></li>
-          </ul>
-          <p class="welcome-hint">Choose Walkerville, or press → to begin</p>
+        <div class="welcome-kicker">Adelaide University · SA Water</div>
+        <h1 class="welcome-heading welcome-topic">Optimal sensor placement for wastewater network monitoring</h1>
+        <p class="welcome-greeting">New homes keep connecting to sewers that were never sized for them. We work out how many level sensors a network needs, and where, so growth shows before it causes an overflow. Tested on the Walkerville sewer network.</p>
+        <div class="welcome-start">
+          <button class="start-btn" type="button" data-go><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5 L10.5 6 L3 10.5 Z" /></svg>Start</button>
+          <span class="welcome-hint">or press →</span>
         </div>
       </div>
       <footer class="welcome-footer">
-        <div class="meta-block"><span class="meta-label">Adelaide University · Capstone PG-S2-22</span><span class="meta-value">Optimal Sensor Placement for Wastewater Network Monitoring</span></div>
         <div class="meta-block"><span class="meta-label">SA Water &amp; Academic Supervision</span><span class="meta-value">Vineeth Maruvada &amp; Adel (SA Water) · Karamjit Kaur (Supervisor)</span></div>
-        <div class="meta-block"><span class="meta-label">Project Team</span><div class="team-grid"><span>Abraham Paul Jaison</span><span>Ashis Jose Kalathil</span><span>Rijoy John</span><span>Satya Siddhartha Balanagu</span><span>Wimukthi Rajapaksha</span></div></div>
+        <div class="meta-block"><span class="meta-label">Project Team · Capstone PG-S2-22</span><div class="team-grid"><span>Abraham Paul Jaison</span><span>Ashis Jose Kalathil</span><span>Rijoy John</span><span>Satya Siddhartha Balanagu</span><span>Wimukthi Rajapaksha</span></div></div>
       </footer>`,
   },
 
