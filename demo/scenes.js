@@ -251,6 +251,21 @@ window.OSP_SCENES = [
       </ol>`,
   },
   {
+    id: "data", act: "How we found it", view: "all",
+    show: { terrain: 1, pipes: 0.9, chambers: 0.8, homes: 0.7 },
+    kicker: "The dataset",
+    title: "Built entirely from public data",
+    html: `<p>SA Water's own network data is still awaiting release approval (PG-S2-22 2026), so the Walkerville model is built from layers anyone can query.</p>
+      <div class="params src">
+        <div><span class="k">Sewer pipes and manholes</span><span class="v">Town of Walkerville 2021</span><span class="s">SA Water's sewer records as republished by the council: {{pipes_total}} gravity mains with pipe-floor levels, size, material and flow direction, and {{manholes_published}} manholes.</span></div>
+        <div><span class="k">Connected homes</span><span class="v">Town of Walkerville 2021</span><span class="s">{{homes}} property connection points, each linked to the main it drains to.</span></div>
+        <div><span class="k">Ground level</span><span class="v">Town of Walkerville n.d.</span><span class="s">1 m contours, used for manhole lid levels where none is surveyed: {{contour_error_m}} m average error against surveyed lids.</span></div>
+        <div><span class="k">Flow from outside</span><span class="v">SA Water n.d.</span><span class="s">SA Water's statewide gravity-main layer. Pipes beyond the council are not modelled; their length sets a steady inflow where they join.</span></div>
+        <div><span class="k">People per home</span><span class="v">ABS 2022</span><span class="s">2021 Census household size and population.</span></div>
+      </div>
+      <p class="note">The layers were downloaded once and kept unchanged, so every result can be re-run from the same snapshot (Jaison 2026). The live layers can change, and SA Water's pilot data will replace this sample.</p>`,
+  },
+  {
     id: "swmm", act: "How we found it", view: "all", fx: "swmm",
     info: { vs: "swmm" },
     show: { terrain: 0.9, pipes: 0.8, flow: 0.35, chambers: 1 },
@@ -464,7 +479,10 @@ window.OSP_SCENES = [
         <li>PG-S2-22 2026, <em>Optimal sensor placement for wastewater network monitoring: project proposal and scoping document</em>, version 3.1.7 (draft), unpublished report for SA Water, Adelaide University, Adelaide.</li>
         <li>Rossman, LA 2017, <em>Storm Water Management Model reference manual, volume II: hydraulics</em>, EPA/600/R-17/111, US Environmental Protection Agency, Cincinnati, OH.</li>
         <li>SA Water 2026, <em>WIL Schedule 2: optimal placement of sensors in a water network</em>, unpublished project request, SA Water, Adelaide.</li>
+        <li>SA Water n.d., <em>Waste water gravity main</em>, dataset from the SA Water wastewater reticulation asset register, Infrastructure and Utilities map service, layer 9, Government of South Australia, viewed 22 October 2026, <a href="https://agsplus.geodata.sa.gov.au/arcgis/rest/services/Infrastructure_Utilities/MapServer/9" target="_blank" rel="noopener">agsplus.geodata.sa.gov.au</a>.</li>
         <li>Simone, A, Di Cristo, C, Guadagno, V &amp; Del Giudice, G 2023, 'Sewer networks monitoring through a topological backtracking', <em>Journal of Environmental Management</em>, vol. 346, article 119015, <a href="https://doi.org/10.1016/j.jenvman.2023.119015" target="_blank" rel="noopener">doi:10.1016/j.jenvman.2023.119015</a>.</li>
+        <li>Town of Walkerville 2021, <em>SA Water sewer network</em> (SA Water Sewer June 2021), ArcGIS Online feature service, viewed 22 October 2026, <a href="https://services-ap1.arcgis.com/38lmAqtkEsaNGT6T/arcgis/rest/services/SA_Water_Sewer_Network/FeatureServer" target="_blank" rel="noopener">services-ap1.arcgis.com</a>.</li>
+        <li>Town of Walkerville n.d., <em>Contours (1 m)</em>, ArcGIS Online feature service, viewed 22 October 2026, <a href="https://services-ap1.arcgis.com/38lmAqtkEsaNGT6T/arcgis/rest/services/Contours_1m/FeatureServer" target="_blank" rel="noopener">services-ap1.arcgis.com</a>.</li>
         <li>United States Environmental Protection Agency (US EPA) 2004, <em>Report to Congress: impacts and control of CSOs and SSOs</em>, EPA-833-R-04-001, Office of Water, Washington, DC.</li>
       </ul>`,
   },

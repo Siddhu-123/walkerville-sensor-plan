@@ -43,7 +43,7 @@ The "Open the simulation tool" link at the top right opens the Simulation 2.5 wo
 
 ## What the demo covers
 
-A welcome page, then 32 scenes in nine sections:
+A welcome page, then 33 scenes in nine sections:
 
 | Section | Scenes (`#id`) | What it says |
 |---|---|---|
@@ -51,7 +51,7 @@ A welcome page, then 32 scenes in nine sections:
 | **The question** | `today`, `question`, `brief` | How sites are chosen today, the three things SA Water needs to know (where, how many, how well), and the brief and scope. |
 | **Our approach** | `approach`, `capacity` | The approach we adopted (simulate growth in EPA SWMM, then choose the sensors that see the most of it), and why we started with a Manning's-equation capacity check and moved to simulation: a sensor measures water level, and only a hydraulic model computes how high water backs up at each manhole. |
 | **The answer** | `answer`, `roles` | The five recommended manholes, and the kind of day each one watches. |
-| **How we found it** | `path`, `swmm`, `whatif`, `cases`, `stress` | The three models we built and the one we kept, why EPA SWMM, the 8,200 growth runs, the five weather cases, and where pipes are already under strain. |
+| **How we found it** | `path`, `data`, `swmm`, `whatif`, `cases`, `stress` | The three models we built and the one we kept, where the dataset comes from, why EPA SWMM, the 8,200 growth runs, the five weather cases, and where pipes are already under strain. |
 | **Why it holds** | `howmany`, `beats`, `holdout`, `tryit` | Why five, how the plan beats the obvious choices, how it holds on weather it never saw, and an interactive "connect 150 homes" test. |
 | **Below the street** | `below`, `fall`, `pipes`, `load`, `rain`, `sees` | In 3D: manhole depths, slope, pipe size and material, the load of one new home, groundwater and rain, and how a sensor detects growth (a rise of 25 mm or more above its normal level). |
 | **What's next** | `register`, `close` | What is assumed and what data removes each assumption, and the phased plan. |
@@ -74,7 +74,7 @@ A welcome page, then 32 scenes in nine sections:
 
 ## Where the data comes from
 
-- **Network:** SA Water's public Walkerville sewer layers (ArcGIS snapshot), with manhole lid levels reconstructed from 1 m contours where not surveyed.
+- **Network:** SA Water's sewer records as republished by the Town of Walkerville on ArcGIS Online ("SA Water Sewer June 2021"): gravity mains, manholes, property connection points and 1 m contours. Manhole lid levels are reconstructed from the contours where not surveyed. Flow entering from pipes outside the council is sized from SA Water's statewide gravity-main layer on the SA Government geodata server. The `#data` scene lists each source.
 - **Simulation results:** Simulation 2.5 from the [gravity-sewer-osp](https://github.com/AbrahamPaulJ/gravity-sewer-osp) sandbox, pinned with checksums in `cloud-run/presentation/data/source/` (see `SOURCE.md` there).
 - **Regenerating `story-data.js`:** run the steps in [`cloud-run/presentation/README.md`](cloud-run/presentation/README.md). `export_scenario.py --check` reconciles the figures, `prove_placement.py` proves the optimum, `export_story.py` writes the story data, and `check_copy.py --story` confirms every token resolves.
 - **Basemap:** © OpenStreetMap contributors, © CARTO. A hosted copy loads CARTO's vector tiles. On `localhost` the page looks for local tiles in `data/tiles/`, which is not in this repository, so a fresh clone run locally shows the bundled water, parks and roads but no detailed street tiles.
