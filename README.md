@@ -43,7 +43,7 @@ The "Open the simulation tool" link at the top right opens the Simulation 2.5 wo
 
 ## What the demo covers
 
-A welcome page, then 31 scenes in eight sections:
+A welcome page, then 32 scenes in nine sections:
 
 | Section | Scenes (`#id`) | What it says |
 |---|---|---|
@@ -54,7 +54,8 @@ A welcome page, then 31 scenes in eight sections:
 | **How we found it** | `path`, `swmm`, `whatif`, `cases`, `stress` | The three models we built and the one we kept, why EPA SWMM, the 8,200 growth runs, the five weather cases, and where pipes are already under strain. |
 | **Why it holds** | `howmany`, `beats`, `holdout`, `tryit` | Why five, how the plan beats the obvious choices, how it holds on weather it never saw, and an interactive "connect 150 homes" test. |
 | **Below the street** | `below`, `fall`, `pipes`, `load`, `rain`, `sees` | In 3D: manhole depths, slope, pipe size and material, the load of one new home, groundwater and rain, and how a sensor detects growth (a rise of 25 mm or more above its normal level). |
-| **What's next** | `asks`, `close` | What SA Water needs to provide to turn this into a final recommendation, and the phased plan. |
+| **What's next** | `register`, `close` | What is assumed and what data removes each assumption, and the phased plan. |
+| **References** | `references` | Every work cited in the scenes, in Harvard (author-date) style. Citations in the text use the same author-date form. |
 
 ## What's in this repository
 
@@ -85,7 +86,7 @@ A welcome page, then 31 scenes in eight sections:
 - Growth is modelled as **infill** in an established suburb. For the pilot area, each growth scenario will be split into infill and greenfield parts.
 - There is **no field validation** yet; recommended sites are to be checked against overflow and blockage history once it is shared.
 
-The "What turns this into a final recommendation" scene (`#asks`) lists the data from SA Water that would remove these limits.
+The "What is assumed, and what removes it" scene (`#register`) lists each assumption and the data that would replace it.
 
 ## Project team
 

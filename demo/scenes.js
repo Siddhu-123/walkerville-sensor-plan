@@ -74,10 +74,10 @@ window.OSP_SCENES = [
     title: "A sewer grows in two ways",
     html: `<div class="params">
         <div><span class="k">Greenfield</span><span class="v">Urban fringe</span><span class="s">New subdivisions on undeveloped land connect at the edge of the network. Their own pipes are new and sized for them, so the extra load lands on the existing trunk where they join.</span></div>
-        <div><span class="k">Infill</span><span class="v">Established suburbs</span><span class="s">Extra homes on existing lots, from subdividing a block or replacing one house with several, connect to old mains that were never sized for them.</span></div>
+        <div><span class="k">Infill</span><span class="v">Established suburbs</span><span class="s">Extra homes on existing lots, from subdividing a block or replacing one house with several, connect to old mains that were never sized for them (PG-S2-22 2026).</span></div>
       </div>
       <p>Both use up spare room in every pipe downstream. Walkerville is an established suburb, so the growth tested here is infill.</p>
-      <p class="note">For the pilot area, each growth scenario will be split into infill and greenfield parts, as agreed with SA Water on 28 September.</p>`,
+      <p class="note">For the pilot area, each growth scenario will be split into infill and greenfield parts, as agreed with SA Water on 28 September (PG-S2-22 2026).</p>`,
   },
   {
     id: "infill", act: "Why watch growth", view: "all", fx: "infill", style: "age",
@@ -87,7 +87,7 @@ window.OSP_SCENES = [
     stats: [["{{median_pipe_year}}", "median year a Walkerville sewer pipe was laid"],
             ["{{small_pipe_pct}}%", "of pipes are the smallest size, 150 mm"],
             ["{{homes}}", "properties connected today"]],
-    html: `<p>Units and subdivisions replace single houses on the same lots, so new flow enters old, small pipes that were never sized for it. {{pre1960_pct}}% of this network was laid before 1960, and {{clay_pct}}% is vitrified clay.</p>`,
+    html: `<p>Units and subdivisions replace single houses on the same lots, so new flow enters old, small pipes that were never sized for it. {{pre1960_pct}}% of this network was laid before 1960, and {{clay_pct}}% is vitrified clay (Jaison 2026).</p>`,
     legend: "age",
   },
   {
@@ -106,7 +106,7 @@ window.OSP_SCENES = [
     title: "The spill shows up above the pipe at fault",
     html: `<ol class="steps">
         <li><b>One pipe runs out first</b><span>On the path from new homes to the outlet, the pipe with the least spare room becomes the bottleneck.</span></li>
-        <li><b>Rain tips it over</b><span>Dry-weather flow rarely fills a pipe. Growth uses up the margin that used to absorb rain, so smaller, more frequent storms now overload it.</span></li>
+        <li><b>Rain tips it over</b><span>Dry-weather flow rarely fills a pipe. Growth uses up the margin that used to absorb rain, so smaller, more frequent storms now overload it (US EPA 2004).</span></li>
         <li><b>Water backs up</b><span>The full pipe pushes the level up through the manholes behind it. Below it, flow is capped and levels look normal.</span></li>
         <li class="kept"><b>It spills where the lid is lowest</b><span>The overflow comes out at the manhole with the least room to its lid, often well upstream of the pipe at fault.</span></li>
       </ol>
@@ -123,7 +123,7 @@ window.OSP_SCENES = [
         <li><b>Moderate storms start to surcharge</b><span>Water rises above the top of the pipe more often, and in smaller storms.</span></li>
         <li><b>Overflow in ever-smaller storms</b><span>Spills that once needed a big storm become recurrent.</span></li>
       </ol>
-      <p>A <strong>level sensor</strong> sees the first two stages, giving months to years of warning. A <strong>float switch</strong> set near the lid sees only the last one, when the water is already about to spill.</p>`,
+      <p>A <strong>level sensor</strong> sees the first two stages, giving months to years of warning. A <strong>float switch</strong> set near the lid sees only the last one, when the water is already about to spill (Do et al. 2023; PG-S2-22 2026).</p>`,
   },
   {
     id: "why", act: "Why watch growth", view: "all",
@@ -132,7 +132,7 @@ window.OSP_SCENES = [
     title: "Growth can be seen coming, but overflow records hide it",
     stats: [["{{us_event_share}}%", "of overflow events in US national records came from wet-weather capacity problems"],
             ["{{us_volume_share}}%", "of the spilled volume came from those same problems"]],
-    html: `<p>Blockages cause most overflow events, so they fill the records and can hide growth. At one sensor the two look alike, but they behave differently:</p>
+    html: `<p>Blockages cause most overflow events (US EPA 2004), so they fill the records and can hide growth. At one sensor the two look alike, but they behave differently:</p>
       <div class="vs">
         <b></b><b>Blockage</b><b>Growth</b>
         <span>Onset</span><span>Sudden, days</span><span>Gradual, years</span>
@@ -140,7 +140,7 @@ window.OSP_SCENES = [
         <span>Where</span><span>One point</span><span>A predictable zone</span>
         <span>Afterwards</span><span>High until cleared</span><span>Falls, then recurs</span>
       </div>
-      <p class="note">US EPA (2004), Report to Congress on CSOs and SSOs (EPA-833-R-04-001).</p>`,
+      <p class="note">Source: US EPA (2004).</p>`,
     legend: "flow",
   },
 
@@ -151,7 +151,7 @@ window.OSP_SCENES = [
     kicker: "Today",
     title: "Sensor sites are chosen one case at a time",
     html: `<ul>
-        <li>Sites are picked from breakdown history, hydraulic model results, complaints, and how close a manhole is to a creek or reservoir.</li>
+        <li>Sites are picked from breakdown history, hydraulic model results, complaints, and how close a manhole is to a creek or reservoir (PG-S2-22 2026).</li>
         <li>There is no written method for how many sensors an area needs, or where they give the most visibility.</li>
         <li>The network has already moved from blanket coverage to a smaller number of critical manholes. <strong>That makes the choice of sites more important.</strong></li>
       </ul>`,
@@ -174,10 +174,10 @@ window.OSP_SCENES = [
     kicker: "The brief and our scope",
     title: "How many sensors, of which type, and where?",
     html: `<div class="params src">
-        <div><span class="k">How many, and where</span><span class="v">Project request</span><span class="s">"Identify the optimal sensor locations and number of sensors."</span></div>
-        <div><span class="k">Which type</span><span class="v">Scoping §1.2</span><span class="s">Float switches give a threshold alert only. Level sensors give continuous depth and cost five to six times more.</span></div>
-        <div><span class="k">To watch for</span><span class="v">Scoping §1.1</span><span class="s">Overcapacity and overflow as new homes are added to existing sewers.</span></div>
-        <div><span class="k">Within</span><span class="v">Scoping §2.5</span><span class="s">One pilot trunk sewer network. No installation or field trials.</span></div>
+        <div><span class="k">How many, and where</span><span class="v">SA Water 2026</span><span class="s">"Identify the optimal sensor locations and number of sensors."</span></div>
+        <div><span class="k">Which type</span><span class="v">PG-S2-22 2026, §1.2</span><span class="s">Float switches give a threshold alert only. Level sensors give continuous depth and cost five to six times more.</span></div>
+        <div><span class="k">To watch for</span><span class="v">PG-S2-22 2026, §1.1</span><span class="s">Overcapacity and overflow as new homes are added to existing sewers.</span></div>
+        <div><span class="k">Within</span><span class="v">PG-S2-22 2026, §2.5</span><span class="s">One pilot trunk sewer network. No installation or field trials.</span></div>
       </div>
       <blockquote class="quote">"Optimal sensor placement is not the problem… optimal sensor placement is a solution for the data collection problem."<cite>Vineeth Maruvada, SA Water · meeting with the capstone team</cite></blockquote>`,
   },
@@ -191,26 +191,26 @@ window.OSP_SCENES = [
     kicker: "The approach we adopted",
     title: "Simulate the growth, then pick the sensors that see it",
     html: `<ol class="steps">
-        <li><b>Model the network</b><span>Walkerville's {{sites}} manholes and their pipes, from SA Water's public records, in EPA SWMM.</span></li>
+        <li><b>Model the network</b><span>Walkerville's {{sites}} manholes and their pipes, from SA Water's public records, in EPA SWMM (Rossman 2017).</span></li>
         <li><b>Add growth everywhere</b><span>New homes at every manhole, at five sizes and in {{cases}} weather cases: {{runs}} runs.</span></li>
         <li><b>Decide what a sensor sees</b><span>A rise of {{rise_focus_mm}} mm or more at its manhole, against the same case with no growth.</span></li>
         <li class="kept"><b>Choose the sites</b><span>The set that sees the most growth in its worst weather case, solved exactly. The count is where one more sensor adds little.</span></li>
       </ol>
-      <p class="note">Six approaches were compared. This one, simulation plus coverage, was chosen because it works on public data, each site can be explained by what it sees, and the same steps re-run on any network.</p>`,
+      <p class="note">Six approaches were compared. This one, simulation plus coverage, was chosen because it works on public data, each site can be explained by what it sees, and the same steps re-run on any network (PG-S2-22 2026).</p>`,
   },
   {
     id: "capacity", act: "Our approach", view: "all",
     show: { terrain: 0.9, pipes: 0.9, flow: 0.5, chambers: 0.6 },
     kicker: "Why simulation",
     title: "We started with a capacity check, then moved to simulation",
-    html: `<p>Our first screen used <strong>Manning's equation</strong>: how much each pipe carries when full, against the load new homes add. It needs only pipe size, slope and roughness, it is the design code's capacity rule, and it tracks full hydraulic models closely (Simone et al. 2023).</p>
+    html: `<p>Our first screen used <strong>Manning's equation</strong> (Chow 1959): how much each pipe carries when full, against the load new homes add. It needs only pipe size, slope and roughness, it is how design codes rate a sewer's capacity (Icon Water n.d.), and published placement methods already use pipe size and slope in place of a hydraulic model (Simone et al. 2023).</p>
       <div class="vs">
         <b></b><b>Capacity check</b><b>Simulation</b>
         <span>Tells you</span><span>Which pipe fills</span><span>Water level at each manhole</span>
         <span>Backing up</span><span>Not computed</span><span>Routed</span>
         <span>Sensor view</span><span>Guessed</span><span>Read off</span>
       </div>
-      <p>A sensor measures water level, and growth shows where water backs up behind a full pipe. <strong>So we moved to EPA SWMM</strong>, which computes that level at every manhole.</p>`,
+      <p>A sensor measures water level, and growth shows where water backs up behind a full pipe. <strong>So we moved to EPA SWMM</strong>, which computes that level at every manhole (Rossman 2017).</p>`,
     legend: "flow",
   },
 
@@ -247,7 +247,7 @@ window.OSP_SCENES = [
     html: `<ol class="steps">
         <li><b>Simulation 1</b><span>How much warning does a sensor give before a spill? On a four-chamber test network, a level sensor gave {{sim1_warn_low}} to {{sim1_warn_high}} minutes at the main chambers.</span></li>
         <li class="dropped"><b>Simulation 2 <em>set aside</em></b><span>Where does growth run a catchment out of room? It missed about {{sim2_missed_km}} km of sewer draining in from outside, and its dry weather was {{sim2_dry_ratio}} times the design envelope.</span></li>
-        <li class="kept"><b>Simulation 2.5</b><span>Where does growth show anywhere in Walkerville, and which manholes see most of it? Every result from here on comes from this model.</span></li>
+        <li class="kept"><b>Simulation 2.5</b><span>Where does growth show anywhere in Walkerville, and which manholes see most of it? Every result from here on comes from this model (Jaison 2026).</span></li>
       </ol>`,
   },
   {
@@ -263,7 +263,7 @@ window.OSP_SCENES = [
         <span>A pipe already full</span><span>Looks like any other</span><span>No room to rise, so flagged</span>
         <span>New homes</span><span>Not modelled</span><span>Added and routed, {{runs}} runs</span>
       </div>
-      <p class="note">{{sites}} manholes and {{swmm_links}} pipes from SA Water's published records, each run routed for {{swmm_minutes}} minutes until the levels settle. Every input is public, so every result can be re-run.</p>`,
+      <p class="note">{{sites}} manholes and {{swmm_links}} pipes from SA Water's published records, each run routed for {{swmm_minutes}} minutes until the levels settle. Every input is public, so every result can be re-run (Jaison 2026; Rossman 2017).</p>`,
     legend: "flow",
   },
   {
@@ -391,10 +391,10 @@ window.OSP_SCENES = [
     kicker: "Parameter · load",
     title: "What one new home adds",
     html: `<div class="params">
-        <div><span class="k">People per new home</span><span class="v">{{people_per_new_dwelling}}</span><span class="s"><span class="cite" data-src="household">ABS 2021 household size</span>. <span class="chip sourced" data-src="household">sourced</span></span></div>
-        <div><span class="k">Water use</span><span class="v">{{litres_per_person_day}} L/day</span><span class="s">Per person (<span class="cite" data-src="wateruse">Barwon Water, WSAA supplement</span>). <span class="chip sourced" data-src="wateruse">sourced</span> <span class="chip confirm" data-src="wateruse">SA value to confirm</span></span></div>
+        <div><span class="k">People per new home</span><span class="v">{{people_per_new_dwelling}}</span><span class="s">2021 Census household size (<span class="cite" data-src="household">ABS 2022</span>). <span class="chip sourced" data-src="household">sourced</span></span></div>
+        <div><span class="k">Water use</span><span class="v">{{litres_per_person_day}} L/day</span><span class="s">Per person (<span class="cite" data-src="wateruse">Barwon Water n.d.</span>). <span class="chip sourced" data-src="wateruse">sourced</span> <span class="chip confirm" data-src="wateruse">SA value to confirm</span></span></div>
         <div><span class="k">Peak factor</span><span class="v">×{{peak_factor}}</span><span class="s">Busiest hour against the daily average. <span class="chip declared" data-src="peak">declared</span></span></div>
-        <div><span class="k">People per existing home</span><span class="v">{{people_per_connection}}</span><span class="s"><span class="cite" data-src="population">ABS 2021 population</span> over connected properties. <span class="chip measured" data-src="population">measured</span></span></div>
+        <div><span class="k">People per existing home</span><span class="v">{{people_per_connection}}</span><span class="s">2021 Census population over connected properties (<span class="cite" data-src="population">ABS 2022</span>). <span class="chip measured" data-src="population">measured</span></span></div>
       </div>
       <p class="note">{{size_focus}} new homes add about {{growth_focus_lps}} L/s at the peak. New homes are assumed to let in no groundwater, which understates their effect.</p>`,
   },
@@ -421,19 +421,21 @@ window.OSP_SCENES = [
 
   // ---------------------------------------------------------------- what next
   {
-    id: "asks", act: "What's next", view: "all",
-    show: { terrain: 1, pipes: 0.8, chambers: 0.3, sensors: 1, phase2: 0.6 },
-    kicker: "What we need from SA Water",
-    title: "What turns this into a final recommendation",
-    html: `<ol>
-        <li><strong>The pilot area</strong>, and what "visibility" means to SA Water.</li>
-        <li><strong>A hydraulic model</strong> of it, if one exists, to replace our public-data model.</li>
-        <li><strong>Normal-day level records</strong> from existing sensors, to set the rise threshold.</li>
-        <li><strong>Alarm depths</strong> in use at each site.</li>
-        <li><strong>Overflow and blockage history</strong>, by cause, to test the results.</li>
-        <li><strong>The development forecast</strong> by catchment, to time phase 2.</li>
-        <li><strong>Pump station rates</strong>, unit costs and sensors already installed.</li>
-      </ol>`,
+    id: "register", act: "What's next", view: "plan", ms: 2600,
+    info: { params: "register" },
+    show: { terrain: 1, pipes: 0.7, chambers: 0.25, sensors: 1, phase2: 1 },
+    kicker: "Honest limits",
+    title: "What is assumed, and what removes it",
+    html: `<div class="params">
+        <div><span class="k">Steady busiest-hour flows</span><span class="v"><span class="chip declared" data-src="steady">declared</span></span><span class="s">No storms or daily cycle yet. Removed by SA Water's calibrated model or level records.</span></div>
+        <div><span class="k">Leakage into pipes</span><span class="v"><span class="chip declared" data-src="infiltration">declared</span></span><span class="s">Removed by a flow survey or treatment-plant inflow records.</span></div>
+        <div><span class="k">Detection thresholds</span><span class="v"><span class="chip declared" data-src="alarm">declared</span></span><span class="s">{{rise_focus_mm}} mm rise and {{alarm_mm}} mm alarm. Removed by normal-day level records and the alarm settings in use.</span></div>
+        <div><span class="k">Water use and peak factor</span><span class="v"><span class="chip sourced" data-src="wateruse">sourced</span></span><span class="s">Interstate values. Removed by SA Water's design figures.</span></div>
+        <div><span class="k">Pump stations</span><span class="v"><span class="chip declared" data-src="pumps">ideal</span></span><span class="s">Modelled as passing all flow at once. Removed by pump rates and controls.</span></div>
+        <div><span class="k">One model fix pending</span><span class="v"><span class="chip confirm" data-src="modelfix">to fix</span></span><span class="s">Relief pipes return everyday flow to a pump well. A corrected run is needed before final numbers.</span></div>
+        <div><span class="k">No field validation yet</span><span class="v"><span class="chip confirm" data-src="validation">to confirm</span></span><span class="s">Checked against overflow and blockage history once it is shared.</span></div>
+      </div>`,
+    legend: "plan",
   },
   {
     id: "close", act: "What's next", view: "all", fx: "close",
@@ -444,5 +446,26 @@ window.OSP_SCENES = [
     html: `<p>The best set of its size on our runs, well ahead of the obvious alternatives. It holds less well on weather it was not chosen for, so SA Water's measured levels come first. When the pilot data arrives, the same pipeline re-runs and every number here updates.</p>
       <p class="note">Plan: 23 Oct prototype on the pilot area · 6 Nov scenario and cost comparison · 13 Nov guidelines · 20 Nov business case and handover. <a href="cloud-run/presentation/deck.html">Detailed deck and appendices</a></p>`,
     legend: "plan",
+  },
+  // ---------------------------------------------------------------- references (Harvard, author-date)
+  {
+    id: "references", act: "References", view: "all",
+    show: { terrain: 0.8, pipes: 0.5 },
+    kicker: "Sources",
+    title: "References",
+    html: `<ul class="refs">
+        <li>Australian Bureau of Statistics (ABS) 2022, <em>Walkerville: 2021 Census all persons QuickStats</em> (LGA48260), ABS, Canberra, viewed 22 October 2026, <a href="https://www.abs.gov.au/census/find-census-data/quickstats/2021/LGA48260" target="_blank" rel="noopener">abs.gov.au</a>.</li>
+        <li>Barwon Water n.d., <em>Supplementary information to the WSAA Sewerage Code of Australia 2014</em>, Barwon Water, Geelong, viewed 22 October 2026, <a href="https://www.barwonwater.vic.gov.au/__data/assets/pdf_file/0025/72529/Supplementary-information-to-the-WSAA-Sewerage-Code-of-Australia-2014.pdf" target="_blank" rel="noopener">barwonwater.vic.gov.au</a>.</li>
+        <li>Chow, VT 1959, <em>Open-channel hydraulics</em>, McGraw-Hill, New York.</li>
+        <li>Do, NC, Dix, L, Lambert, MF &amp; Stephens, ML 2023, 'Proactive detection of wastewater overflows for smart sanitary sewer systems: case study in South Australia', <em>Journal of Water Resources Planning and Management</em>, vol. 149, no. 1, article 05022016, <a href="https://doi.org/10.1061/JWRMD5.WRENG-5589" target="_blank" rel="noopener">doi:10.1061/JWRMD5.WRENG-5589</a>.</li>
+        <li>He, L, Nan, J, Chen, L &amp; Ye, X 2026, 'A topology-first and demand-driven sensor placement framework for hydraulic-state reconstruction in urban drainage networks', <em>Water Research</em>, vol. 307, article 126713, <a href="https://doi.org/10.1016/j.watres.2026.126713" target="_blank" rel="noopener">doi:10.1016/j.watres.2026.126713</a>.</li>
+        <li>Icon Water n.d., <em>WSA 02 gravity sewerage code supplement</em> (STD-SPE-G-011), Icon Water, Canberra, viewed 22 October 2026, <a href="https://iconwater.com.au/sites/default/files/2023-10/STD-SPE-G-011-WSA-02-Gravity-Sewage-Code-Supplement-26522.pdf" target="_blank" rel="noopener">iconwater.com.au</a>.</li>
+        <li>Jaison, AP 2026, <em>gravity-sewer-osp: Simulation 2.5</em>, source code and results, commit e6232db, GitHub, viewed 22 October 2026, <a href="https://github.com/AbrahamPaulJ/gravity-sewer-osp" target="_blank" rel="noopener">github.com/AbrahamPaulJ/gravity-sewer-osp</a>.</li>
+        <li>PG-S2-22 2026, <em>Optimal sensor placement for wastewater network monitoring: project proposal and scoping document</em>, version 3.1.7 (draft), unpublished report for SA Water, Adelaide University, Adelaide.</li>
+        <li>Rossman, LA 2017, <em>Storm Water Management Model reference manual, volume II: hydraulics</em>, EPA/600/R-17/111, US Environmental Protection Agency, Cincinnati, OH.</li>
+        <li>SA Water 2026, <em>WIL Schedule 2: optimal placement of sensors in a water network</em>, unpublished project request, SA Water, Adelaide.</li>
+        <li>Simone, A, Di Cristo, C, Guadagno, V &amp; Del Giudice, G 2023, 'Sewer networks monitoring through a topological backtracking', <em>Journal of Environmental Management</em>, vol. 346, article 119015, <a href="https://doi.org/10.1016/j.jenvman.2023.119015" target="_blank" rel="noopener">doi:10.1016/j.jenvman.2023.119015</a>.</li>
+        <li>United States Environmental Protection Agency (US EPA) 2004, <em>Report to Congress: impacts and control of CSOs and SSOs</em>, EPA-833-R-04-001, Office of Water, Washington, DC.</li>
+      </ul>`,
   },
 ];

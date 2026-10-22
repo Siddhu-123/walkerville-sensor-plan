@@ -182,6 +182,9 @@ body.is-welcome .card { justify-content: space-between; max-width: none; }
 .card ul, .card ol { margin: 0 0 12px; padding-left: 1.1em; font-size: 13px; line-height: 1.5; color: var(--ink-body); }
 .card li { margin: 0 0 6px; }
 .card li::marker { color: var(--ink-faint); }
+.card ul.refs { list-style: none; padding-left: 0; font-size: 11.5px; line-height: 1.45; }
+.card .refs li { padding-left: 1.5em; text-indent: -1.5em; margin: 0 0 8px; }
+.card .refs a { color: var(--teal-deep); overflow-wrap: anywhere; }
 
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 14px; margin: 2px 0 16px; }
 .stat { padding-top: 10px; border-top: 1px solid var(--ink); }
