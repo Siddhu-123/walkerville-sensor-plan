@@ -88,6 +88,19 @@
     return { xs, ys, zs, n, len, a: p.a, b: p.b, d: p.d, y: p.y, m: p.m, dOut: 0, onPath: false };
   });
 
+  // pump stations (demo/pump-data.js): each rising main runs from the wet well's floor up to the
+  // invert where it discharges, so the side view shows the lift
+  const pumps = ((window.OSP_PUMPS && window.OSP_PUMPS.stations) || []).map((s) => {
+    const n = s.p.length / 2, xs = new Float64Array(n), ys = new Float64Array(n), zs = new Float64Array(n);
+    let len = 0; const cum = [0];
+    for (let i = 0; i < n; i++) {
+      if (i) { len += Math.hypot(s.p[2 * i] - s.p[2 * i - 2], s.p[2 * i + 1] - s.p[2 * i - 1]); cum.push(len); }
+      const q = toLocal(s.p[2 * i], s.p[2 * i + 1]); xs[i] = q[0]; ys[i] = q[1];
+    }
+    for (let i = 0; i < n; i++) zs[i] = s.za + (s.zb - s.za) * (len ? cum[i] / len : 0);
+    return { xs, ys, zs, n, wet: s.wet, modelled: s.modelled };
+  });
+
   // nodes, manholes and homes onto the basemap plane; the one manhole with no cover level takes its node's estimate
   for (let i = 0; i < nn; i++) { const q = toLocal(N.x[i], N.y[i]); N.x[i] = q[0]; N.y[i] = q[1]; }
   CH.forEach((c) => { const q = toLocal(c.x, c.y); c.x = q[0]; c.y = q[1]; if (!(c.cover > 0)) c.cover = cover[c.n]; });
@@ -317,7 +330,7 @@
 
   // ------------------------------------------------------------------ layers and effects
   const L = {}, LT = {};
-  const LAYERS = ["basemap", "terrain", "homes", "pipes", "chambers", "shafts", "water", "sensors", "phase2", "trunk", "alarm", "resp", "flow", "rain", "spikes"];
+  const LAYERS = ["basemap", "terrain", "homes", "pipes", "chambers", "shafts", "water", "sensors", "phase2", "trunk", "alarm", "resp", "flow", "pumps", "rain", "spikes"];
   LAYERS.forEach((k) => { L[k] = 0; LT[k] = 0; });
   const fx = { style: "plain", prevStyle: "plain", styleMix: 1, widthMul: 1, reveal: 1, revealT0: 0, sensorT0: 0,
     resp: null, alarmCase: 1, waterCase: 1, waterShown: 1, laterals: null, drift: 0, hover: -1, focus: -1, pathLabels: false };
@@ -374,6 +387,7 @@
     if (L.shafts > 0.01) drawShafts(zoomScale);
     if (L.pipes > 0.01) drawPipes(now, zoomScale);
     if (L.flow > 0.01) drawFlow(now, zoomScale);
+    if (L.pumps > 0.01) drawPumps(now, zoomScale);
     if (fx.laterals && L.homes > 0.01) drawLaterals(now);
     if (L.water > 0.01) drawWater(zoomScale, frameDt);
     projectChambers();
@@ -477,6 +491,32 @@
       ctx.beginPath();
       for (let v = 0; v < p.n; v++) { P(p.xs[v], p.ys[v], p.zs[v]); v ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1]); }
       ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawPumps(now, zs) {
+    const top = [0, 0, 0, 0], r = 6.5;
+    ctx.save();
+    ctx.lineCap = "round";
+    for (const s of pumps) {
+      const a = L.pumps * (s.modelled ? 1 : 0.6);
+      // the rising main: the dashes run uphill from the wet well to where it discharges
+      ctx.setLineDash([4 * zs, 4 * zs]);
+      ctx.lineDashOffset = s.modelled ? -(now / 1000) * 18 * zs : 0;
+      ctx.strokeStyle = rgba(s.modelled ? C.water : C.ink, 0.95 * a); ctx.lineWidth = 1.6 * zs;
+      ctx.beginPath();
+      for (let v = 0; v < s.n; v++) { P(s.xs[v], s.ys[v], s.zs[v]); v ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1]); }
+      ctx.stroke();
+      // the station: a diamond at ground level over its wet well, on a stem down to the well floor
+      const w = s.wet;
+      P(N.x[w], N.y[w], cover[w], cam, top); P(N.x[w], N.y[w], N.inv[w]);
+      ctx.setLineDash([]); ctx.strokeStyle = rgba(C.ink, 0.6 * a); ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(top[0], top[1]); ctx.lineTo(pt[0], pt[1]); ctx.stroke();
+      if (!s.modelled) ctx.setLineDash([2.5, 2]);
+      ctx.fillStyle = rgba(s.modelled ? C.ink : C.white, a); ctx.strokeStyle = rgba(s.modelled ? C.white : C.ink, a); ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(top[0], top[1] - r); ctx.lineTo(top[0] + r, top[1]); ctx.lineTo(top[0], top[1] + r); ctx.lineTo(top[0] - r, top[1]); ctx.closePath();
+      ctx.fill(); ctx.stroke();
     }
     ctx.restore();
   }
@@ -700,6 +740,7 @@
       plan: `<span class="key"><i style="background:var(--canvas-ink)"></i>Sensor, phase 1</span><span class="key"><i class="ring"></i>Phase 2</span>`,
       age: `<div class="ramp">1896<i style="background:linear-gradient(90deg,var(--canvas-ink),var(--teal),var(--age-2),var(--age-3))"></i>2010</div><span class="key"><i style="background:var(--canvas-home);border-radius:2px"></i>Connected property</span>`,
       flow: `<span class="key"><i class="line" style="background:var(--water)"></i>Sewage, moving downhill</span><span class="key"><i style="background:var(--canvas-white);border:1.5px solid var(--ink-muted)"></i>Manhole in the model</span>`,
+      pumps: `<span class="key"><i class="line" style="background:var(--water)"></i>Sewage, moving downhill</span><span class="key"><i style="background:var(--canvas-ink);border-radius:1px;transform:rotate(45deg) scale(.85)"></i>Pump station</span><span class="key"><i class="line" style="background:repeating-linear-gradient(90deg,var(--water) 0 4px,transparent 4px 7px)"></i>Rising main, pumped uphill</span><span class="key"><i style="background:var(--canvas-white);border:1.5px dashed var(--canvas-ink);border-radius:1px;transform:rotate(45deg) scale(.85)"></i>Not modelled</span>`,
       resp: `<div class="ramp">2 mm<i style="background:linear-gradient(90deg,var(--rise-0),var(--rise-1),var(--rust),var(--rise-3))"></i>80 mm rise</div><span class="key"><i style="background:var(--amber)"></i>New homes connect here</span><span class="key"><i style="background:var(--rise-1);border:1.5px solid var(--canvas-ink)"></i>Rises 25 mm or more</span>`,
       stress: `<b>How full each pipe runs</b>${["Under 25%", "25–50%", "50–75%", "75–100%", "Over 100% (surcharged)"].map((label, i) => `<span class="key"><i class="line" style="background:${["var(--canvas-faint)", "color-mix(in srgb, var(--rise-0), var(--rise-1))", "var(--rise-1)", "var(--rise-2)", "var(--rise-3)"][i]}"></i>${label}</span>`).join("")}`,
       alarm: `<span class="key"><i style="background:var(--rust)"></i>Over the 150 mm alarm already</span><span class="key"><i style="background:var(--canvas-sur)"></i>Pipe running full</span>`,
@@ -1056,6 +1097,8 @@
       setLabels([
         { x: N.x[a.a], y: N.y[a.a], z: N.inv[a.a], html: `Pipe floor ${N.inv[a.a].toFixed(1)} m`, cls: "quiet", dy: -6 },
         { x: N.x[z.b], y: N.y[z.b], z: N.inv[z.b], html: `${N.inv[z.b].toFixed(1)} m above sea level`, cls: "accent", dy: -6 },
+        ...pumps.map((s, k) => ({ x: N.x[s.wet], y: N.y[s.wet], z: cover[s.wet], html: s.modelled ? "Pump station" : "Pump station<small>not modelled</small>",
+          cls: "quiet", dy: -10, delay: 600 + k * 250 })),
       ]);
     },
     pipes() {

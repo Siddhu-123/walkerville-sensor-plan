@@ -65,6 +65,7 @@ A welcome page, then 33 scenes in nine sections:
 | `demo/scenes.js` | All scene copy. Numbers are `{{fact}}` tokens, filled from `story-data.js`, from figures the engine measures on load, or from the sourced constants in `OSP_STATIC` |
 | `demo/engine.js` | The map engine: draws the network on a canvas with a perspective camera (2D and 3D are the same drawing at different pitch), runs each scene's animation, charts and the interactive test |
 | `demo/story-data.js` | Generated network, simulation results and facts. Do not edit by hand (see below) |
+| `demo/pump-data.js` | Generated pump stations and rising mains, drawn on the "Gravity does the work" scene. Do not edit by hand (see below) |
 | `demo/sources.js` | Where each tag and citation comes from: the library page, the quoted line, and the ⓘ text for charts and tables |
 | `demo/basemap.js`, `demo/basemap-data.js` | The vintage MapLibre basemap under the network, with bundled Adelaide water, parks, land use and roads |
 | `demo/demo.css`, `demo/welcome.css` | Styles, including the dark theme |
@@ -76,7 +77,7 @@ A welcome page, then 33 scenes in nine sections:
 
 - **Network:** SA Water's sewer records as republished by the Town of Walkerville on ArcGIS Online ("SA Water Sewer June 2021"): gravity mains, manholes, property connection points and 1 m contours. Manhole lid levels are reconstructed from the contours where not surveyed. Flow entering from pipes outside the council is sized from SA Water's statewide gravity-main layer on the SA Government geodata server. The `#data` scene lists each source.
 - **Simulation results:** EPA SWMM simulation from the [gravity-sewer-osp](https://github.com/AbrahamPaulJ/gravity-sewer-osp) sandbox, pinned with checksums in `cloud-run/presentation/data/source/` (see `SOURCE.md` there).
-- **Regenerating `story-data.js`:** run the steps in [`cloud-run/presentation/README.md`](cloud-run/presentation/README.md). `export_scenario.py --check` reconciles the figures, `prove_placement.py` compares the plan with the alternatives and held-out cases (greedy by default; OSP_PLAN=optimum runs the exact integer program), `export_story.py` writes the story data, and `check_copy.py --story` confirms every token resolves.
+- **Regenerating `story-data.js`:** run the steps in [`cloud-run/presentation/README.md`](cloud-run/presentation/README.md). `export_scenario.py --check` reconciles the figures, `prove_placement.py` compares the plan with the alternatives and held-out cases (greedy by default; OSP_PLAN=optimum runs the exact integer program), `export_story.py` writes the story data, `export_pumps.py` writes the pump stations (`demo/pump-data.js`) on the same origin, and `check_copy.py --story` confirms every token resolves.
 - **Basemap:** © OpenStreetMap contributors, © CARTO. A hosted copy loads CARTO's vector tiles. On `localhost` the page looks for local tiles in `data/tiles/`, which is not in this repository, so a fresh clone run locally shows the bundled water, parks and roads but no detailed street tiles.
 
 ## Limits to keep in mind
