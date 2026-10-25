@@ -76,7 +76,7 @@ window.OSP_SCENES = [
     title: "A sewer grows in two ways",
     html: `<div class="params">
         <div><span class="k">Greenfield</span><span class="v">Urban fringe</span><span class="s">New subdivisions on undeveloped land connect at the edge of the network. Their own pipes are new and sized for them, so the extra load lands on the existing trunk where they join.</span></div>
-        <div><span class="k">Infill</span><span class="v">Established suburbs</span><span class="s">Extra homes on existing lots, from subdividing a block or replacing one house with several, connect to old mains that were never sized for them (PG-S2-22 2026).</span></div>
+        <div><span class="k">Infill</span><span class="v">Established suburbs</span><span class="s">Extra homes on existing lots, from subdividing a block or replacing one house with several, connect to old mains that were never sized for them.</span></div>
       </div>
       <p>Both use up spare room in every pipe downstream. Walkerville is an established suburb, so the growth tested here is infill.</p>
       <p class="note">For the pilot area, the team proposed to SA Water on 28 September to split each growth scenario into infill and greenfield parts.</p>`,
@@ -89,7 +89,7 @@ window.OSP_SCENES = [
     stats: [["{{median_pipe_year}}", "median year a Walkerville sewer pipe was laid"],
             ["{{small_pipe_pct}}%", "of pipes are the smallest size, 150 mm"],
             ["{{homes}}", "properties connected today"]],
-    html: `<p>Units and subdivisions replace single houses on the same lots, so new flow enters old, small pipes that were never sized for it. {{pre1960_pct}}% of this network was laid before 1960, and {{clay_pct}}% is vitrified clay (Jaison 2026).</p>`,
+    html: `<p>Units and subdivisions replace single houses on the same lots, so new flow enters old, small pipes that were never sized for it. {{pre1960_pct}}% of this network was laid before 1960, and {{clay_pct}}% is vitrified clay.</p>`,
     legend: "age",
   },
   {
@@ -126,7 +126,7 @@ window.OSP_SCENES = [
         <li><b>Moderate storms start to surcharge</b><span>Water rises above the top of the pipe more often, and in smaller storms.</span></li>
         <li><b>Overflow in ever-smaller storms</b><span>Spills that once needed a big storm become recurrent.</span></li>
       </ol>
-      <p>A <strong>level sensor</strong> sees the first two stages, giving months to years of warning. A <strong>float switch</strong> set near the lid sees only the last one, when the water is already about to spill (Do et al. 2023; PG-S2-22 2026).</p>`,
+      <p>A <strong>level sensor</strong> sees the first two stages, giving months to years of warning. A <strong>float switch</strong> set near the lid sees only the last one, when the water is already about to spill (Do et al. 2023).</p>`,
   },
   {
     id: "why", act: "Why watch growth", view: "all",
@@ -155,7 +155,7 @@ window.OSP_SCENES = [
     kicker: "Today",
     title: "Sensor sites are chosen one case at a time",
     html: `<ul>
-        <li>Sites are picked from breakdown history, hydraulic model results, complaints, and how close a manhole is to a creek or reservoir (PG-S2-22 2026).</li>
+        <li>Sites are picked from breakdown history, hydraulic model results, complaints, and how close a manhole is to a creek or reservoir.</li>
         <li>There is no written method for how many sensors an area needs, or where they give the most visibility.</li>
         <li>The network has already moved from blanket coverage to a smaller number of critical manholes. <strong>That makes the choice of sites more important.</strong></li>
       </ul>`,
@@ -178,10 +178,10 @@ window.OSP_SCENES = [
     kicker: "The brief and our scope",
     title: "How many sensors, of which type, and where?",
     html: `<div class="params src">
-        <div><span class="k">How many, and where</span><span class="v">SA Water 2026</span><span class="s">"Identify the optimal sensor locations and number of sensors."</span></div>
-        <div><span class="k">Which type</span><span class="v">PG-S2-22 2026, §1.2</span><span class="s">Float switches give a threshold alert only. Level sensors give continuous depth and cost five to six times more.</span></div>
-        <div><span class="k">To watch for</span><span class="v">PG-S2-22 2026, §1.1</span><span class="s">Overcapacity and overflow as new homes are added to existing sewers.</span></div>
-        <div><span class="k">Within</span><span class="v">PG-S2-22 2026, §2.5</span><span class="s">One pilot trunk sewer network. No installation or field trials.</span></div>
+        <div><span class="k">How many, and where</span><span class="v">SA Water brief</span><span class="s">"Identify the optimal sensor locations and number of sensors."</span></div>
+        <div><span class="k">Which type</span><span class="v">Project scope</span><span class="s">Float switches give a threshold alert only. Level sensors give continuous depth and cost five to six times more.</span></div>
+        <div><span class="k">To watch for</span><span class="v">Project scope</span><span class="s">Overcapacity and overflow as new homes are added to existing sewers.</span></div>
+        <div><span class="k">Within</span><span class="v">Project scope</span><span class="s">One pilot trunk sewer network. No installation or field trials.</span></div>
       </div>`,
   },
 
@@ -200,7 +200,7 @@ window.OSP_SCENES = [
         <li><b>Decide what a sensor sees</b><span>A rise of {{rise_focus_mm}} mm or more at its manhole, against the same case with no growth.</span></li>
         <li class="kept"><b>Choose the sites</b><span>Add sensors one at a time, each at the manhole that most raises the share of growth seen in the worst weather case. The count is where one more sensor adds little.</span></li>
       </ol>
-      <p class="note">Six approaches were compared. This one, simulation plus coverage, was chosen because it works on public data, each site can be explained by what it sees, and the same steps re-run on any network (PG-S2-22 2026).</p>`,
+      <p class="note">Six approaches were compared. This one, simulation plus coverage, was chosen because it works on public data, each site can be explained by what it sees, and the same steps re-run on any network.</p>`,
   },
   {
     id: "capacity", act: "Our approach", view: "all",
@@ -252,8 +252,8 @@ window.OSP_SCENES = [
     html: `<ol class="steps">
         <li><b>Simulation 1</b><span>How much warning does a sensor give before a spill? On a four-chamber test network, a level sensor gave {{sim1_warn_low}} to {{sim1_warn_high}} minutes at the main chambers.</span></li>
         <li class="dropped"><b>Simulation 2 <em>set aside</em></b><span>Where does growth run a catchment out of room? It missed about {{sim2_missed_km}} km of sewer draining in from outside, and its dry weather was {{sim2_dry_ratio}} times the design envelope.</span></li>
-        <li class="kept"><b>EPA SWMM simulation</b><span>Where does growth show anywhere in Walkerville, and which manholes see most of it? Every result from here on comes from this model (Jaison 2026).</span></li>
-        <li><b>Simulation 3 <em>next: the final version</em></b><span>The final model, to be shaped by SA Water's review and feedback on this prototype. It runs each case until no manhole's level is still moving, and tests infill spread over eight areas and new estates joining at one manhole, under eight weather cases. None of its results are used here yet (Jaison 2026).</span></li>
+        <li class="kept"><b>EPA SWMM simulation</b><span>Where does growth show anywhere in Walkerville, and which manholes see most of it? Every result from here on comes from this model.</span></li>
+        <li><b>Simulation 3 <em>next: the final version</em></b><span>The final model, to be shaped by SA Water's review and feedback on this prototype. It runs each case until no manhole's level is still moving, and tests infill spread over eight areas and new estates joining at one manhole, under eight weather cases. None of its results are used here yet.</span></li>
       </ol>`,
   },
   {
@@ -262,7 +262,7 @@ window.OSP_SCENES = [
     show: { terrain: 1, pipes: 0.9, chambers: 0.8, homes: 0.7 },
     kicker: "The dataset",
     title: "Built entirely from public data",
-    html: `<p>SA Water's own network data is still awaiting release approval (PG-S2-22 2026), so the Walkerville model is built from layers anyone can query.</p>
+    html: `<p>SA Water's own network data is still awaiting release approval, so the Walkerville model is built from layers anyone can query.</p>
       <div class="params src">
         <div><span class="k">Sewer pipes and manholes</span><span class="v">Town of Walkerville 2021</span><span class="s">SA Water's sewer records as republished by the council: {{pipes_total}} gravity mains with pipe-floor levels, size, material and flow direction, and {{manholes_published}} manholes.</span></div>
         <div><span class="k">Connected homes</span><span class="v">Town of Walkerville 2021</span><span class="s">{{homes}} property connection points, each linked to the main it drains to.</span></div>
@@ -270,7 +270,7 @@ window.OSP_SCENES = [
         <div><span class="k">Flow from outside</span><span class="v">SA Water n.d.</span><span class="s">SA Water's statewide gravity-main layer. Pipes beyond the council are not modelled; their length sets a steady inflow where they join.</span></div>
         <div><span class="k">People per home</span><span class="v">ABS 2022</span><span class="s">2021 Census household size and population.</span></div>
       </div>
-      <p class="note">The layers were downloaded once and kept unchanged, so every result can be re-run from the same snapshot (Jaison 2026). The live layers can change, and SA Water's pilot data will replace this sample.</p>`,
+      <p class="note">The layers were downloaded once and kept unchanged, so every result can be re-run from the same snapshot. The live layers can change, and SA Water's pilot data will replace this sample.</p>`,
   },
   {
     id: "swmm", act: "How we found it", view: "all", fx: "swmm",
@@ -285,7 +285,7 @@ window.OSP_SCENES = [
         <span>A pipe already full</span><span>Looks like any other</span><span>No room to rise, so flagged</span>
         <span>New homes</span><span>Not modelled</span><span>Added and routed, {{runs}} runs</span>
       </div>
-      <p class="note">{{sites}} manholes and {{swmm_links}} pipes from SA Water's published records, each run routed for {{swmm_minutes}} minutes until the levels settle. Every input is public, so every result can be re-run (Jaison 2026; Rossman 2017).</p>`,
+      <p class="note">{{sites}} manholes and {{swmm_links}} pipes from SA Water's published records, each run routed for {{swmm_minutes}} minutes until the levels settle. Every input is public, so every result can be re-run (Rossman 2017).</p>`,
     legend: "flow",
   },
   {
@@ -467,7 +467,7 @@ window.OSP_SCENES = [
     title: "Five sensors now. Five more as growth is confirmed.",
     stats: [["{{plan_k1_worst}}%", "worst case, first five"], ["{{plan_kmax_worst}}%", "worst case, all ten"], ["{{runs}}", "simulations behind it"]],
     html: `<p>Five sensors chosen one at a time, well ahead of the obvious alternatives on our runs. They hold less well on weather they were not chosen for, so SA Water's measured levels come first. When the pilot data arrives, the same pipeline re-runs and every number here updates.</p>
-      <p class="note">Timeline (PG-S2-22 2026): 23 Oct prototype · 6 Nov scenario and cost comparison · 13 Nov guidelines · 20 Nov business case and handover.</p>`,
+      <p class="note">Timeline: 23 Oct prototype · 6 Nov scenario and cost comparison · 13 Nov guidelines · 20 Nov business case and handover.</p>`,
     legend: "plan",
   },
   // ---------------------------------------------------------------- references (Harvard, author-date)
@@ -483,8 +483,6 @@ window.OSP_SCENES = [
         <li>Do, NC, Dix, L, Lambert, MF &amp; Stephens, ML 2023, 'Proactive detection of wastewater overflows for smart sanitary sewer systems: case study in South Australia', <em>Journal of Water Resources Planning and Management</em>, vol. 149, no. 1, article 05022016, <a href="https://doi.org/10.1061/JWRMD5.WRENG-5589" target="_blank" rel="noopener">doi:10.1061/JWRMD5.WRENG-5589</a>, <a href="https://siddhu-123.github.io/waste_water_network_sensor-papers/pdf-viewer.html?paper=31&amp;pdf=.%2Fcontributors%2Fabraham%2Fpapers%2F2023_Do_Stonyfell-SA-overflow-detection.pdf&amp;title=Do%20et%20al.%20(2023)%2C%20Proactive%20Detection%20of%20Wastewater%20Overflows%20for%20Smart%20Sanitary%20Sewer%20Systems%3A%20Case%20Study%20in%20South%20Australia&amp;page=1" target="_blank" rel="noopener">team library copy</a>.</li>
         <li>He, L, Nan, J, Chen, L &amp; Ye, X 2026, 'A topology-first and demand-driven sensor placement framework for hydraulic-state reconstruction in urban drainage networks', <em>Water Research</em>, vol. 307, article 126713, <a href="https://doi.org/10.1016/j.watres.2026.126713" target="_blank" rel="noopener">doi:10.1016/j.watres.2026.126713</a>, <a href="https://siddhu-123.github.io/waste_water_network_sensor-papers/pdf-viewer.html?paper=55&amp;pdf=.%2Fcontributors%2Frijoy-john%2Fpapers%2F2026_Li%20He_A%20topology-first%20and%20demand-driven%20sensor%20placement%20framework%20for.pdf&amp;title=He%20et%20al.%20(2026)%2C%20A%20topology-first%20and%20demand-driven%20sensor%20placement%20framework%20for%20urban%20drainage%20networks&amp;page=1" target="_blank" rel="noopener">team library copy</a>.</li>
         <li>Icon Water n.d., <em>WSA 02 gravity sewerage code supplement</em> (STD-SPE-G-011), Icon Water, Canberra, viewed 23 October 2026, <a href="https://www.iconwater.com.au/sites/default/files/2025-10/STD-SPE-G-011%20WSA%2002%20Gravity%20Sewage%20Code%20Supplement.pdf" target="_blank" rel="noopener">iconwater.com.au</a>.</li>
-        <li>Jaison, AP 2026, <em>gravity-sewer-osp</em>, source code and results (EPA SWMM simulation, commit e6232db; Simulation 3, commit ac30930), GitHub, viewed 22 October 2026, <a href="https://github.com/AbrahamPaulJ/gravity-sewer-osp" target="_blank" rel="noopener">github.com/AbrahamPaulJ/gravity-sewer-osp</a>.</li>
-        <li>PG-S2-22 2026, <em>Optimal sensor placement for wastewater network monitoring: project proposal and scoping document</em>, version 3.1.7 (draft), unpublished report for SA Water, Adelaide University, Adelaide.</li>
         <li>Rossman, LA 2017, <em>Storm Water Management Model reference manual, volume II: hydraulics</em>, EPA/600/R-17/111, US Environmental Protection Agency, Cincinnati, OH, <a href="https://siddhu-123.github.io/waste_water_network_sensor-papers/pdf-viewer.html?paper=SATYA-GL-01&amp;pdf=.%2Fcontributors%2Fsatya-siddhartha%2Fgrey%2FGL_2017_USEPA_SWMM_Reference_Manual_Vol2_Hydraulics.pdf&amp;title=US%20EPA%20SWMM%205.2%20Reference%20Manual%2C%20Vol.%20II%3A%20Hydraulics&amp;page=1" target="_blank" rel="noopener">team library copy</a>.</li>
         <li>SA Water 2026, <em>WIL Schedule 2: optimal placement of sensors in a water network</em>, unpublished project request, SA Water, Adelaide.</li>
         <li>SA Water n.d., <em>Waste water gravity main</em>, dataset from the SA Water wastewater reticulation asset register, Infrastructure and Utilities map service, layer 9, Government of South Australia, viewed 22 October 2026, <a href="https://agsplus.geodata.sa.gov.au/arcgis/rest/services/Infrastructure_Utilities/MapServer/9" target="_blank" rel="noopener">agsplus.geodata.sa.gov.au</a>.</li>
@@ -492,11 +490,6 @@ window.OSP_SCENES = [
         <li>Town of Walkerville 2021, <em>SA Water sewer network</em> (SA Water Sewer June 2021), ArcGIS Online feature service, viewed 22 October 2026, <a href="https://services-ap1.arcgis.com/38lmAqtkEsaNGT6T/arcgis/rest/services/SA_Water_Sewer_Network/FeatureServer" target="_blank" rel="noopener">services-ap1.arcgis.com</a>.</li>
         <li>Town of Walkerville n.d., <em>Contours (1 m)</em>, ArcGIS Online feature service, viewed 22 October 2026, <a href="https://services-ap1.arcgis.com/38lmAqtkEsaNGT6T/arcgis/rest/services/Contours_1m/FeatureServer" target="_blank" rel="noopener">services-ap1.arcgis.com</a>.</li>
         <li>United States Environmental Protection Agency (US EPA) 2004, <em>Report to Congress: impacts and control of CSOs and SSOs</em>, EPA-833-R-04-001, Office of Water, Washington, DC.</li>
-      </ul>
-      <h3 class="refs-head">Team research library</h3><ul class="refs">
-        <li>PG-S2-22 team 2026, <em>Optimal sensor placement for wastewater network monitoring: compiled literature review</em>, unpublished team report, Adelaide University, <a href="https://siddhu-123.github.io/waste_water_network_sensor-papers/pdf-viewer.html?paper=team-compiled-paper&amp;pdf=.%2Fcontributors%2Fteam_compiled_paper.pdf&amp;title=Optimal%20Sensor%20Placement%20for%20Wastewater%20Network%20Monitoring%20(team%20compiled%20review)&amp;page=1" target="_blank" rel="noopener">team library</a>.</li>
-        <li>Jaison, AP 2026, <em>Public wastewater network data in South Australia</em>, unpublished team report, Adelaide University, <a href="https://siddhu-123.github.io/waste_water_network_sensor-papers/pdf-viewer.html?paper=abraham-sa-wastewater-data&amp;pdf=.%2Fcontributors%2Fabraham%2Fcompiled-papers%2FPublic%20Wastewater%20Network%20Data%20in%20South%20Australia.pdf&amp;title=Public%20Wastewater%20Network%20Data%20in%20South%20Australia%20(Abraham)&amp;page=1" target="_blank" rel="noopener">team library</a>.</li>
-        <li><em>Wastewater network sensor papers</em>, team research library, <a href="https://siddhu-123.github.io/waste_water_network_sensor-papers/" target="_blank" rel="noopener">siddhu-123.github.io</a>.</li>
       </ul>`,
   },
 ];
