@@ -1,6 +1,18 @@
 # Client presentation: sewer sensor placement
 
-Two pages over the same Simulation 2.5 results:
+**The live demo (`demo.html` at the repository root) is on Simulation 3.** Rebuild its data with:
+
+```
+pip install numpy pulp highspy
+python presentation/build/export_sim3.py --check   # the exact plan, alternatives, held-out cases -> ../demo/story-data.js
+python presentation/build/check_copy.py --demo     # every {{token}} in demo/scenes.js and the info pop-ups resolves
+python presentation/build/demo_smoke.py [shots]    # every scene at desktop and tablet sizes (Python Playwright)
+```
+
+`export_sim3.py` reads `data/source/sim3/` (see `SOURCE.md` there) and the network drawing in `data/story.json`.
+`--check` fails unless the plan matches the sandbox's own analysis and every claim the copy makes in words still holds.
+
+The two pages below are still on the Simulation 2.5 results:
 
 - **`index.html`, the story page** (present this). One map of Walkerville that never reloads: each scene is
   a camera move. Scenes 1 to 12 use the 2D top view (the answer, the problem, how we found it, the proof),

@@ -8,10 +8,6 @@
   "use strict";
   const S = window.OSP_STORY, SCENES = window.OSP_SCENES, LIB = window.OSP_LIB, STATIC = window.OSP_STATIC || {};
   const FACTS = Object.assign({}, S.facts, STATIC);
-  FACTS.greedy_k1_worst = Math.round(100 * S.curves.greedy[4]);
-  const heldAge = S.held_out.find((row) => row.case === "Design wet + age-weighted I&I");
-  FACTS.held_age_unseen = Math.round(100 * heldAge["unseen_k" + FACTS.plan_k1]);
-  FACTS.held_age_seen = Math.round(100 * heldAge["seen_k" + FACTS.plan_k1]);
   const $ = (id) => document.getElementById(id);
   const canvas = $("stage-canvas"), ctx = canvas.getContext("2d");
   const card = $("card"), sheet = $("sheet") || card, labelsEl = $("labels"), tip = $("tip");
@@ -195,18 +191,29 @@
   const phase1 = S.plan.phase1.map((id) => chIndex.get(id));
   const phase2 = S.plan.phase2.map((id) => chIndex.get(id));
   const trunk = S.alt_sets.trunk.map((id) => chIndex.get(id));
-  const ROLE = { "Dry": ["Dry-day watcher", "dry-day"], "Design wet": ["Wet-weather watcher", "wet-weather"], "Severe": ["Storm watcher", "storm"] };
-  const CASE_NOTE = ["Sewage only, no leakage into the pipes.",
-    "Leakage at the level that just meets the utility's design rating for these pipes.",
-    "A heavy wet period: leakage at " + S.facts.ii_severe + " L/s per 100 m of pipe.",
-    "Design-wet leakage, shifted toward the older pipes.",
-    "Design wet, with half as much again arriving from outside the area."];
-  const caseIdx = {}; S.cases.forEach((c, i) => { caseIdx[c.label] = i; });
+  // the weather cases, from the data (export_sim3.py): labels, notes and leakage rates
+  const CASE_NOTE = S.cases.map((c) => c.note);
   const caseRate = (c) => {
-    const rate = c === 0 ? "0" : (c === 2 ? S.facts.ii_severe : S.facts.ii_design).toFixed(2);
-    return `${rate} L/s per 100 m${c === 3 ? ", by pipe age" : c === 4 ? ", outside flow x1.5" : ""}`;
+    const k = S.cases[c];
+    return `${k.ii ? k.ii.toFixed(2) : "0"} L/s per 100 m${k.age === "weighted" ? ", by pipe age" : ""}${k.bfac > 1 ? ", outside flow x" + k.bfac : ""}`;
   };
-  const CASE_SHORT = ["Dry day", "Design wet", "Storm", "Leaky old pipes", "Extra inflow"];
+  const CASE_SHORT = S.cases.map((c) => c.short);
+
+  // the eight growth areas: each manhole's area (the smaller one where two overlap), and each pipe
+  // that touches an area's manholes, for drawing the area on the map
+  const AREAS = S.regions, nAreas = AREAS.length, STEPS = S.ladder, FOCUS = S.focus_step;
+  const areaOf = new Int16Array(nch).fill(-1);
+  AREAS.forEach((a, k) => a.manholes.forEach((i) => {
+    if (areaOf[i] < 0 || AREAS[areaOf[i]].manholes.length > a.manholes.length) areaOf[i] = k;
+  }));
+  const areaSets = AREAS.map((a) => new Set(a.manholes));
+  const areaPipes = AREAS.map((a, k) => S.pipes.map((p, i) => i).filter((i) => {
+    const p = S.pipes[i];
+    return (chamberAtNode.has(p.a) && areaSets[k].has(chamberAtNode.get(p.a))) || (chamberAtNode.has(p.b) && areaSets[k].has(chamberAtNode.get(p.b)));
+  }));
+  const areaName = (k) => `${AREAS[k].id} · ${AREAS[k].short}`;
+  const stepPct = (s) => Math.round(STEPS[s] * 100) + "%";
+  const RULE = S.rule_mm;
 
   // ------------------------------------------------------------------ colour helpers
   const hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
@@ -330,10 +337,10 @@
 
   // ------------------------------------------------------------------ layers and effects
   const L = {}, LT = {};
-  const LAYERS = ["basemap", "terrain", "homes", "pipes", "chambers", "shafts", "water", "sensors", "phase2", "trunk", "alarm", "resp", "flow", "pumps", "rain", "spikes"];
+  const LAYERS = ["basemap", "terrain", "homes", "pipes", "chambers", "shafts", "water", "sensors", "phase2", "trunk", "alarm", "resp", "flow", "pumps", "rain", "spikes", "areas", "chokes"];
   LAYERS.forEach((k) => { L[k] = 0; LT[k] = 0; });
   const fx = { style: "plain", prevStyle: "plain", styleMix: 1, widthMul: 1, reveal: 1, revealT0: 0, sensorT0: 0,
-    resp: null, alarmCase: 1, waterCase: 1, waterShown: 1, laterals: null, drift: 0, hover: -1, focus: -1, pathLabels: false };
+    resp: null, alarmCase: 1, waterCase: 1, waterShown: 1, laterals: null, drift: 0, hover: -1, focus: -1, pathLabels: false, area: -1 };
 
   function setLayers(show) { LAYERS.forEach((k) => { LT[k] = show && show[k] != null ? show[k] : k === "basemap" ? 0.58 : 0; }); }
   function stepLayers(dt) {
@@ -386,6 +393,7 @@
     if (L.homes > 0.01) drawHomes(zoomScale);
     if (L.shafts > 0.01) drawShafts(zoomScale);
     if (L.pipes > 0.01) drawPipes(now, zoomScale);
+    if (L.areas > 0.01 && fx.area >= 0) drawArea(fx.area, L.areas, now, zoomScale);
     if (L.flow > 0.01) drawFlow(now, zoomScale);
     if (L.pumps > 0.01) drawPumps(now, zoomScale);
     if (fx.laterals && L.homes > 0.01) drawLaterals(now);
@@ -393,6 +401,7 @@
     projectChambers();
     if (L.chambers > 0.01) drawChambers(zoomScale);
     if (L.alarm > 0.01) drawAlarm(now);
+    if (L.chokes > 0.01) drawChokes(now);
     if (L.resp > 0.01 && fx.resp) drawResponse(now, zoomScale);
     if (L.trunk > 0.01) drawSet(trunk, L.trunk, "trunk", now);
     if (L.phase2 > 0.01) drawSet(phase2, L.phase2, "phase2", now);
@@ -579,17 +588,50 @@
     }
   }
 
+  // one growth area: its pipes in the growth colour, its manholes pulsing (never every area at once)
+  function drawArea(k, a, now, zs) {
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.strokeStyle = rgba(C.growth, 0.75 * a);
+    for (const i of areaPipes[k]) {
+      const p = pipes[i];
+      ctx.lineWidth = pipeWidth(p, zs) + 2.2;
+      ctx.beginPath();
+      for (let v = 0; v < p.n; v++) { P(p.xs[v], p.ys[v], p.zs[v]); v ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1]); }
+      ctx.stroke();
+    }
+    const ph = (now / 1000 % 1.8) / 1.8, r = Math.max(2, Math.min(3.8, 1.5 * zs));
+    for (const i of AREAS[k].manholes) {
+      const x = scr[3 * i], y = scr[3 * i + 1];
+      ctx.fillStyle = rgba(C.growth, a * (0.55 + 0.45 * Math.sin(Math.PI * ph)));
+      ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+    }
+  }
+  function areaCentre(k) {
+    let x = 0, y = 0; for (const i of AREAS[k].manholes) { x += CH[i].x; y += CH[i].y; }
+    const n = AREAS[k].manholes.length; x /= n; y /= n;
+    // the area's own manhole nearest its centre, so the label sits on the network
+    return AREAS[k].manholes.reduce((b, i) => (Math.hypot(CH[i].x - x, CH[i].y - y) < Math.hypot(CH[b].x - x, CH[b].y - y) ? i : b), AREAS[k].manholes[0]);
+  }
+  function drawChokes() {
+    for (const c of S.chokes) {
+      const x = scr[3 * c.ch], y = scr[3 * c.ch + 1];
+      ctx.fillStyle = rgba(C.alarm, 0.95 * L.chokes); ctx.strokeStyle = rgba(C.white, L.chokes); ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(x, y - 6.5); ctx.lineTo(x + 6.5, y); ctx.lineTo(x, y + 6.5); ctx.lineTo(x - 6.5, y); ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+  }
+
+  const respList = (r) => S.response[String(r.c)][r.area][r.step] || [];
   function drawResponse(now, zs) {
-    const r = fx.resp, list = S.response[String(r.c)][r.site] || [];
+    const r = fx.resp, list = respList(r);
     const age = (now - r.t0) / 1000, a = L.resp;
-    const sx = scr[3 * r.site], sy = scr[3 * r.site + 1];
+    drawArea(r.area, a * 0.9, now, zs);
     // responders, in order of how much they rise
     const spikes = L.spikes;
     list.forEach(([i, mm], k) => {
       const appear = Math.max(0, Math.min(1, (age - 0.25 - k * 0.035) / 0.35));
       if (appear <= 0) return;
       const col = riseCol(mm), x = scr[3 * i], y = scr[3 * i + 1];
-      const big = mm >= FACTS.rise_focus_mm;
+      const big = mm >= RULE;
       if (spikes > 0.01) {
         const ch = CH[i], h = Math.min(mm, 120) * appear;
         const top = [0, 0, 0, 0]; P(ch.x, ch.y, ch.cover, cam, top); P(ch.x, ch.y, ch.cover + h * 0.65 / Math.max(cam.ve, 1));
@@ -608,13 +650,6 @@
         if (big) { ctx.strokeStyle = rgba(C.ink, 0.55 * a * flat); ctx.lineWidth = 1.2; ctx.stroke(); }
       }
     });
-    // the growth site
-    const pulse = (age % 1.6) / 1.6;
-    ctx.strokeStyle = rgba(C.growth, a * (1 - pulse)); ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(sx, sy, 8 + pulse * 26, 0, 7); ctx.stroke();
-    ctx.fillStyle = rgba(C.growth, a); ctx.beginPath(); ctx.arc(sx, sy, 7.5, 0, 7); ctx.fill();
-    ctx.strokeStyle = rgba(C.white, a); ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(sx - 3.6, sy); ctx.lineTo(sx + 3.6, sy); ctx.moveTo(sx, sy - 3.6); ctx.lineTo(sx, sy + 3.6); ctx.stroke();
   }
 
   function drawSet(set, a, kind, now) {
@@ -741,10 +776,13 @@
       age: `<div class="ramp">1896<i style="background:linear-gradient(90deg,var(--canvas-ink),var(--teal),var(--age-2),var(--age-3))"></i>2010</div><span class="key"><i style="background:var(--canvas-home);border-radius:2px"></i>Connected property</span>`,
       flow: `<span class="key"><i class="line" style="background:var(--water)"></i>Sewage, moving downhill</span><span class="key"><i style="background:var(--canvas-white);border:1.5px solid var(--ink-muted)"></i>Manhole in the model</span>`,
       pumps: `<span class="key"><i class="line" style="background:var(--water)"></i>Sewage, moving downhill</span><span class="key"><i style="background:var(--canvas-ink);border-radius:1px;transform:rotate(45deg) scale(.85)"></i>Pump station</span><span class="key"><i class="line" style="background:repeating-linear-gradient(90deg,var(--water) 0 4px,transparent 4px 7px)"></i>Rising main, pumped uphill</span><span class="key"><i style="background:var(--canvas-white);border:1.5px dashed var(--canvas-ink);border-radius:1px;transform:rotate(45deg) scale(.85)"></i>Not modelled</span>`,
-      resp: `<div class="ramp">2 mm<i style="background:linear-gradient(90deg,var(--rise-0),var(--rise-1),var(--rust),var(--rise-3))"></i>80 mm rise</div><span class="key"><i style="background:var(--amber)"></i>New homes connect here</span><span class="key"><i style="background:var(--rise-1);border:1.5px solid var(--canvas-ink)"></i>Rises 25 mm or more</span>`,
+      resp: `<div class="ramp">2 mm<i style="background:linear-gradient(90deg,var(--rise-0),var(--rise-1),var(--rust),var(--rise-3))"></i>80 mm rise</div><span class="key"><i style="background:var(--amber)"></i>Area where the new homes go</span><span class="key"><i style="background:var(--rise-1);border:1.5px solid var(--canvas-ink)"></i>Rises ${RULE} mm or more</span>`,
+      areas: `<span class="key"><i class="line" style="background:var(--amber)"></i>The area shown, and its manholes</span><span class="key"><i style="background:var(--canvas-white);border:1.5px solid var(--ink-muted)"></i>Manhole in the model</span>`,
+      chokes: `<span class="key"><i style="background:var(--rust);border-radius:1px;transform:rotate(45deg) scale(.85)"></i>Least room below the alarm</span><span class="key"><i style="background:var(--canvas-ink)"></i>Sensor, phase 1</span><span class="key"><i class="ring"></i>Phase 2</span>`,
       stress: `<b>How full each pipe runs</b>${["Under 25%", "25–50%", "50–75%", "75–100%", "Over 100% (surcharged)"].map((label, i) => `<span class="key"><i class="line" style="background:${["var(--canvas-faint)", "color-mix(in srgb, var(--rise-0), var(--rise-1))", "var(--rise-1)", "var(--rise-2)", "var(--rise-3)"][i]}"></i>${label}</span>`).join("")}`,
       alarm: `<span class="key"><i style="background:var(--rust)"></i>Over the 150 mm alarm already</span><span class="key"><i style="background:var(--canvas-sur)"></i>Pipe running full</span>`,
       beats: `<span class="key"><i style="background:var(--canvas-ink)"></i>Our five</span><span class="key"><i style="background:var(--canvas-trunk);border-radius:2px"></i>Five with the deepest flow today</span>`,
+      timerule: `<span class="key"><i style="background:var(--amber)"></i>The area shown</span><span class="key"><i style="background:var(--canvas-ink)"></i>Sensor, phase 1</span>`,
       size: `<span class="key"><i class="line" style="background:var(--size-0)"></i>150 mm</span><span class="key"><i class="line" style="background:var(--size-1)"></i>225 mm</span><span class="key"><i class="line" style="background:var(--teal)"></i>300 mm</span><span class="key"><i class="line" style="background:var(--size-3)"></i>Larger</span>`,
       water: `<span class="key"><i class="line" style="background:var(--water)"></i>Normal water depth at each manhole (bar height)</span><span class="key"><i class="line" style="background:var(--canvas-sur)"></i>Pipe running full</span>`,
     };
@@ -754,22 +792,24 @@
   // charts ------------------------------------------------------------
   const pctTxt = (v) => Math.round(v * 100) + "%";
   function chartFrontier() {
-    const w = 380, h = 240, l = 60, r = 12, t = 16, b = 42, K = S.curves.greedy.length;
+    const w = 380, h = 240, l = 60, r = 12, t = 16, b = 42, opt = S.curves.optimum, K = opt.length;
     const X = (k) => l + (k - 1) / (K - 1) * (w - l - r), Y = (v) => t + (1 - v) * (h - t - b);
     const line = (arr) => arr.map((v, i) => (i ? "L" : "M") + X(i + 1).toFixed(1) + " " + Y(v).toFixed(1)).join(" ");
-    const len = 900, k1 = FACTS.plan_k1, v1 = S.curves.greedy[k1 - 1];
+    const len = 900, k1 = FACTS.plan_k1, v1 = opt[k1 - 1];
     let g = "";
     for (const v of [0, 0.25, 0.5, 0.75, 1]) g += `<line class="grid" x1="${l}" x2="${w - r}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${l - 6}" y="${Y(v) + 4}" text-anchor="end">${v * 100}%</text>`;
     for (let k = 1; k <= K; k++) g += `<text x="${X(k)}" y="${h - b + 18}" text-anchor="middle">${k}</text>`;
     g += `<text x="${(l + w - r) / 2}" y="${h - 8}" text-anchor="middle">Number of sensors</text>`;
     g += `<text transform="translate(12 ${(t + h - b) / 2}) rotate(-90)" text-anchor="middle">Growth seen, worst weather case</text>`;
     g += `<path class="draw" style="--len:${len}" d="${line(S.curves.random)}" fill="none" stroke="var(--chart-random)" stroke-width="2"/>`;
-    g += `<path class="draw" style="--len:${len}" d="${line(S.curves.greedy)}" fill="none" stroke="var(--canvas-ink)" stroke-width="3"/>`;
+    g += `<path class="draw" style="--len:${len}" d="${line(S.curves.greedy)}" fill="none" stroke="var(--chart-other)" stroke-width="2.4" stroke-dasharray="5 4"/>`;
+    g += `<path class="draw" style="--len:${len}" d="${line(opt)}" fill="none" stroke="var(--canvas-ink)" stroke-width="3"/>`;
     g += `<g class="pop"><line x1="${X(k1)}" x2="${X(k1)}" y1="${Y(0)}" y2="${Y(v1)}" stroke="var(--canvas-ink)" stroke-dasharray="3 3"/>`;
-    S.curves.greedy.forEach((v, i) => { g += `<circle cx="${X(i + 1)}" cy="${Y(v)}" r="${i + 1 === k1 ? 5 : 2.6}" fill="var(--canvas-ink)" stroke="var(--canvas-white)" stroke-width="1.5"/>`; });
+    opt.forEach((v, i) => { g += `<circle cx="${X(i + 1)}" cy="${Y(v)}" r="${i + 1 === k1 ? 5 : 2.6}" fill="var(--canvas-ink)" stroke="var(--canvas-white)" stroke-width="1.5"/>`; });
     g += `<text class="val" x="${X(k1) + 8}" y="${Y(v1) + 16}">${pctTxt(v1)}</text>`;
-    g += `<text x="${X(K) - 2}" y="${Y(S.curves.greedy[K - 1]) - 9}" text-anchor="end" style="fill:var(--canvas-ink);font-weight:600">Our plan (one at a time)</text>`;
-    g += `<text x="${X(K) - 2}" y="${Y(Math.min(...S.curves.random.slice(-5))) + 15}" text-anchor="end">Random (best of 20 sets)</text></g>`;
+    g += `<text x="${X(K) - 2}" y="${Y(opt[K - 1]) - 9}" text-anchor="end" style="fill:var(--canvas-ink);font-weight:600">Our plan (best set)</text>`;
+    g += `<text x="${X(6)}" y="${Y(S.curves.greedy[5]) + 16}" text-anchor="middle">One at a time</text>`;
+    g += `<text x="${X(K) - 2}" y="${Y(Math.max(...S.curves.random.slice(-4))) - 8}" text-anchor="end">Random (best of 20 sets)</text></g>`;
     return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Share of growth seen in the worst weather case, by number of sensors">${g}</svg>`;
   }
   function chartAxis(l, r, y, title, w) {
@@ -793,28 +833,68 @@
   function chartBeats() {
     const k = FACTS.plan_k1 - 1, c = S.curves;
     return chartBars([
-      { label: "Our plan", v: c.greedy[k], col: "var(--canvas-ink)" },
+      { label: "Our plan (best set)", v: c.optimum[k], col: "var(--canvas-ink)" },
+      { label: "One at a time", v: c.greedy[k], col: "var(--chart-other)" },
       { label: "Random (best of 20 sets)", v: c.random[k], col: "var(--chart-other)" },
       { label: "Deepest flow today", v: c.trunk[k], col: "var(--chart-other)" },
       { label: "Most exposed alone", v: c.exposed[k], col: "var(--chart-other)" },
     ], 1);
   }
   function chartHoldout() {
-    const k = FACTS.plan_k1, w = 380, rh = 40, l = 118, t = 26;
+    const k = FACTS.plan_k1, w = 380, rh = 30, l = 128, t = 22;
     let g = `<text x="0" y="12">Weather case left out</text>`;
     S.held_out.forEach((row, i) => {
       const y = t + i * rh + 2, a = row["seen_k" + k], b = row["unseen_k" + k], sc = (w - l - 44);
       const name = CASE_SHORT[i];
-      g += `<text class="lab" x="0" y="${y + 17}">${name}</text>`;
-      g += `<rect class="bar" style="transition-delay:${0.1 + i * 0.1}s" x="${l}" y="${y + 4}" width="${sc * a}" height="12" rx="2" fill="var(--canvas-ink)"/>`;
-      g += `<text class="val pop" x="${l + sc * a + 5}" y="${y + 14}">${pctTxt(a)}</text>`;
-      g += `<rect class="bar" style="transition-delay:${0.2 + i * 0.1}s" x="${l}" y="${y + 19}" width="${Math.max(2, sc * b)}" height="12" rx="2" fill="${b < a - 0.05 ? "var(--rust)" : "var(--chart-other)"}"/>`;
-      g += `<text class="val pop" x="${l + Math.max(2, sc * b) + 5}" y="${y + 29}" style="fill:${b < a - 0.05 ? "var(--rust)" : "var(--ink-muted)"}">${pctTxt(b)}</text>`;
+      g += `<text class="lab" x="0" y="${y + 14}">${name}</text>`;
+      g += `<rect class="bar" style="transition-delay:${0.1 + i * 0.08}s" x="${l}" y="${y + 2}" width="${sc * a}" height="10" rx="2" fill="var(--canvas-ink)"/>`;
+      g += `<text class="val pop" x="${l + sc * a + 5}" y="${y + 11}">${pctTxt(a)}</text>`;
+      g += `<rect class="bar" style="transition-delay:${0.2 + i * 0.08}s" x="${l}" y="${y + 14}" width="${Math.max(2, sc * b)}" height="10" rx="2" fill="${b < a - 0.05 ? "var(--rust)" : "var(--chart-other)"}"/>`;
+      g += `<text class="val pop" x="${l + Math.max(2, sc * b) + 5}" y="${y + 23}" style="fill:${b < a - 0.05 ? "var(--rust)" : "var(--ink-muted)"}">${pctTxt(b)}</text>`;
     });
     const y0 = t + S.held_out.length * rh, h = y0 + 52;
     g += chartAxis(l, w - 44, y0, "Share of that case’s detectable growth seen (five sensors)", w);
     return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Share of detectable growth seen for each weather case left out">${g}</svg>
       <div class="legend"><span class="key"><i style="background:var(--canvas-ink);border-radius:2px"></i>Planned with this case</span><span class="key"><i style="background:var(--rust);border-radius:2px"></i>Planned without it (grey: no change)</span></div>`;
+  }
+  // Finding 1: the largest rise anywhere at each area's full 2041 share, dry day against design wet
+  function chartWet() {
+    const rows = S.wet_signal, w = 380, rh = 25, l = 168, t = 24, top = Math.max(80, ...rows.map((r) => r.wet));
+    const sc = (w - l - 40) / top, y0 = t + rows.length * rh, h = y0 + 50;
+    let g = `<text x="0" y="12">Area, at its full 2041 share</text>`;
+    const xr = l + RULE * sc;
+    rows.forEach((row, i) => {
+      const y = t + i * rh;
+      g += `<text class="lab" x="0" y="${y + 15}">${AREAS[i].short}</text>`;
+      g += `<rect class="bar" style="transition-delay:${0.1 + i * 0.07}s" x="${l}" y="${y + 3}" width="${Math.max(2, row.dry * sc)}" height="9" rx="2" fill="var(--chart-other)"/>`;
+      g += `<rect class="bar" style="transition-delay:${0.2 + i * 0.07}s" x="${l}" y="${y + 13}" width="${Math.max(2, row.wet * sc)}" height="9" rx="2" fill="var(--canvas-ink)"/>`;
+      g += `<text class="val pop" x="${l + Math.max(2, row.wet * sc) + 5}" y="${y + 21}">${Math.round(row.wet)}</text>`;
+      g += `<text class="val pop" x="${l + Math.max(2, row.dry * sc) + 5}" y="${y + 11}" style="fill:var(--ink-muted)">${Math.round(row.dry)}</text>`;
+    });
+    g += `<line x1="${xr}" x2="${xr}" y1="${t - 4}" y2="${y0}" stroke="var(--rust)" stroke-dasharray="3 3"/><text x="${xr + 4}" y="${t - 6}" style="fill:var(--rust)">${RULE} mm</text>`;
+    g += `<line class="axis" x1="${l}" x2="${w - 40}" y1="${y0}" y2="${y0}"/>`;
+    for (const v of [0, 20, 40, 60, 80].filter((v) => v <= top)) g += `<text x="${l + v * sc}" y="${y0 + 16}" text-anchor="middle">${v}</text>`;
+    g += `<text x="${(l + w - 40) / 2}" y="${y0 + 38}" text-anchor="middle">Largest rise at any manhole (mm)</text>`;
+    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Largest rise for each area, dry day against design wet">${g}</svg>
+      <div class="legend"><span class="key"><i style="background:var(--chart-other);border-radius:2px"></i>Dry day</span><span class="key"><i style="background:var(--canvas-ink);border-radius:2px"></i>Design wet</span></div>`;
+  }
+  // Finding 2: the smallest build-out step any manhole sees, per area and weather case
+  const FIRST_CASES = [0, 1, 3, 2];
+  function tableFirst() {
+    const cell = (v) => v == null ? `<span class="never">never</span>` : `<span class="${v <= 0.5 ? "early" : v <= 1 ? "mid" : "late"}">${Math.round(v * 100)}%</span>`;
+    let h = `<div class="tbl first" style="--cols:${FIRST_CASES.length}"><b>Area</b>${FIRST_CASES.map((c) => `<b>${CASE_SHORT[c]}</b>`).join("")}`;
+    AREAS.forEach((a, k) => { h += `<span class="lab">${a.short}</span>` + FIRST_CASES.map((c) => cell(S.first_seen.any[k][c])).join(""); });
+    return h + `</div>`;
+  }
+  // Finding 3: days of same-hour readings before each area's full share stands out, design wet
+  function tableTime() {
+    const days = (d) => d >= 1825 ? "5 yr+" : d >= 365 ? (d / 365).toFixed(1) + " yr" : d + (d === 1 ? " day" : " days");
+    let h = `<div class="tbl time" style="--cols:4"><b>Area</b><b>Rise</b><b>±10 mm</b><b>±20 mm</b><b>±40 mm</b>`;
+    S.time_rule.forEach((t, k) => {
+      h += `<span class="lab">${AREAS[k].short}</span><span>${t.rise < 10 ? t.rise.toFixed(1) : Math.round(t.rise)} mm</span>` +
+        ["10.0", "20.0", "40.0"].map((x) => { const d = t.days[x]; return `<span class="${d <= 30 ? "early" : d <= 365 ? "mid" : "late"}">${days(d)}</span>`; }).join("");
+    });
+    return h + `</div>`;
   }
   function gaugeHtml() {
     return `<div class="gauge"><svg viewBox="0 0 120 170" aria-hidden="true">
@@ -868,7 +948,7 @@
     let h = "";
     if (el.dataset.info) {
       const info = LIB.info[el.dataset.info]; if (!info) return;
-      h = `<h3>${esc(info.title)}</h3>${info.html}${teamHtml(info.team)}`;
+      h = `<h3>${esc(info.title)}</h3>${tok(info.html)}${teamHtml(info.team)}`;
     } else {
       const src = LIB.src[el.dataset.src]; if (!src) return;
       if (el.matches("span.chip")) {
@@ -955,8 +1035,12 @@
     if (sc.chart === "frontier") h += chartFrontier();
     if (sc.chart === "beats") h += chartBeats();
     if (sc.chart === "holdout") h += chartHoldout();
+    if (sc.chart === "wet") h += chartWet();
+    if (sc.chart === "first") h += tableFirst();
+    if (sc.chart === "time") h += tableTime();
     if (sc.gauge) h += gaugeHtml();
     if (sc.seg) h += `<div class="seg" role="group" aria-label="Weather case">${sc.seg.map((c) => `<button type="button" data-case="${c}">${CASE_SHORT[c]}</button>`).join("")}</div>`;
+    if (sc.steps) h += `<div class="seg steps" role="group" aria-label="Build-out">${sc.steps.map((k) => `<button type="button" data-step="${k}">${stepPct(k)}</button>`).join("")}</div>`;
     if (sc.readout) h += `<div class="readout" id="readout"></div>`;
     if (sc.after) h += `<div>${tok(sc.after)}</div>`;
     if (sc.legend) h += legendHtml(sc.legend);
@@ -973,37 +1057,42 @@
   function clearTimers() { while (timers.length) { const t = timers.pop(); clearTimeout(t); clearInterval(t); } }
 
   function setStyle(s) { if (s === fx.style) return; fx.prevStyle = fx.style; fx.style = s; fx.styleMix = 0; }
-  function respond(site, c, opts) { fx.resp = Object.assign({ site, c, t0: performance.now() }, opts || {}); }
+  function respond(area, step, c, opts) { fx.resp = Object.assign({ area, step, c, t0: performance.now() }, opts || {}); }
   function rolesOf() {
     return S.plan.roles.map((r, k) => ({ ch: phase1[k], cls: "accent", delay: 250 * k,
-      html: `${k + 1} · ${ROLE[r.case][0]}<small>sees ${r.share}% of ${ROLE[r.case][1]} growth on its own</small>` }));
+      html: `${k + 1} · ${AREAS[r.main].short}<small>${r.also.length ? "also sees " + r.also.map((a) => AREAS[a].short).join(", ") : "watches this area"}</small>` }));
   }
-  // sites whose growth shows widely, spread over the map, for the what-if loop
-  function exampleSites(c, n) {
-    const resp = S.response[String(c)];
-    const ranked = resp.map((l, i) => [i, l.filter((t) => t[1] >= FACTS.rise_focus_mm).length]).filter((t) => t[1] >= 3).sort((a, b) => b[1] - a[1]);
-    const out = [];
-    for (const [i] of ranked) {
-      if (out.every((j) => Math.hypot(CH[i].x - CH[j].x, CH[i].y - CH[j].y) > 700)) out.push(i);
-      if (out.length >= n) break;
-    }
-    return out;
+  // areas in order of how widely their full share shows, for the what-if loop
+  function exampleAreas(c) {
+    const n = (k) => (S.response[String(c)][k][FOCUS] || []).filter((t) => t[1] >= RULE).length;
+    return AREAS.map((_, k) => k).sort((x, y) => n(y) - n(x));
   }
-  function seenBy(site, c, set) {
-    const l = S.response[String(c)][site] || [];
-    const hit = l.filter(([i, mm]) => mm >= FACTS.rise_focus_mm && set.includes(i)).sort((a, b) => b[1] - a[1]);
+  function seenBy(area, step, c, set) {
+    const l = S.response[String(c)][area][step] || [];
+    const hit = l.filter(([i, mm]) => mm >= RULE && set.includes(i)).sort((x, y) => y[1] - x[1]);
     return { list: l, hit };
   }
-  function describe(site, c) {
-    const { list, hit } = seenBy(site, c, phase1);
-    const n25 = list.filter((t) => t[1] >= FACTS.rise_focus_mm).length;
+  function describe(area, step, c) {
+    const { list, hit } = seenBy(area, step, c, phase1);
+    const nR = list.filter((t) => t[1] >= RULE).length;
     const top = list[0];
-    let s = `<b>${S.focus_size} new homes at manhole ${CH[site].id}</b> (${CASE_SHORT[c].toLowerCase()}, ${caseRate(c)}): `;
-    if (!n25) return s + `no manhole rises ${FACTS.rise_focus_mm} mm${top ? `; the largest rise is ${top[1]} mm` : ""}. Growth this small here is not detectable by any sensor, so it does not count against the plan.`;
-    s += `${n25} manhole${n25 > 1 ? "s" : ""} rise ${FACTS.rise_focus_mm} mm or more. `;
+    let s = `<b>${AREAS[area].short}: +${AREAS[area].added[step]} homes</b> (${stepPct(step)} of its 2041 share; ${CASE_SHORT[c].toLowerCase()}, ${caseRate(c)}): `;
+    if (!nR) return s + `no manhole rises ${RULE} mm${top ? `; the largest rise is ${top[1]} mm` : ""}. Growth this small here is not detectable in one reading, so it does not count against the plan.`;
+    s += `${nR} manhole${nR > 1 ? "s" : ""} rise ${RULE} mm or more. `;
     if (hit.length) s += `<b class="hit">Seen by sensor ${phase1.indexOf(hit[0][0]) + 1}</b> (+${hit[0][1]} mm).`;
-    else s += `<b class="miss">Not seen by the first five</b>${(() => { const h2 = seenBy(site, c, phase2).hit; return h2.length ? `; sensor ${phase2.indexOf(h2[0][0]) + 6} in phase 2 sees it (+${h2[0][1]} mm).` : "."; })()}`;
+    else s += `<b class="miss">Not seen by the first five</b>${(() => { const h2 = seenBy(area, step, c, phase2).hit; return h2.length ? `; sensor ${phase2.indexOf(h2[0][0]) + 6} in phase 2 sees it (+${h2[0][1]} mm).` : "."; })()}`;
     return s;
+  }
+  const growthLabel = (area, step) => ({ ch: areaCentre(area), html: `+${AREAS[area].added[step]} homes<small>${AREAS[area].short}</small>`, cls: "growth", dy: -10 });
+  // a scene's weather and build-out buttons
+  const markSeg = (c, step) => {
+    card.querySelectorAll(".seg button[data-case]").forEach((b) => b.classList.toggle("on", +b.dataset.case === c));
+    card.querySelectorAll(".seg button[data-step]").forEach((b) => b.classList.toggle("on", +b.dataset.step === step));
+  };
+  function cycleAreas(text, ms) {
+    let k = 0;
+    const show = () => { const a = k++ % nAreas; fx.area = a; setLabels([{ ch: areaCentre(a), html: text(a), cls: "growth", dy: -8 }]); };
+    show(); every(show, ms || 3000);
   }
 
   const V = {}; // named views, resolved at scene entry so they follow the window size
@@ -1048,16 +1137,16 @@
     downhill() { setLabels([{ x: N.x[S.outlet], y: N.y[S.outlet], html: "Lowest point: the network drains here", cls: "accent" }]); },
     swmm() { fx.chamberPop = performance.now(); },
     whatif() {
-      const sites = exampleSites(1, 5); let k = 0;
+      const order = exampleAreas(1); let k = 0;
       const show = () => {
-        const s = sites[k++ % sites.length]; respond(s, 1);
-        setLabels([{ ch: s, html: `+${S.focus_size} homes`, cls: "growth", dy: -10 }]);
-        const ro = $("readout"); if (ro) ro.innerHTML = describe(s, 1);
+        const a = order[k++ % order.length]; respond(a, FOCUS, 1);
+        setLabels([growthLabel(a, FOCUS)]);
+        const ro = $("readout"); if (ro) ro.innerHTML = describe(a, FOCUS, 1);
       };
       show(); every(show, 3600);
     },
     cases() {
-      let k = 0; const order = [0, 1, 2, 3, 4];
+      let k = 0; const order = SCENES[cur].seg;
       const show = (c) => {
         fx.alarmCase = c;
         card.querySelectorAll(".seg button").forEach((b) => b.classList.toggle("on", +b.dataset.case === c));
@@ -1065,7 +1154,7 @@
         const b = S.base_alarm[String(c)].length, s = S.base_surcharged[String(c)].length;
         if (ro) ro.innerHTML = `<span class="casepill">${CASE_SHORT[c]}</span> ${caseRate(c)}. ${CASE_NOTE[c]}<br><b>${b}</b> manholes over the ${FACTS.alarm_mm} mm alarm and <b>${s}</b> pipes running full, before any new home connects.`;
       };
-      show(0);
+      show(order[0]);
       every(() => show(order[++k % order.length]), 2600);
       card.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => { clearTimers(); show(+b.dataset.case); }));
     },
@@ -1080,15 +1169,49 @@
     },
     beats() { setLabels([{ ch: trunk[0], html: "Deepest flow today", cls: "quiet", dy: -6 }, { ch: phase1[0], html: "Our plan", cls: "accent", dy: -8 }]); },
     tryit() {
-      let c = 1, user = false;
-      const pick = (s) => { respond(s, c); setLabels([{ ch: s, html: `+${S.focus_size} homes`, cls: "growth", dy: -10 }]); const ro = $("readout"); if (ro) ro.innerHTML = describe(s, c); };
-      const setCase = (v) => { c = v; card.querySelectorAll(".seg button").forEach((b) => b.classList.toggle("on", +b.dataset.case === c)); if (fx.resp) pick(fx.resp.site); };
-      card.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => { user = true; setCase(+b.dataset.case); }));
-      setCase(1);
-      const demo = exampleSites(1, 6); let k = 0;
+      let c = 1, step = FOCUS, user = false, area = -1;
+      const pick = (a) => {
+        area = a; respond(a, step, c); setLabels([growthLabel(a, step)]);
+        const ro = $("readout"); if (ro) ro.innerHTML = describe(a, step, c);
+      };
+      card.querySelectorAll(".seg button[data-case]").forEach((b) => b.addEventListener("click", () => { user = true; c = +b.dataset.case; markSeg(c, step); if (area >= 0) pick(area); }));
+      card.querySelectorAll(".seg button[data-step]").forEach((b) => b.addEventListener("click", () => { user = true; step = +b.dataset.step; markSeg(c, step); if (area >= 0) pick(area); }));
+      markSeg(c, step);
+      const demo = exampleAreas(1).slice(0, 5); let k = 0;
       pick(demo[0]);
       every(() => { if (!user) pick(demo[++k % demo.length]); }, 3800);
-      fx.onPick = (s) => { user = true; pick(s); };
+      fx.onPick = (i) => { user = true; pick(areaOf[i]); };
+    },
+    areas() {
+      cycleAreas((a) => `${areaName(a)}<small>${AREAS[a].homes} homes now · +${AREAS[a].added[FOCUS]} by 2041</small>`, 3000);
+      const ro = $("readout"), show = () => {
+        const a = AREAS[fx.area]; if (!ro || !a) return;
+        const whole = a.nominal >= FACTS.anchor_dwellings;
+        ro.innerHTML = `<span class="casepill">${a.id}</span> <b>${a.short}</b>: ${a.manholes.length} manholes, ${a.km} km of pipe, ${a.homes} homes connected today. Its 2041 share: <b>+${a.added[FOCUS]} homes</b>${whole ? ", the whole projection, because the state names this corridor as the growth driver" : ""}.`;
+      };
+      show(); every(show, 250);
+    },
+    wetsignal() {
+      const a = S.wet_signal.reduce((b, r, k) => (r.wet > S.wet_signal[b].wet ? k : b), 0);
+      // the same homes on a dry day, then in design wet weather; the label says which
+      let c = 0;
+      const show = (v) => {
+        c = v; respond(a, FOCUS, c);
+        const top = (S.response[String(c)][a][FOCUS][0] || [0, 0])[1];
+        setLabels([Object.assign(growthLabel(a, FOCUS), { html: `+${AREAS[a].added[FOCUS]} homes, ${CASE_SHORT[c].toLowerCase()}<small>${AREAS[a].short}: up to ${Math.round(top)} mm</small>` })]);
+      };
+      show(0); every(() => show(c ? 0 : 1), 3400);
+    },
+    firstseen() {
+      cycleAreas((a) => { const v = S.first_seen.any[a][1]; return `${AREAS[a].short}<small>design wet: ${v == null ? "never seen" : "seen at " + Math.round(v * 100) + "%"}</small>`; }, 2800);
+    },
+    timerule() {
+      cycleAreas((a) => { const t = S.time_rule[a], d = t.days["20.0"]; return `${AREAS[a].short}<small>+${t.rise < 10 ? t.rise.toFixed(1) : Math.round(t.rise)} mm · ${d >= 1825 ? "over 5 years" : d + (d === 1 ? " day" : " days")} at ±20 mm</small>`; }, 2800);
+    },
+    chokes() {
+      const tight = S.chokes.reduce((b, c) => (c.headroom < b.headroom ? c : b), S.chokes[0]);
+      setLabels([{ ch: tight.ch, html: "Least room below the alarm", cls: "quiet", dy: -8 },
+        ...phase1.map((ch, k) => ({ ch, html: "Sensor " + (k + 1), cls: "accent quiet", delay: 300 + 150 * k }))]);
     },
     below() { fx.drift = 1; },
     fall() {
@@ -1128,9 +1251,9 @@
       setLabels(first ? [{ x: homes[first.h][0], y: homes[first.h][1], z: homes[first.h][2], html: `New home: about ${FACTS.dwelling_peak_l_per_day} L a day<small>at the peak rate</small>`, cls: "growth", dy: -8 }] : []);
     },
     rain() {
-      const order = [0, 1, 2]; let k = 0;
+      const order = SCENES[cur].seg; let k = 0;
       const show = (c) => {
-        fx.waterCase = c; L.rain = 0; LT.rain = c === 2 ? 1 : c === 1 ? 0.45 : 0;
+        fx.waterCase = c; L.rain = 0; LT.rain = S.cases[c].ii ? 0.3 + 0.7 * S.cases[c].ii / 0.4 : 0;
         card.querySelectorAll(".seg button").forEach((b) => b.classList.toggle("on", +b.dataset.case === c));
         const ro = $("readout");
         if (ro) ro.innerHTML = `<span class="casepill">${CASE_SHORT[c]}</span> ${caseRate(c)}. ${CASE_NOTE[c]} <b>${S.base_surcharged[String(c)].length}</b> pipes running full before any growth.`;
@@ -1140,14 +1263,19 @@
     },
     sees() {
       // the wet-weather sensor and the growth site that raises it most while it stays under the alarm
-      const resp = S.response["1"];
-      let sIdx = phase1[S.plan.roles.findIndex((r) => r.case === "Design wet")] ?? phase1[0], best = null;
-      const base = S.base_depth["1"][sIdx], normal = base * 1000;
-      resp.forEach((l, site) => l.forEach(([i, mm]) => { if (i === sIdx && mm >= FACTS.rise_focus_mm && normal + mm < FACTS.alarm_mm && (!best || mm > best.mm)) best = { site, mm }; }));
-      if (!best) resp.forEach((l, site) => l.forEach(([i, mm]) => { if (i === sIdx && (!best || mm > best.mm)) best = { site, mm }; }));
-      flyTo(fit(boxOf([sIdx, best.site], 260), { pitch: 60, bearing: -38, ve: 9, z: CH[sIdx].cover - 2, pad: 0.12, persp: 2.4 }), 1800);
-      respond(best.site, 1);
-      setLabels([{ ch: best.site, html: `+${S.focus_size} homes`, cls: "growth", dy: -10 }, { ch: sIdx, html: `Sensor ${phase1.indexOf(sIdx) + 1}`, cls: "accent", dy: -12 }]);
+      const resp = S.response["1"], depth = S.base_depth["1"];
+      let best = null;
+      const consider = (strict) => phase1.forEach((ch) => resp.forEach((steps, area) => steps.forEach((l, step) => l.forEach(([i, mm]) => {
+        if (i !== ch) return;
+        // the clearest example: a rise the rule counts, at the area's full 2041 share
+        if (strict && !(mm >= RULE && step === FOCUS)) return;
+        if (!best || mm > best.mm) best = { ch, area, step, mm };
+      }))));
+      consider(true); if (!best) consider(false);
+      const sIdx = best.ch, normal = depth[sIdx] * 1000, site = areaCentre(best.area);
+      flyTo(fit(boxOf([sIdx, site], 260), { pitch: 60, bearing: -38, ve: 9, z: CH[sIdx].cover - 2, pad: 0.12, persp: 2.4 }), 1800);
+      respond(best.area, best.step, 1);
+      setLabels([growthLabel(best.area, best.step), { ch: sIdx, html: `Sensor ${phase1.indexOf(sIdx) + 1}`, cls: "accent", dy: -12 }]);
       const rise = best.mm, alarm = FACTS.alarm_mm, thr = FACTS.rise_focus_mm;
       const maxMM = Math.max(220, Math.ceil((normal + rise + 60) / 50) * 50);
       const yOf = (mm) => 154 - mm * 150 / maxMM;
@@ -1192,7 +1320,7 @@
         };
         requestAnimationFrame(st);
       };
-      const cycle = () => { anim(normal, normal, 10); later(() => { respond(best.site, 1); anim(normal, normal + rise, 1600); }, 900); };
+      const cycle = () => { anim(normal, normal, 10); later(() => { respond(best.area, best.step, 1); anim(normal, normal + rise, 1600); }, 900); };
       cycle(); every(cycle, 6200);
     },
     register() { setLabels([]); },
@@ -1203,7 +1331,7 @@
     i = Math.max(0, Math.min(SCENES.length - 1, i));
     if (i === cur && !instant) return;
     closeSource();
-    clearTimers(); fx.onPick = null; fx.laterals = null; fx.chamberPop = 0; fx.drift = 0; fx.widthTarget = 1; fx.reveal = 1;
+    clearTimers(); fx.onPick = null; fx.laterals = null; fx.chamberPop = 0; fx.drift = 0; fx.widthTarget = 1; fx.reveal = 1; fx.area = -1;
     document.body.classList.toggle("is-welcome", !!SCENES[i].welcome);
     fx.resp = null; fx.hover = -1;
     const sc = SCENES[i], prev = cur; cur = i; sceneT0 = performance.now();
@@ -1310,8 +1438,8 @@
     if (i < 0) { tip.classList.remove("on"); return; }
     const c = CH[i], k1 = phase1.indexOf(i), k2 = phase2.indexOf(i), d = S.base_depth["1"][i];
     let h = `<b>${k1 >= 0 ? "Sensor " + (k1 + 1) + " · " : k2 >= 0 ? "Phase-2 sensor " + (k2 + 6) + " · " : ""}Manhole ${c.id}</b><br>`;
-    h += `Ground ${c.cover.toFixed(1)} m · pipe floor ${c.inv.toFixed(1)} m (${(c.cover - c.inv).toFixed(1)} m deep)<br>Normal wet-weather depth ${Math.round(d * 1000)} mm`;
-    if (fx.onPick) h += `<br><i>Click to connect ${S.focus_size} homes here</i>`;
+    h += `Ground ${c.cover.toFixed(1)} m · pipe floor ${c.inv.toFixed(1)} m (${(c.cover - c.inv).toFixed(1)} m deep)<br>Normal wet-weather depth ${Math.round(d * 1000)} mm<br>Area: ${areaName(areaOf[i])}`;
+    if (fx.onPick) h += `<br><i>Click to grow this area</i>`;
     tip.innerHTML = h; tip.style.left = e.clientX + "px"; tip.style.top = e.clientY + "px"; tip.classList.add("on");
   });
   canvas.addEventListener("mouseleave", () => { tip.classList.remove("on"); fx.hover = -1; });

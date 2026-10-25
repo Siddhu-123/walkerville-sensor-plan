@@ -9,7 +9,8 @@
 //         team  {page, quote}        the line in our compiled review that covers the point
 //         gap   string               what is missing from the library, if anything
 // tags: what each chip class means, shown at the top of the hover card.
-// info: info-button text, keyed by the names used in each scene's `info` field.
+// info: info-button text, keyed by the names used in each scene's `info` field. {{fact}} tokens are
+//       filled from demo/story-data.js, as in scenes.js.
 
 window.OSP_LIB = {
   base: "https://siddhu-123.github.io/waste_water_network_sensor-papers/",
@@ -127,6 +128,10 @@ window.OSP_LIB = {
       lib: [],
       gap: "Internal model issue (relief pipes return everyday flow to a pump well). No outside source applies.",
     },
+    pointintime: {
+      lib: [],
+      gap: "Each test adds all of an area's growth at once, spread by the homes connected today, on today's network with no upgrades. Real growth arrives over years and where approvals put it.",
+    },
     validation: {
       lib: [],
       team: { page: 19, quote: "The SWMM model was physically grounded but not validated against field measurements, so it was used as a scenario generator rather than a calibrated operational digital twin." },
@@ -138,28 +143,29 @@ window.OSP_LIB = {
     frontier: {
       title: "Reading this chart",
       html: `<p><b>x-axis:</b> number of sensors in the plan, 1 to 10.<br><b>y-axis:</b> share of detectable growth the plan sees, in the weather case where it does worst.</p>
-        <p>Each simulation connects new homes at one manhole (328 manholes × 5 sizes × 5 weather cases = 8,200 runs). A run is <b>detectable</b> when at least one manhole rises 25 mm or more; 3,448 runs are. The plan <b>sees</b> a run when one of its sensors rises 25 mm or more. 100% would mean every detectable run is seen.</p>
-        <p>For five sensors the worst case is the severe storm: 58% of the 1,042 detectable storm runs are seen. The other 42% only raise the water at manholes without a sensor.</p><p><b>Black:</b> our plan, adding one sensor at a time. <b>Light:</b> Random (best of 20 sets).</p>`,
+        <p>Each simulation spreads new homes through one area ({{areas}} areas × {{steps}} sizes × {{cases}} weather cases). A test is <b>detectable</b> when at least one manhole rises {{rise_focus_mm}} mm or more; {{detectable_total}} are. The plan <b>sees</b> a test when one of its sensors rises {{rise_focus_mm}} mm or more. 100% would mean every detectable test is seen.</p>
+        <p><b>Black:</b> the best set at each size, found by an exact solver (integer programming, HiGHS) and proven best among every possible set. <b>Dashed:</b> adding one sensor at a time, each the one that helps most. <b>Light:</b> the best of 20 random sets.</p>`,
       team: { page: 20, quote: "Exact and convex methods can be accurate but do not scale easily; greedy methods are efficient but can be locally suboptimal; evolutionary methods explore more alternatives but cost more computation." },
     },
     beats: {
       title: "Reading this chart",
-      html: `<p><b>x-axis:</b> share of detectable growth seen in the worst weather case, same measure as the previous chart.<br><b>y-axis:</b> four ways to pick five sensors.</p>
-        <p><b>Our plan:</b> adds whichever sensor raises the worst-case score most, five times over. <b>Random (best of 20 sets):</b> twenty random sets of five, keeping the best. <b>Deepest flow today:</b> the five manholes with the deepest normal flow, all on the trunk. <b>Most exposed alone:</b> the five manholes that each see the most growth on their own.</p>
-        <p><b>Why two of them score so low:</b> deepest flow today puts four of its five sensors on 300 mm trunk manholes that already run 118 to 199 mm deep on a dry day. Even 150 new homes raise the level there by at most 19.6 mm, under the 25 mm a sensor needs to notice, and the chart scores each plan on its weakest weather case. Most exposed alone shares four of those five manholes, so it sees almost nothing new. In the workbench, the rule-of-thumb methods (largest catchment; two up, two down) pick the trunk too and stay at 0% up to ten sensors.</p>`,
+      html: `<p><b>x-axis:</b> share of detectable growth seen in the worst weather case, same measure as the previous chart.<br><b>y-axis:</b> five ways to pick five sensors.</p>
+        <p><b>Our plan:</b> the best set of five, from the exact solver. <b>One at a time:</b> adds whichever sensor raises the worst-case score most, five times over. <b>Random (best of 20 sets):</b> twenty random sets of five, keeping the best. <b>Deepest flow today:</b> the five manholes with the deepest normal flow in design wet weather. <b>Most exposed alone:</b> the five manholes that each see the most growth on their own.</p>
+        <p><b>Why two of them score so low:</b> the deepest-flow manholes sit on the trunk, where water is already high and an area's growth adds little, and the chart scores each plan on its weakest weather case. The most exposed manholes each see a lot, but mostly the same growth, so five of them add little to one.</p>`,
       team: { page: 13, quote: "The objective is nondecreasing and submodular under the stated conditions, which gives the standard greedy algorithm an approximately 63% lower-bound guarantee relative to the optimum." },
     },
     holdout: {
       title: "Reading this chart",
-      html: `<p><b>x-axis:</b> share of that weather case's detectable growth seen by five sensors.<br><b>y-axis:</b> the five weather cases.</p>
-        <p><b>Black bar:</b> the recommended five, chosen using all five cases. <b>Second bar:</b> five chosen the same way using only the other four cases, then scored on the case left out. Red marks a drop of more than 5 points; grey means little change.</p>
+      html: `<p><b>x-axis:</b> share of that weather case's detectable growth seen by five sensors.<br><b>y-axis:</b> the {{cases}} weather cases.</p>
+        <p><b>Black bar:</b> the recommended five, chosen using all {{cases}} cases. <b>Second bar:</b> the best five using only the other seven cases, then scored on the case left out. Red marks a drop of more than 5 points; grey means little change.</p>
         <p>A large drop means the plan depends on having seen that kind of weather.</p>`,
       team: { page: 19, quote: "The method was robust in average reconstruction across SWMM parameter variants, but exact sensor locations changed with model parameterisation." },
     },
     answerstats: {
       title: "What these two numbers mean",
-      html: `<p><b>Worst case:</b> of the growth runs that raise water 25 mm or more somewhere, the share seen by one of the five sensors, in the weather case where the plan does worst (the severe storm).</p>
-        <p><b>Average:</b> the same share averaged over the five weather cases.</p>`,
+      html: `<p><b>Worst case:</b> of the growth tests that raise water {{rise_focus_mm}} mm or more somewhere, the share seen by one of the five sensors, in the weather case where the plan does worst.</p>
+        <p><b>Average:</b> the same share averaged over the {{cases}} weather cases.</p>
+        <p>Another set of five scores exactly the same, swapping one site on the Walkerville Terrace corridor for another on the corridor, 500 m away. We show the set the simulation tool shows.</p>`,
     },
     brief: {
       title: "Reading this table",
@@ -167,7 +173,8 @@ window.OSP_LIB = {
     },
     path: {
       title: "How the method changed",
-      html: `<p>Simulation 1 tested warning time on a four-chamber test network. Simulation 2 looked at whole-catchment growth but was set aside after it missed sewer draining in from outside. The EPA SWMM simulation models all of Walkerville, and every result in this walk-through comes from it. Simulation 3 is the planned final version. It extends the model with growth spread over areas, new estates and eight weather cases, and is to be refined with SA Water's review and feedback on this prototype. None of its results are shown here.</p><p><a href="https://abrahampaulj.github.io/gravity-sewer-osp/simulation3/index.html" target="_blank" rel="noopener">Open Simulation 3</a></p>`,
+      html: `<p>Simulation 1 tested warning time on a four-chamber test network. Simulation 2 looked at whole-catchment growth but was set aside after it missed sewer draining in from outside. Simulation 2.5 modelled all of Walkerville with homes added at one manhole at a time, each run stopped at {{sim25_minutes}} minutes.</p>
+        <p>A teammate's review found that in wet weather some levels were still rising at {{sim25_minutes}} minutes. In one case the earlier plan's top site sat just under its alarm only because the run stopped early. Simulation 3 runs each case until the levels stop moving, spreads growth through areas as SA Water asked, and adds a beyond-design leakage level: {{cases}} weather cases in all.</p><p><a href="https://abrahampaulj.github.io/gravity-sewer-osp/simulation3/index.html" target="_blank" rel="noopener">Open Simulation 3</a></p>`,
     },
     growth: {
       title: "Two kinds of growth",
@@ -183,7 +190,7 @@ window.OSP_LIB = {
     },
     approach: {
       title: "Terms on this slide",
-      html: `<p><b>Worst weather case:</b> the plan is scored in each of the five weather cases and judged by its lowest score, so it cannot rely on one kind of weather. <b>Share of growth seen:</b> of the runs that raise the water 25 mm or more somewhere, the share where at least one sensor sees that rise.</p>`,
+      html: `<p><b>Worst weather case:</b> the plan is scored in each of the {{cases}} weather cases and judged by its lowest score, so it cannot rely on one kind of weather. <b>Share of growth seen:</b> of the tests that raise the water {{rise_focus_mm}} mm or more somewhere, the share where at least one sensor sees that rise. <b>Exact solver:</b> integer programming that checks every possible set of sensors without listing them one by one, and proves the set it returns is the best.</p>`,
     },
     capacity: {
       title: "Reading this table",
@@ -200,8 +207,8 @@ window.OSP_LIB = {
       team: { page: 19, quote: "The SWMM model was physically grounded but not validated against field measurements, so it was used as a scenario generator rather than a calibrated operational digital twin." },
     },
     cases: {
-      title: "The five weather cases",
-      html: `<p>Infiltration into the pipes is not measured yet, so each growth test ran five ways: <b>Dry day</b> (sewage only), <b>Design wet</b> (0.11 L/s per 100 m, the utility's design rating), <b>Storm</b> (0.4 L/s per 100 m), <b>Leaky old pipes</b> (design wet, more in older pipes), and <b>Extra inflow</b> (design wet, outside inflow × 1.5).</p>`,
+      title: "The weather cases",
+      html: `<p>Infiltration into the pipes is not measured yet, so each growth test ran {{cases}} ways: <b>Dry day</b> (sewage only), <b>Design wet</b> ({{ii_design}} L/s per 100 m, the utility's design rating), <b>Beyond design</b> ({{ii_beyond}}), <b>Storm</b> ({{ii_severe}}), and four variants: design wet and beyond design, each once with more leakage in older pipes and once with 1.5 times the flow from outside Walkerville.</p>`,
     },
     stress: {
       title: "Reading this map",
@@ -213,8 +220,31 @@ window.OSP_LIB = {
     },
     gauge: {
       title: "Reading this gauge",
-      html: `<p>A cut-through manhole. Blue is the water depth, and the scale on the left is depth in mm. The grey line is this sensor's normal level. The dashed black line is 25 mm above it, the rise that counts as seeing growth. The dashed red line is the fixed 150 mm alarm a float switch would give.</p>`,
+      html: `<p>A cut-through manhole. Blue is the water depth, and the scale on the left is depth in mm. The grey line is this sensor's normal level. The dashed black line is {{rise_focus_mm}} mm above it, the rise that counts as seeing growth. The dashed red line is the fixed {{alarm_mm}} mm alarm a float switch would give.</p>`,
       team: { page: 9, quote: "Float or tilt devices can provide a robust threshold event, such as a high-level alarm, with a simple sensing principle. They do not provide the level history, rate of rise, or normal-pattern information available from a continuous sensor." },
+    },
+    areas: {
+      title: "How the areas were drawn",
+      html: `<p>Six areas are the trunk's six largest branches: every pipe draining to a named exit pipe. The seventh is the rest of the suburb, and the eighth is the Walkerville Terrace corridor. They follow the pipes, not zoning.</p>
+        <p><b>Growth sizes:</b> the state projects {{anchor_low}} to {{anchor_dwellings}} more homes in Walkerville from 2021 to 2041 (+896 to +1,116 people at 2.3 per home). An area's 2041 share is {{anchor_dwellings}} × its share of the {{council_connections}} homes connected today; the corridor's is all {{anchor_dwellings}}, since the state names it as the growth driver. Each area is tested at {{step_low_pct}}% to {{step_high_pct}}% of its share.</p>`,
+    },
+    wet: {
+      title: "Reading this chart",
+      html: `<p><b>Bars:</b> the largest rise at any of the {{sites}} manholes when the area reaches its full 2041 share. Grey: a dry day. Black: design wet weather. <b>Red line:</b> the {{rise_focus_mm}} mm a sensor needs to count growth.</p>
+        <p>Water in a part-full pipe rises much more for the same extra flow than water in a nearly empty one, so the same homes show far more once rain and groundwater are in the pipes.</p>`,
+    },
+    first: {
+      title: "Reading this table",
+      html: `<p>Each cell is the smallest build-out step ({{step_low_pct}}%, 25%, 50%, 75%, 100%, 150% or {{step_high_pct}}% of the area's 2041 share) at which some manhole rises {{rise_focus_mm}} mm. <b>Never</b>: not even at {{step_high_pct}}%. The four variant cases are in the simulation tool.</p>`,
+    },
+    time: {
+      title: "Reading this table",
+      html: `<p><b>Rise:</b> the largest rise any manhole shows at the area's full 2041 share, design wet. <b>±10, ±20, ±40 mm:</b> how much the level at that hour varies from day to day, which is not measured yet. Each cell is the days of same-hour readings before the rise stands out from that wobble, about (2<i>σ</i>/<i>r</i>)², capped at five years.</p>`,
+    },
+    chokes: {
+      title: "Reading this slide",
+      html: `<p><b>Tightest manholes:</b> the {{chokes_listed}} with the least room between their water level before any growth and the {{alarm_mm}} mm alarm, in the weather case where each is tightest. <b>Sees growth first:</b> whether the manhole is where some area's growth first shows.</p>
+        <p>A manhole already near or over the alarm is where an overflow alarm belongs. It is a poor growth sensor: it has little room left to show a rise, and growth upstream shows first elsewhere.</p>`,
     },
     register: {
       title: "Reading this table",

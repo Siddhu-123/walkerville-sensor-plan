@@ -42,8 +42,27 @@ def load_story_facts():
     return facts, static | STORY_RUNTIME, text
 
 
+# Figures the demo measures on load (demo/engine.js), from the same network data.
+DEMO_RUNTIME = {"path_fall_m", "path_km", "stress_half_wet", "stress_half_severe"}
+
+
+def load_demo_facts():
+    demo = os.path.join(os.path.dirname(os.path.dirname(ROOT)), "demo")
+    data = open(os.path.join(demo, "story-data.js"), encoding="utf-8").read()
+    facts = json.loads(data[data.index("{"):data.rindex("}") + 1])["facts"]
+    text = open(os.path.join(demo, "scenes.js"), encoding="utf-8").read()
+    block = re.search(r"window\.OSP_STATIC = \{(.*?)\};", text, re.S)
+    static = set(re.findall(r"^\s*([a-z_0-9]+):", block.group(1), re.M)) if block else set()
+    info = open(os.path.join(demo, "sources.js"), encoding="utf-8").read()
+    info = info[info.index("  info: {"):]     # only the info-button text is filled from the data
+    return facts, static | DEMO_RUNTIME, text + "\n" + info
+
+
 def main():
-    if "--story" in sys.argv:
+    if "--demo" in sys.argv:
+        facts, static, text = load_demo_facts()
+        copy = re.sub(r"window\.OSP_STATIC = \{.*?\};", "", text, flags=re.S)
+    elif "--story" in sys.argv:
         facts, static, text = load_story_facts()
         copy = re.sub(r"window\.OSP_STATIC = \{.*?\};", "", text, flags=re.S)
     else:

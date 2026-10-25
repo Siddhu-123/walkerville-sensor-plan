@@ -9,3 +9,4 @@
 /cloud-run/*
 !/cloud-run/presentation/
 .DS_Store
+__pycache__/
