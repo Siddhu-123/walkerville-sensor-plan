@@ -2,7 +2,9 @@
 
 Client demo of the sensor placement plan for the Walkerville sewer network, built on Simulation 3, our final EPA SWMM model (Adelaide University capstone PG-S2-22, *Optimal Sensor Placement for Wastewater Network Monitoring*, for SA Water).
 
-**Live demo:** https://siddhu-123.github.io/walkerville-sensor-plan/demo.html
+**Live demo (Simulation 3, this branch):** https://abrahampaulj.github.io/walkerville-sensor-plan/demo.html
+
+**Previous demo (Simulation 2.5, `main`):** https://siddhu-123.github.io/walkerville-sensor-plan/demo.html
 
 The demo is a guided story on one map of Walkerville. It explains why infill growth needs watching, where we would put sensors to watch it, how we found those places, and what still waits on SA Water's data. Each scene is a camera move over the same map, from a 2D top view down to a 3D view of every manhole and pipe.
 
