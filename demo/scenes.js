@@ -250,7 +250,7 @@ window.OSP_SCENES = [
     kicker: "How we got here",
     title: "Four models, and the one used here",
     html: `<ol class="steps">
-        <li><b>Simulation 1</b><span>How much warning does a sensor give before a spill? On a four-chamber test network, a level sensor gave {{sim1_warn_low}} to {{sim1_warn_high}} minutes at the main chambers.</span></li>
+        <li><b>Simulation 1</b><span>How much warning does a sensor give before a spill? On a four-chamber test network.</span></li>
         <li class="dropped"><b>Simulation 2 <em>set aside</em></b><span>Where does growth run a catchment out of room? It missed about {{sim2_missed_km}} km of sewer draining in from outside, and its dry weather was {{sim2_dry_ratio}} times the design envelope.</span></li>
         <li class="kept"><b>EPA SWMM simulation</b><span>Where does growth show anywhere in Walkerville, and which manholes see most of it? Every result from here on comes from this model.</span></li>
         <li><b>Simulation 3 <em>next: the final version</em></b><span>The final model, to be shaped by SA Water's review and feedback on this prototype. It runs each case until no manhole's level is still moving, and tests infill spread over eight areas and new estates joining at one manhole, under eight weather cases. None of its results are used here yet.</span></li>
