@@ -185,7 +185,7 @@ window.OSP_SCENES = [
     title: "How many sensors, of which type, and where?",
     html: `<div class="params src">
         <div><span class="k">How many, and where</span><span class="v">SA Water 2026</span><span class="s">"Identify the optimal sensor locations and number of sensors."</span></div>
-        <div><span class="k">Which type</span><span class="v">PG-S2-22 2026, §1.2</span><span class="s">Float switches give a threshold alert only. Level sensors give continuous depth and cost five to six times more.</span></div>
+        <div><span class="k">Which type</span><span class="v">PG-S2-22 2026, §1.2</span><span class="s">Float switches give a threshold alert only. Level sensors give continuous depth but cost more.</span></div>
         <div><span class="k">To watch for</span><span class="v">PG-S2-22 2026, §1.1</span><span class="s">Overcapacity and overflow as new homes are added to existing sewers.</span></div>
         <div><span class="k">Within</span><span class="v">PG-S2-22 2026, §2.5</span><span class="s">One pilot trunk sewer network. No installation or field trials.</span></div>
       </div>`,
