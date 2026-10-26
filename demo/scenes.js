@@ -178,10 +178,10 @@ window.OSP_SCENES = [
     kicker: "The brief and our scope",
     title: "How many sensors, of which type, and where?",
     html: `<div class="params src">
-        <div><span class="k">How many, and where</span><span class="v">SA Water brief</span><span class="s">"Identify the optimal sensor locations and number of sensors."</span></div>
-        <div><span class="k">Which type</span><span class="v">Project scope</span><span class="s">Float switches give a threshold alert only. Level sensors give continuous depth and cost five to six times more.</span></div>
-        <div><span class="k">To watch for</span><span class="v">Project scope</span><span class="s">Overcapacity and overflow as new homes are added to existing sewers.</span></div>
-        <div><span class="k">Within</span><span class="v">Project scope</span><span class="s">One pilot trunk sewer network. No installation or field trials.</span></div>
+        <div><span class="k">How many, and where</span><span class="v"><span class="cite" data-src="briefask">SA Water brief</span></span><span class="s">"Identify the optimal sensor locations and number of sensors."</span></div>
+        <div><span class="k">Which type</span><span class="v"><span class="cite" data-src="brieftype">Project scope</span></span><span class="s">Float switches give a threshold alert only. Level sensors give continuous depth and cost five to six times more.</span></div>
+        <div><span class="k">To watch for</span><span class="v"><span class="cite" data-src="briefwatch">Project scope</span></span><span class="s">Overcapacity and overflow as new homes are added to existing sewers.</span></div>
+        <div><span class="k">Within</span><span class="v"><span class="cite" data-src="briefwithin">Project scope</span></span><span class="s">One pilot trunk sewer network. No installation or field trials.</span></div>
       </div>`,
   },
 
@@ -195,7 +195,7 @@ window.OSP_SCENES = [
     kicker: "The approach we adopted",
     title: "Simulate the growth, then pick the sensors that see it",
     html: `<ol class="steps">
-        <li><b>Model the network</b><span>Walkerville's {{sites}} manholes and their pipes, from SA Water's public records, in EPA SWMM (Rossman 2017).</span></li>
+        <li><b>Model the network</b><span>Walkerville's {{sites}} manholes and their pipes, from SA Water's public records, in EPA SWMM (<span class="cite" data-src="swmmnet">Rossman 2017</span>).</span></li>
         <li><b>Add growth everywhere</b><span>New homes at every manhole, at five sizes and in {{cases}} weather cases: {{runs}} runs.</span></li>
         <li><b>Decide what a sensor sees</b><span>A rise of {{rise_focus_mm}} mm or more at its manhole, against the same case with no growth.</span></li>
         <li class="kept"><b>Choose the sites</b><span>Add sensors one at a time, each at the manhole that most raises the share of growth seen in the worst weather case. The count is where one more sensor adds little.</span></li>
@@ -208,14 +208,14 @@ window.OSP_SCENES = [
     show: { terrain: 0.9, pipes: 0.9, flow: 0.5, chambers: 0.6 },
     kicker: "Why simulation",
     title: "We started with a capacity check, then moved to simulation",
-    html: `<p>Our first screen used <strong>Manning's equation</strong> (Chow 1959): how much each pipe carries when full, against the load new homes add. It needs only pipe size, slope and roughness, it is how design codes rate a sewer's capacity (Icon Water n.d.), and published placement methods already use pipe size and slope in place of a hydraulic model (Simone et al. 2023).</p>
+    html: `<p>Our first screen used <strong>Manning's equation</strong> (<span class="cite" data-src="manningeq">Chow 1959</span>): how much each pipe carries when full, against the load new homes add. It needs only pipe size, slope and roughness, it is how design codes rate a sewer's capacity (Icon Water n.d.), and published placement methods already use pipe size and slope in place of a hydraulic model (<span class="cite" data-src="simone">Simone et al. 2023</span>).</p>
       <div class="vs">
         <b></b><b>Capacity check</b><b>Simulation</b>
         <span>Tells you</span><span>Which pipe fills</span><span>Water level at each manhole</span>
         <span>Backing up</span><span>Not computed</span><span>Routed</span>
         <span>Sensor view</span><span>Guessed</span><span>Read off</span>
       </div>
-      <p>A sensor measures water level, and growth shows where water backs up behind a full pipe. <strong>So we moved to EPA SWMM</strong>, which computes that level at every manhole (Rossman 2017).</p>`,
+      <p>A sensor measures water level, and growth shows where water backs up behind a full pipe. <strong>So we moved to EPA SWMM</strong>, which computes that level at every manhole (<span class="cite" data-src="swmmlevel">Rossman 2017</span>).</p>`,
     legend: "flow",
   },
 
