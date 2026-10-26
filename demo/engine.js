@@ -1346,6 +1346,11 @@
   resize();
   const start = Math.max(0, SCENES.findIndex((s) => "#" + s.id === location.hash));
   enter(start, true);
+  // Live presentation sync sets the hash on followers' pages to the presenter's scene.
+  window.addEventListener("hashchange", () => {
+    const i = SCENES.findIndex((s) => "#" + s.id === location.hash);
+    if (i >= 0 && i !== cur) enter(i);
+  });
   requestAnimationFrame(loop);
   setTimeout(() => $("loading").classList.add("done"), 60);
   window.__story = { enter, cam, L, fx, scenes: SCENES, get cur() { return cur; } }; // for the smoke test
