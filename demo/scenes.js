@@ -164,7 +164,7 @@ window.OSP_SCENES = [
     id: "question", act: "The question", view: "all",
     show: { terrain: 1, pipes: 0.75, chambers: 1, homes: 0.3 },
     kicker: "What we set out to answer",
-    title: "Three things SA Water needs to know",
+    title: "Three things to know",
     html: `<div class="params">
         <div><span class="k">Where?</span><span class="s">Which manholes show growth first, and which ones see the most of it?</span></div>
         <div><span class="k">How many?</span><span class="s">How many sensors are enough before each extra one adds little?</span></div>
