@@ -8,10 +8,11 @@ The demo is a guided story on one map of Walkerville. It explains why infill gro
 
 ## The result in brief
 
-- **Five level sensors now, five more later.** The first five see 58% of detectable growth in the weather case where they do worst, and 72% on average across the five weather cases. Adding the next five lifts this to 71% and 83%.
-- **The five are chosen one at a time:** each is the manhole that adds the most growth seen in the worst weather case.
-- **Tested on 8,200 simulated futures:** new homes added at every manhole of a 328-manhole EPA SWMM model, at several growth sizes, under five weather and leakage cases.
-- **Draft for discussion.** The model is built from public data and is uncalibrated. The same steps re-run on the pilot network when SA Water's data is released.
+- **Where pipe buffer runs out first (the why before the what):** Under Simulation 3.5's capacity check (0.7 of pipe bore across 400 starting-level error draws on a Design wet day), north-east regions **R1** (reaches 0.7 in 13 to 77 homes against a 110-home 2041 share) and **R2** (3 to 54 homes against a 55-home share) run out of room before 2041 and need monitoring first. **R4** (4 to 40 homes) and the **R8** Walkerville Terrace corridor (127 to 1,276 homes) can go either way, while **R3, R5, R6 and R7** keep room in hand.
+- **Early warning before surcharge:** Simulation 3.5 scores whether a sensor rises 10 mm or more at least one build-out step *before* the first new manhole surcharge (13 plausible overloads by 100% of the 2041 housing projection across 7 wet weather cases, 25 including 150% and 300% stress steps). **Three level sensors** ($75,000) warn of all **13 of 13** in-sample overloads; **five level sensors** ($125,000) warn of **11 of 13** on unseen weather (88% of all 25) and **8 of 13** on an unseen region (72% of all 25), while detecting **86%** of wet-weather growth in the worst case (**91%** on average, **76%** on unseen weather, **66%** on an unseen region).
+- **Level sensors vs float switches:** At assumed prices of $25,000 per level sensor and $1,000 per float switch, a **25-float budget** ($25,000) buys **22 floats** ($22,000) that average 47% in-sample but fall to **10%** growth detection and **0%** early warning on unseen weather because normal water depth shifts with rainfall, whereas **1 level sensor** ($25,000) holds **38%** detection (**51%** warning) and **5 level sensors** ($125,000) hold **76%** detection (**88%** warning).
+- **Tested across regional growth and whole-suburb runs (+ 56 whole-suburb runs):** 8 drainage regions × 7 build-out steps (10% to 300% of the 485-dwelling 2041 projection) × 8 weather and infiltration cases (1 dry + 7 wet) on a 328-manhole, 890-link EPA SWMM 5.2 dynamic-wave model.
+- **Draft for discussion:** The model is built from public data and is uncalibrated. Changing the rise rule from 10 mm to 25 mm reduces five-sensor unseen-weather warnings from 11 of 13 to 6 of 13; normal-day level logs and pipe ratings will settle those thresholds when real network data arrives.
 
 Every figure on screen is filled from the generated data in `demo/story-data.js`, so the numbers above follow that file if it is regenerated.
 
@@ -36,26 +37,23 @@ Then go to http://localhost:8766/demo.html. Opening `demo.html` straight from di
 | Full screen | `F` |
 | Light / dark theme | `T`, or the Light/Dark button (remembered in this browser) |
 | Manhole details | Hover a manhole on the map |
-| Try your own growth | On the "Connect 150 homes anywhere" scene, click a manhole |
 | Where a figure comes from | Hover a tag or citation, or click an ⓘ button, to see the backing page in the team's research library |
 
-The "Open the simulation tool" link at the top right opens the EPA SWMM simulation workbench in the [gravity-sewer-osp sandbox](https://abrahampaulj.github.io/gravity-sewer-osp/simulation25/index.html).
+The "Open Simulation 3.5" link at the top right opens the Simulation 3.5 workbench in the [gravity-sewer-osp sandbox](https://abrahampaulj.github.io/gravity-sewer-osp/simulation35/index.html).
 
 ## What the demo covers
 
-A welcome page, then 33 scenes in nine sections:
+A welcome page, then 14 scenes in seven sections:
 
 | Section | Scenes (`#id`) | What it says |
 |---|---|---|
-| **Why watch growth** | `title`, `growth`, `infill`, `downhill`, `overflow`, `stages`, `why` | A sewer grows two ways, greenfield and infill. Infill adds homes to century-old pipes, and every new home loads every pipe below it. The spill appears above the pipe at fault. Growth shows in stages that a level sensor can see years before a spill, while overflow records mostly show blockages. |
-| **The question** | `today`, `question`, `brief` | How sites are chosen today, the three things SA Water needs to know (where, how many, how well), and the brief and scope. |
-| **Our approach** | `approach`, `capacity` | The approach we adopted (simulate growth in EPA SWMM, then choose the sensors that see the most of it), and why we started with a Manning's-equation capacity check and moved to simulation: a sensor measures water level, and only a hydraulic model computes how high water backs up at each manhole. |
-| **The answer** | `answer`, `roles` | The five recommended manholes, and the kind of day each one watches. |
-| **How we found it** | `path`, `data`, `swmm`, `whatif`, `cases`, `stress` | The three models we built and the one we kept, where the dataset comes from, why EPA SWMM, the 8,200 growth runs, the five weather cases, and where pipes are already under strain. |
-| **Why it holds** | `howmany`, `beats`, `holdout`, `tryit` | Why five, how the plan beats the obvious choices, how it holds on weather it never saw, and an interactive "connect 150 homes" test. |
-| **Below the street** | `below`, `fall`, `pipes`, `load`, `rain`, `sees` | In 3D: manhole depths, slope, pipe size and material, the load of one new home, groundwater and rain, and how a sensor detects growth (a rise of 25 mm or more above its normal level). |
-| **What's next** | `register`, `close` | What is assumed and what data removes each assumption, and the phased plan. |
-| **References** | `references` | Every work cited in the scenes, in Harvard (author-date) style. Citations in the text use the same author-date form. |
+| **Problem** | `infill`, `overflow`, `room` | Growth adds 485 infill homes to century-old clay pipes; sewage backs up upstream before any overflow is logged; checking 0.7 pipe buffer across the 8 regions shows R1 and R2 run out of room first while four regions retain buffer. |
+| **Question** | `question` | Where buffer runs out, how many sensors to deploy, whether to use continuous level sensors or float switches, and at which of the 328 manholes. |
+| **Method** | `swmm`, `sees` | The regional EPA SWMM 5.2 runs across 8 regions, 7 build-out steps and 8 weather cases (+ 56 whole-suburb runs), and why Simulation 3.5 scores a 10 mm rise at least one step before surcharge. |
+| **Results** | `answer`, `roles`, `floats`, `howmany`, `holdout` | Why 3 level sensors cover in-sample warnings and 5 cover unseen weather (11 of 13 plausible overloads, 86% worst-case wet growth seen); which region each sensor covers; why level sensors beat float switches on unseen weather (76% vs 10%); the 1-to-10 sensor frontier; and unseen weather and region holdouts. |
+| **Greenfield** | `greenfield` | Greenfield estates build new internal pipes and connect only to trunk mains of 225 mm or more (24% of the network). |
+| **Limits** | `register` | How the 10 mm vs 25 mm rise rule, 0.7 bore limit, float clearance and steady-flow assumptions affect the answer, and what waits on normal-day level records. |
+| **Close** | `close` | Business case summary: start monitoring in R1 and R2 with 3 to 5 level sensors, and re-run the open pipeline once field records arrive. |
 
 ## What's in this repository
 

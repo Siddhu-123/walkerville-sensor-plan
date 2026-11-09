@@ -169,88 +169,42 @@ window.OSP_LIB = {
   info: {
     frontier: {
       title: "Reading this chart",
-      html: `<p><b>x-axis:</b> number of sensors in the plan, 1 to 10.<br><b>y-axis:</b> share of detectable growth the plan sees, in the weather case where it does worst.</p>
-        <p>Each simulation connects new homes at one manhole (328 manholes × 5 sizes × 5 weather cases = 8,200 runs). A run is <b>detectable</b> when at least one manhole rises 25 mm or more; 3,448 runs are. The plan <b>sees</b> a run when one of its sensors rises 25 mm or more. 100% would mean every detectable run is seen.</p>
-        <p>For five sensors the worst case is the severe storm: 58% of the 1,042 detectable storm runs are seen. The other 42% only raise the water at manholes without a sensor.</p><p><b>Black:</b> our plan, adding one sensor at a time. <b>Light:</b> Random (best of 20 sets).</p>`,
+      html: `<p><b>x-axis:</b> number of level sensors in the plan, 1 to 10.<br><b>y-axis:</b> score under the 10 mm rise rule.</p>
+        <p><b>Teal curve:</b> share of the 25 regional overloads warned at least one build-out step before the first manhole surcharges, when sensors are chosen without the weather case being tested (reaches 88%, or 11 of 13 plausible overloads, at 3 to 6 sensors, and 90%, or 12 of 13, at 7 to 10 sensors).</p>
+        <p><b>Dark curve:</b> share of detectable growth runs seen by those same warning-first sensor sets in their worst wet weather case (rises from 25% at 3 sensors to 80% at 5 sensors and 90% at 10 sensors).</p>`,
       team: { page: 20, quote: "Exact and convex methods can be accurate but do not scale easily; greedy methods are efficient but can be locally suboptimal; evolutionary methods explore more alternatives but cost more computation." },
     },
     beats: {
       title: "Reading this chart",
-      html: `<p><b>x-axis:</b> share of detectable growth seen in the worst weather case, same measure as the previous chart.<br><b>y-axis:</b> four ways to pick five sensors.</p>
-        <p><b>Our plan:</b> adds whichever sensor raises the worst-case score most, five times over. <b>Random (best of 20 sets):</b> twenty random sets of five, keeping the best. <b>Deepest flow today:</b> the five manholes with the deepest normal flow, all on the trunk. <b>Most exposed alone:</b> the five manholes that each see the most growth on their own.</p>
-        <p><b>Why two of them score so low:</b> deepest flow today puts four of its five sensors on 300 mm trunk manholes that already run 118 to 199 mm deep on a dry day. Even 150 new homes raise the level there by at most 19.6 mm, under the 25 mm a sensor needs to notice, and the chart scores each plan on its weakest weather case. Most exposed alone shares four of those five manholes, so it sees almost nothing new. In the workbench, the rule-of-thumb methods (largest catchment; two up, two down) pick the trunk too and stay at 0% up to ten sensors.</p>`,
-      team: { page: 13, quote: "The objective is nondecreasing and submodular under the stated conditions, which gives the standard greedy algorithm an approximately 63% lower-bound guarantee relative to the optimum." },
+      html: `<p><b>x-axis:</b> share of detectable regional growth seen on unseen weather (chosen on six wet cases and tested on the seventh left-out case).<br><b>y-axis:</b> level sensors versus float switches at $25,000 and $125,000 budgets.</p>
+        <p>Prices are assumed ($25,000 per level sensor, $1,000 per float switch). A float switch earns credit when it sits at least 25 mm above normal depth, stays quiet on a Design wet day, and growth lifts water past it.</p>
+        <p><b>Why floats drop on unseen weather:</b> a float trips at one fixed height, whereas normal water depth shifts with rainfall and infiltration. In a median of 2 of the 7 wet cases, chosen floats are already under water before any new homes connect.</p>`,
+      team: { page: 9, quote: "Float or tilt devices can provide a robust threshold event, such as a high-level alarm, with a simple sensing principle. They do not provide the level history, rate of rise, or normal-pattern information available from a continuous sensor." },
     },
     holdout: {
       title: "Reading this chart",
-      html: `<p><b>x-axis:</b> share of that weather case's detectable growth seen by five sensors.<br><b>y-axis:</b> the five weather cases.</p>
-        <p><b>Black bar:</b> the recommended five, chosen using all five cases. <b>Second bar:</b> five chosen the same way using only the other four cases, then scored on the case left out. Red marks a drop of more than 5 points; grey means little change.</p>
-        <p>A large drop means the plan depends on having seen that kind of weather.</p>`,
+      html: `<p><b>x-axis:</b> share of that wet weather case's detectable growth seen by five level sensors (10 mm rule).<br><b>y-axis:</b> five representative wet-weather and infiltration cases from Simulation 3.5.</p>
+        <p><b>Dark bar:</b> the five level sensors chosen using all seven wet cases (91% average, 86% worst case). <b>Second bar:</b> five sensors chosen without that weather case and tested on it (76% average across left-out wet cases).</p>`,
       team: { page: 19, quote: "The method was robust in average reconstruction across SWMM parameter variants, but exact sensor locations changed with model parameterisation." },
     },
     answerstats: {
-      title: "What these two numbers mean",
-      html: `<p><b>Worst case:</b> of the growth runs that raise water 25 mm or more somewhere, the share seen by one of the five sensors, in the weather case where the plan does worst (the severe storm).</p>
-        <p><b>Average:</b> the same share averaged over the five weather cases.</p>`,
-    },
-    brief: {
-      title: "Reading this table",
-      html: `<p>Each row is one part of the brief: what was asked, where it is written (project request or scoping document section), and what it says.</p>`,
-    },
-    path: {
-      title: "How the method changed",
-      html: `<p>Simulation 1 tested warning time on a four-chamber test network. Simulation 2 looked at whole-catchment growth but was set aside after it missed sewer draining in from outside. The EPA SWMM simulation models all of Walkerville, and every result in this walk-through comes from it. Simulation 3 is the planned final version. It extends the model with growth spread over areas, new estates and eight weather cases, and is to be refined with SA Water's review and feedback on this prototype. None of its results are shown here.</p><p><a href="https://abrahampaulj.github.io/gravity-sewer-osp/simulation3/index.html" target="_blank" rel="noopener">Open Simulation 3</a></p>`,
-    },
-    growth: {
-      title: "Two kinds of growth",
-      html: `<p><b>Greenfield:</b> a new estate built on empty land, joining the network at one point. <b>Infill:</b> extra homes on existing lots, spread through streets that are already connected. Both add sewage flow; they differ in where it enters.</p>`,
-    },
-    stages: {
-      title: "Terms on this slide",
-      html: `<p><b>Level sensor:</b> measures water depth continuously, so a slow upward drift shows. <b>Float switch:</b> trips when the water reaches a set height, and reports only that it passed that point. <b>Surcharge:</b> water above the top of the pipe, standing up in the manhole.</p>`,
-    },
-    why: {
-      title: "Reading this table",
-      html: `<p>Each row is one way to tell a blockage from growth in a sensor's level record: how fast it starts, how it responds to weather, where it shows, and what happens afterwards.</p>`,
-    },
-    approach: {
-      title: "Terms on this slide",
-      html: `<p><b>Worst weather case:</b> the plan is scored in each of the five weather cases and judged by its lowest score, so it cannot rely on one kind of weather. <b>Share of growth seen:</b> of the runs that raise the water 25 mm or more somewhere, the share where at least one sensor sees that rise.</p>`,
-    },
-    capacity: {
-      title: "Reading this table",
-      html: `<p><b>Capacity check:</b> Manning's equation gives the most a pipe can carry when full, from its size, slope and roughness. It shows which pipe fills first, not how far water backs up behind it. <b>Simulation:</b> EPA SWMM routes the flow through every pipe and gives the water level at each manhole.</p>`,
-    },
-    data: {
-      title: "Reading this table",
-      html: `<p>Each row is one public data layer: what it covers, who publishes it, and what the model takes from it.</p>`,
-    },
-    swmm: {
-      title: "Reading this table",
-      html: `<p>Columns compare two ways of judging what a sensor can see. <b>Map rule:</b> count pipes within a set number of links on the pipe map. <b>SWMM:</b> route the flow and compute the water depth at every manhole.</p>
-        <p>Rows: what each approach treats as visible, how it handles a pipe that is already full, and whether it can add new homes.</p>`,
-      team: { page: 19, quote: "The SWMM model was physically grounded but not validated against field measurements, so it was used as a scenario generator rather than a calibrated operational digital twin." },
-    },
-    cases: {
-      title: "The five weather cases",
-      html: `<p>Infiltration into the pipes is not measured yet, so each growth test ran five ways: <b>Dry day</b> (sewage only), <b>Design wet</b> (0.11 L/s per 100 m, the utility's design rating), <b>Storm</b> (0.4 L/s per 100 m), <b>Leaky old pipes</b> (design wet, more in older pipes), and <b>Extra inflow</b> (design wet, outside inflow × 1.5).</p>`,
+      title: "What these numbers mean",
+      html: `<p><b>Overloads warned:</b> across the 7 wet weather cases, 13 region overloads happen by 100% of the 2041 housing projection (and 25 including the 150% and 300% stress steps). A sensor warns if it rises 10 mm or more at least one build-out step before the first manhole surcharges.</p>
+        <p><b>Growth seen:</b> share of detectable regional growth runs where at least one of the five sensors rises 10 mm or more.</p>`,
     },
     stress: {
-      title: "Reading this map",
-      html: `<p>Each pipe's ratio is the average water depth at its end manholes divided by its diameter; pipes with no end manhole are faint. Colours show under 25%, 25–50%, 50–75%, 75–100%, and over 100% (surcharged), from pale amber to deep red.</p>`,
-    },
-    params: {
-      title: "Reading this table",
-      html: `<p>Each row is one model input: what it is, the value used, and where it comes from. The tag says how far to trust it. Hover a tag to see its source and open it in the team library.</p>`,
+      title: "Reading this map and table",
+      html: `<p>The map colours each pipe by its baseline depth-to-diameter ratio in the selected weather case. The table reports Simulation 3.5's capacity check at a declared ceiling of 0.7 of pipe bore across 400 random draws of 0.05-of-bore (7.5 mm on a 150 mm pipe) starting-level error.</p>
+        <p><b>Runs out:</b> reaches 0.7 within the 2041 dwelling share in at least 80% of draws (R1 and R2). <b>Uncertain:</b> between 20% and 80% of draws (R4 and R8). <b>Room left:</b> under 20% of draws (R3, R5, R6, R7).</p>`,
     },
     gauge: {
       title: "Reading this gauge",
-      html: `<p>A cut-through manhole. Blue is the water depth, and the scale on the left is depth in mm. The grey line is this sensor's normal level. The dashed black line is 25 mm above it, the rise that counts as seeing growth. The dashed red line is the fixed 150 mm alarm a float switch would give.</p>`,
+      html: `<p>A cut-through manhole. Blue is the water depth in mm. The grey line is this sensor's normal baseline depth. The dashed dark line is 10 mm above normal, which Simulation 3.5 uses to score early warning at least one step before surcharge. The dashed red line is a fixed 150 mm float-switch alarm.</p>`,
       team: { page: 9, quote: "Float or tilt devices can provide a robust threshold event, such as a high-level alarm, with a simple sensing principle. They do not provide the level history, rate of rise, or normal-pattern information available from a continuous sensor." },
     },
     register: {
       title: "Reading this table",
-      html: `<p>Every assumption still in the model, its tag, and the SA Water data that would remove it. Hover a tag for its source.</p>`,
+      html: `<p>Key assumptions and sensitivities measured in Simulation 3.5, and the utility records needed to replace them before field deployment.</p>`,
     },
   },
 };

@@ -1,495 +1,317 @@
-// Scene copy for the story page (index.html).
-//
-// Rules (enforced by build/check_copy.py --story):
-//   - Every figure is a {{fact}} token, filled from data/story.js (build/export_story.py), from the
-//     path figures the page measures on load (RUNTIME below), or from OSP_STATIC (quoted, sourced).
-//   - Plain words. Say what a number means before the number. One idea per scene.
-//
-// Scene fields: act, kicker, title, stats [[value, label, class]], html, chart, gauge, seg (weather
-// cases offered), readout, after, legend, view (named camera view in assets/story.js), show (layer
-// opacities), style (pipe colouring), fx (scene behaviour in assets/story.js), ms (camera move time).
+// Scene-by-scene copy and camera cues for the Walkerville Simulation 3.5 guided client deck.
+// Numbers come from demo/story-data.js (S.facts) and window.OSP_STATIC below, filled in with {{key}}.
 
-// Published figures that are not computed by our build. Each is quoted from its source.
 window.OSP_STATIC = {
-  swmm_links: 890,            // Sim 2.5 findings text (simulation25/data/index.js, scenario.what): 890 links, 328 manholes
-  swmm_minutes: 480,          // simulation_src/sim25_grid.py: each run is 480 min of constant inflow
-  covers_contour: 322,        // simulation_src/network.py cover source: 322 of 328 chambers from 1 m contours
-  covers_surveyed: 5,         // same: 5 surveyed lids (1 chamber has neither)
-  contour_error_m: 0.23,      // sandbox README: contour-derived cover vs surveyed lids, mean error, n = 10
-  gradient_ratio: "1.00",     // sandbox README finding 4: published gradient / computed fall, median 1.0000
-  stonyfell_low: 20,          // Stonyfell deployment (Do et al. 2023), normal levels 20 to 75 mm (sim25_graded.py)
-  stonyfell_high: 75,
-  // How the model evolved: cloud-run/PROJECT_UNDERSTANDING.md:180-186 and :458-459
-  // (sandbox simulation_src/README.md:6-10, simulation/index.html:204-207)
-  sim1_warn_low: "7",         // Simulation 1: level sensor warning before first spill, main chambers, minutes
-  sim1_warn_high: "20.5",
-  sim2_missed_km: "2.7",      // Simulation 2 missed about 2.7 km of sewer draining in from outside
-  sim2_dry_ratio: "1.7",      // and its "dry weather" was 1.7x the design envelope
-  // Carried over from the detailed deck (cloud-run/presentation/content/slides.js, STATIC_FACTS)
-  us_event_share: 26,         // US EPA (2004) SSO report: wet-weather/I&I share of events with a known cause
-  us_volume_share: 75,        // same report: about three-quarters of SSO volume
-  // Pump stations: sandbox register L7 and X1 (simulation25/data/index.js at e6232db), from the
-  // council's pump structures (layer 5) and rising mains (layer 8)
-  pump_stations: 3,           // stations in the published layers
-  pump_modelled: 2,           // the two that discharge into the modelled network (14 + 41 homes)
-  pump_homes: 55,             // connections behind the two modelled stations
-  pump_outside_homes: 11,     // connections behind the third, which pumps out of the modelled area
+  project_no: 2669,
+  uni_name: "Adelaide University",
 };
 
 window.OSP_SCENES = [
-  // ---------------------------------------------------------------- welcome (index.html, unchanged in look)
   {
-    id: "welcome", welcome: true, act: "", view: "region", fx: "welcome", ms: 2400,
-    show: { basemap: 1 },
-    html: `<div class="welcome-top">
-        <div class="welcome-kicker">Adelaide University · SA Water</div>
-        <h1 class="welcome-heading welcome-topic">Optimal sensor placement for wastewater network monitoring</h1>
-        <p class="welcome-greeting">New homes keep connecting to sewers that were never sized for them. We work out how many level sensors a network needs, and where, so growth shows before it causes an overflow. Tested on the Walkerville sewer network.</p>
-        <div class="welcome-start">
-          <button class="start-btn" type="button" data-go><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5 L10.5 6 L3 10.5 Z" /></svg>Start</button>
-          <span class="welcome-hint">or press →</span>
+    id: "welcome",
+    welcome: true,
+    view: "region",
+    ms: 0,
+    show: { basemap: 0.72, pipes: 0.9, chambers: 0.35 },
+    fx: "welcome",
+    html: `
+      <div class="w-top">
+        <span>Optimal Sensor Placement · Wastewater Networks</span>
+        <span>Project #{{project_no}} · {{uni_name}}</span>
+      </div>
+      <div class="w-body">
+        <div class="w-eyebrow">Town of Walkerville · {{model_version}}</div>
+        <h1>Where growth uses up pipe buffer, and where to place sensors first.</h1>
+        <p class="w-sub">A guided walk-through of the team's {{model_version}} hydraulic study: which drainage regions run out of capacity first as 2041 infill homes arrive, why continuous level sensors outperform float switches when weather changes, and which five manholes cover the suburb.</p>
+        <div class="w-actions">
+          <button type="button" class="w-cta" data-go>Begin the walk-through <span aria-hidden="true">→</span></button>
+          <span class="w-hint">Use <kbd>→</kbd> or <kbd>Space</kbd>, <kbd>T</kbd> for dark mode, <kbd>F</kbd> for fullscreen</span>
         </div>
       </div>
-      <footer class="welcome-footer">
-        <div class="meta-block"><span class="meta-label">SA Water &amp; Academic Supervision</span><span class="meta-value">Vineeth Maruvada &amp; Adel (SA Water) · Karamjit Kaur (Supervisor)</span></div>
-        <div class="meta-block"><span class="meta-label">Project Team · Capstone PG-S2-22</span><div class="team-grid"><span>Abraham Paul Jaison</span><span>Ashis Jose Kalathil</span><span>Rijoy John</span><span>Satya Siddhartha Balanagu</span><span>Wimukthi Rajapaksha</span></div></div>
-      </footer>`,
+      <div class="w-foot">
+        <div><b>Prepared by the team</b><span>Abraham Paul Jaison · Ashis Jose Kalathil · Deinmodeimas Siloko · Rijoy John · Satya Siddhartha · Wimukthiikawa</span></div>
+        <div><b>Industry partner</b><span>SA Water · Capstone Project #{{project_no}}</span></div>
+        <div><b>Data</b><span>Location SA · PlanSA · ABS · Walkerville GIS · EPA SWMM 5.2</span></div>
+      </div>`,
   },
 
-  // ---------------------------------------------------------------- title
+  // 1 · Problem: growth loads old pipes
   {
-    id: "title", act: "Why watch growth", noAct: true, view: "all", fx: "title", ms: 3400,
-    show: { terrain: 1, pipes: 1, chambers: 0.7, homes: 0.35 },
-    kicker: "Sewer sensor placement · Walkerville",
-    title: "Where to watch a growing sewer",
-    html: `<p class="lead">How many sensors a sewer needs, where to put them, and how much of the growth they catch, tested on {{runs}} simulated futures of the Walkerville network.</p>
-      <p class="note">Built on SA Water's public Walkerville sample. The same steps re-run on the pilot network when its data arrives. Draft for discussion.</p>`,
-  },
-  // ---------------------------------------------------------------- the pressure
-  // Growth types: ProjectScopingDocument_v3.1.7 §1.1 and §2.5 (Scenarios); mechanism, stages and the
-  // growth/blockage contrast: presentation/modelling/07_GROWTH_OVERFLOW_MECHANISM.md §2.2, §2.4-2.7, §8.5.
-  {
-    id: "growth", act: "Why watch growth", view: "all",
-    info: { params: "growth" },
-    show: { terrain: 1, pipes: 0.8, chambers: 0.3, homes: 0.9 },
-    kicker: "Two kinds of growth",
-    title: "A sewer grows in two ways",
-    html: `<div class="params">
-        <div><span class="k">Greenfield</span><span class="v">Urban fringe</span><span class="s">New subdivisions on undeveloped land connect at the edge of the network. Their own pipes are new and sized for them, so the extra load lands on the existing trunk where they join.</span></div>
-        <div><span class="k">Infill</span><span class="v">Established suburbs</span><span class="s">Extra homes on existing lots, from subdividing a block or replacing one house with several, connect to old mains that were never sized for them.</span></div>
-      </div>
-      <p>Both use up spare room in every pipe downstream. Walkerville is an established suburb, so the growth tested here is infill.</p>
-      <p class="note">For the pilot area, the team proposed to SA Water on 28 September to split each growth scenario into infill and greenfield parts.</p>`,
-  },
-  {
-    id: "infill", act: "Why watch growth", view: "all", fx: "infill", style: "age",
-    show: { terrain: 0.8, pipes: 1, homes: 0.9 },
-    kicker: "The pressure",
-    title: "Infill is adding homes to century-old pipes",
-    stats: [["{{median_pipe_year}}", "median year a Walkerville sewer pipe was laid"],
-            ["{{small_pipe_pct}}%", "of pipes are the smallest size, 150 mm"],
-            ["{{homes}}", "properties connected today"]],
-    html: `<p>Units and subdivisions replace single houses on the same lots, so new flow enters old, small pipes that were never sized for it. {{pre1960_pct}}% of this network was laid before 1960, and {{clay_pct}}% is vitrified clay.</p>`,
+    id: "infill",
+    act: "Problem",
+    kicker: "1 · Growth on an ageing network",
+    title: "New infill homes connect into century-old clay street pipes.",
+    view: "all",
+    style: "age",
+    show: { basemap: 0.55, pipes: 1, homes: 0.65 },
+    fx: "infill",
     legend: "age",
-  },
-  {
-    id: "downhill", act: "Why watch growth", view: "all", fx: "downhill",
-    show: { terrain: 1, pipes: 0.55, flow: 1, chambers: 0.4 },
-    kicker: "How it fails",
-    title: "Every new home loads every pipe below it",
-    html: `<p>Sewage runs downhill by gravity. A new home's flow adds to every pipe between it and the end of the network, so growth anywhere upstream reaches the trunk.</p>
-      <p>When a pipe runs out of spare room, water backs up into the manholes behind it. <strong>That rise is what a sensor can see.</strong></p>`,
-    legend: "flow",
-  },
-  {
-    id: "overflow", act: "Why watch growth", view: "all",
-    show: { terrain: 1, pipes: 0.55, flow: 0.8, chambers: 0.6 },
-    kicker: "From growth to overflow",
-    title: "The spill shows up above the pipe at fault",
-    html: `<ol class="steps">
-        <li><b>One pipe runs out first</b><span>On the path from new homes to the outlet, the pipe with the least spare room becomes the bottleneck.</span></li>
-        <li><b>Rain tips it over</b><span>Dry-weather flow rarely fills a pipe. Growth uses up the margin that used to absorb rain, so smaller, more frequent storms now overload it (US EPA 2004).</span></li>
-        <li><b>Water backs up</b><span>The full pipe pushes the level up through the manholes behind it. Below it, flow is capped and levels look normal.</span></li>
-        <li class="kept"><b>It spills where the lid is lowest</b><span>The overflow comes out at the manhole with the least room to its lid, often well upstream of the pipe at fault.</span></li>
-      </ol>
-      <p>So a sensor below the bottleneck sees almost nothing. <strong>One in the backed-up zone above it sees it first.</strong></p>`,
-    legend: "flow",
-  },
-  {
-    id: "stages", act: "Why watch growth", view: "all",
-    info: { steps: "stages" },
-    show: { terrain: 1, pipes: 0.6, flow: 0.4, chambers: 0.8 },
-    kicker: "How growth shows",
-    title: "Growth shows in stages, years before a spill",
-    html: `<ol class="steps">
-        <li><b>The everyday peak creeps up</b><span>On dry days, the daily high level drifts upward over months and years as homes connect.</span></li>
-        <li><b>Moderate storms start to surcharge</b><span>Water rises above the top of the pipe more often, and in smaller storms.</span></li>
-        <li><b>Overflow in ever-smaller storms</b><span>Spills that once needed a big storm become recurrent.</span></li>
-      </ol>
-      <p>A <strong>level sensor</strong> sees the first two stages, giving months to years of warning. A <strong>float switch</strong> set near the lid sees only the last one, when the water is already about to spill (Do et al. 2023).</p>`,
-  },
-  {
-    id: "why", act: "Why watch growth", view: "all",
-    info: { vs: "why" },
-    show: { terrain: 1, pipes: 0.55, flow: 0.6, chambers: 0.4, homes: 0.5 },
-    kicker: "Why it matters",
-    title: "Growth can be seen coming, but overflow records hide it",
-    stats: [["{{us_event_share}}%", "of overflow events in US national records came from wet-weather capacity problems"],
-            ["{{us_volume_share}}%", "of the spilled volume came from those same problems"]],
-    html: `<p>Blockages cause most overflow events (US EPA 2004), so they fill the records and can hide growth. At one sensor the two look alike, but they behave differently:</p>
-      <div class="vs">
-        <b></b><b>Blockage</b><b>Growth</b>
-        <span>Onset</span><span>Sudden, days</span><span>Gradual, years</span>
-        <span>Weather</span><span>Often dry</span><span>Rises with rain</span>
-        <span>Where</span><span>One point</span><span>A predictable zone</span>
-        <span>Afterwards</span><span>High until cleared</span><span>Falls, then recurs</span>
-      </div>
-      <p class="note">Source: US EPA (2004).</p>`,
-    legend: "flow",
+    stats: [
+      ["{{median_pipe_year}}", "median pipe install year ({{pre1960_pct}}% laid before 1960)"],
+      ["{{homes_2041}}", "new Walkerville dwellings projected by 2041", "accent"],
+    ],
+    html: `
+      <p>Walkerville's <b>{{homes}}</b> connected properties drain through <b>{{network_km}} km</b> of gravity sewers that are <b>{{clay_pct}}%</b> vitrified clay and <b>{{small_pipe_pct}}%</b> narrow 150 mm street mains.</p>
+      <p>Adding <b>{{homes_2041}}</b> projected infill dwellings by 2041 feeds extra sewage into those existing streets while rainwater already leaks in through ageing joints.</p>`,
   },
 
-  // ---------------------------------------------------------------- the question
+  // 2 · Problem: overflow records hide gradual growth
   {
-    id: "today", act: "The question", view: "all",
-    show: { terrain: 1, pipes: 0.6, chambers: 1, homes: 0.2 },
-    kicker: "Today",
-    title: "Sensor sites are chosen one case at a time",
-    html: `<ul>
-        <li>Sites are picked from breakdown history, hydraulic model results, complaints, and how close a manhole is to a creek or reservoir.</li>
-        <li>There is no written method for how many sensors an area needs, or where they give the most visibility.</li>
-        <li>The network has already moved from blanket coverage to a smaller number of critical manholes. <strong>That makes the choice of sites more important.</strong></li>
-      </ul>`,
-  },
-  {
-    id: "question", act: "The question", view: "all",
-    show: { terrain: 1, pipes: 0.75, chambers: 1, homes: 0.3 },
-    kicker: "What we set out to answer",
-    title: "Three things to know",
-    html: `<div class="params">
-        <div><span class="k">Where?</span><span class="s">Which manholes show growth first, and which ones see the most of it?</span></div>
-        <div><span class="k">How many?</span><span class="s">How many sensors are enough before each extra one adds little?</span></div>
-        <div><span class="k">How well?</span><span class="s">How much of the growth do they catch, in dry weather and in wet?</span></div>
-      </div>`,
-  },
-  {
-    id: "brief", act: "The question", view: "all", fx: "brief",
-    info: { params: "brief" },
-    show: { terrain: 1, pipes: 0.75, chambers: 1, homes: 0.25 },
-    kicker: "The brief and our scope",
-    title: "How many sensors, of which type, and where?",
-    html: `<div class="params src">
-        <div><span class="k">How many, and where</span><span class="v"><span class="cite" data-src="briefask">SA Water brief</span></span><span class="s">"Identify the optimal sensor locations and number of sensors."</span></div>
-        <div><span class="k">Which type</span><span class="v"><span class="cite" data-src="brieftype">Project scope</span></span><span class="s">Float switches give a threshold alert only. Level sensors give continuous depth but cost more.</span></div>
-        <div><span class="k">To watch for</span><span class="v"><span class="cite" data-src="briefwatch">Project scope</span></span><span class="s">Overcapacity and overflow as new homes are added to existing sewers.</span></div>
-        <div><span class="k">Within</span><span class="v"><span class="cite" data-src="briefwithin">Project scope</span></span><span class="s">One pilot trunk sewer network. No installation or field trials.</span></div>
-      </div>`,
-  },
-
-  // ---------------------------------------------------------------- our approach
-  // Approach: ProjectScopingDocument_v3.1.7 §2.5 (alternatives, proposed approach A6). Why Manning first:
-  // presentation/modelling/06_DECISIONS_AND_OPEN_QUESTIONS.md DEC-02; its limits: 07_GROWTH_OVERFLOW_MECHANISM.md §2.5, §5.7.
-  {
-    id: "approach", act: "Our approach", view: "all",
-    info: { steps: "approach" },
-    show: { terrain: 1, pipes: 0.75, chambers: 0.8, homes: 0.4 },
-    kicker: "The approach we adopted",
-    title: "Simulate the growth, then pick the sensors that see it",
-    html: `<ol class="steps">
-        <li><b>Model the network</b><span>Walkerville's {{sites}} manholes and their pipes, from SA Water's public records, in EPA SWMM (<span class="cite" data-src="swmmnet">Rossman 2017</span>).</span></li>
-        <li><b>Add growth everywhere</b><span>New homes at every manhole, at five sizes and in {{cases}} weather cases: {{runs}} runs.</span></li>
-        <li><b>Decide what a sensor sees</b><span>A rise of {{rise_focus_mm}} mm or more at its manhole, against the same case with no growth.</span></li>
-        <li class="kept"><b>Choose the sites</b><span>Add sensors one at a time, each at the manhole that most raises the share of growth seen in the worst weather case. The count is where one more sensor adds little.</span></li>
-      </ol>
-      <p class="note">Six approaches were compared. This one, simulation plus coverage, was chosen because it works on public data, each site can be explained by what it sees, and the same steps re-run on any network.</p>`,
-  },
-  {
-    id: "capacity", act: "Our approach", view: "all",
-    info: { vs: "capacity" },
-    show: { terrain: 0.9, pipes: 0.9, flow: 0.5, chambers: 0.6 },
-    kicker: "Why simulation",
-    title: "We started with a capacity check, then moved to simulation",
-    html: `<p>Our first screen used <strong>Manning's equation</strong> (<span class="cite" data-src="manningeq">Chow 1959</span>): how much each pipe carries when full, against the load new homes add. It needs only pipe size, slope and roughness, it is how design codes rate a sewer's capacity (Icon Water n.d.), and published placement methods already use pipe size and slope in place of a hydraulic model (<span class="cite" data-src="simone">Simone et al. 2023</span>).</p>
-      <div class="vs">
-        <b></b><b>Capacity check</b><b>Simulation</b>
-        <span>Tells you</span><span>Which pipe fills</span><span>Water level at each manhole</span>
-        <span>Backing up</span><span>Not computed</span><span>Routed</span>
-        <span>Sensor view</span><span>Guessed</span><span>Read off</span>
-      </div>
-      <p>A sensor measures water level, and growth shows where water backs up behind a full pipe. <strong>So we moved to EPA SWMM</strong>, which computes that level at every manhole (<span class="cite" data-src="swmmlevel">Rossman 2017</span>).</p>`,
-    legend: "flow",
-  },
-
-  // ---------------------------------------------------------------- the answer
-  {
-    id: "answer", act: "The answer", view: "all", fx: "answer",
-    info: { stats: "answerstats" },
-    show: { terrain: 1, pipes: 0.75, chambers: 0.3, sensors: 1 },
-    kicker: "Our recommendation",
-    title: "{{plan_k1_Word}} sensors, at these {{plan_k1_word}} manholes",
-    stats: [["{{plan_k1_worst}}%", "of detectable growth seen, even in the weather case where the plan does worst"],
-            ["{{plan_k1_mean}}%", "seen on average across the {{cases}} weather cases"]],
-    html: `<p>Sensors are added one at a time, each at the manhole that adds the most growth seen in the worst weather case. On our {{runs}} runs these five see more than every obvious alternative we tested.</p>
-      <p class="note">Detectable growth raises the water by at least {{rise_focus_mm}} mm at some manhole. Growth too small to show anywhere can't be seen by any sensor, so it doesn't count for or against the plan.</p>`,
-    legend: "plan1",
-  },
-  {
-    id: "roles", act: "The answer", view: "plan", fx: "roles",
-    show: { terrain: 1, pipes: 0.7, chambers: 0.25, sensors: 1, phase2: 1 },
-    kicker: "Why these five",
-    title: "Each sensor watches a different kind of day",
-    html: `<p>No single manhole sees growth in every weather. One sensor is strongest on dry days, two in everyday wet weather, and two in storms, when the trunk is already full and can't show any more rise.</p>
-      <p><strong>Phase 2:</strong> five more sites (dashed) lift the worst case to {{plan_kmax_worst}}% and the average to {{plan_kmax_mean}}%. They are the next five picks of the same method, so the first five stay where they are.</p>`,
-    legend: "plan",
-  },
-
-  // ---------------------------------------------------------------- how we found it
-  {
-    id: "path", act: "How we found it", view: "all",
-    info: { steps: "path" },
-    show: { terrain: 0.9, pipes: 0.6, chambers: 0.3 },
-    kicker: "How we got here",
-    title: "Four models, and the one used here",
-    html: `<ol class="steps">
-        <li><b>Simulation 1</b><span>How much warning does a sensor give before a spill? On a four-chamber test network, a level sensor gave {{sim1_warn_low}} to {{sim1_warn_high}} minutes at the main chambers.</span></li>
-        <li class="dropped"><b>Simulation 2 <em>set aside</em></b><span>Where does growth run a catchment out of room? It missed about {{sim2_missed_km}} km of sewer draining in from outside, and its dry weather was {{sim2_dry_ratio}} times the design envelope.</span></li>
-        <li class="kept"><b>EPA SWMM simulation</b><span>Where does growth show anywhere in Walkerville, and which manholes see most of it? Every result from here on comes from this model.</span></li>
-        <li><b>Simulation 3 <em>next: the final version</em></b><span>The final model, to be shaped by SA Water's review and feedback on this prototype. It runs each case until no manhole's level is still moving, and tests infill spread over eight areas and new estates joining at one manhole, under eight weather cases. None of its results are used here yet.</span></li>
-      </ol>`,
-  },
-  {
-    id: "data", act: "How we found it", view: "all",
-    info: { params: "data" },
-    show: { terrain: 1, pipes: 0.9, chambers: 0.8, homes: 0.7 },
-    kicker: "The dataset",
-    title: "Built entirely from public data",
-    html: `<p>SA Water's own network data is still awaiting release approval, so the Walkerville model is built from layers anyone can query.</p>
-      <div class="params src">
-        <div><span class="k">Sewer pipes and manholes</span><span class="v">Town of Walkerville 2021</span><span class="s">SA Water's sewer records as republished by the council: {{pipes_total}} gravity mains with pipe-floor levels, size, material and flow direction, and {{manholes_published}} manholes.</span></div>
-        <div><span class="k">Connected homes</span><span class="v">Town of Walkerville 2021</span><span class="s">{{homes}} property connection points, each linked to the main it drains to.</span></div>
-        <div><span class="k">Ground level</span><span class="v">Town of Walkerville n.d.</span><span class="s">1 m contours, used for manhole lid levels where none is surveyed: {{contour_error_m}} m average error against surveyed lids.</span></div>
-        <div><span class="k">Flow from outside</span><span class="v">SA Water n.d.</span><span class="s">SA Water's statewide gravity-main layer. Pipes beyond the council are not modelled; their length sets a steady inflow where they join.</span></div>
-        <div><span class="k">People per home</span><span class="v">ABS 2022</span><span class="s">2021 Census household size and population.</span></div>
-      </div>
-      <p class="note">The layers were downloaded once and kept unchanged, so every result can be re-run from the same snapshot. The live layers can change, and SA Water's pilot data will replace this sample.</p>`,
-  },
-  {
-    id: "swmm", act: "How we found it", view: "all", fx: "swmm",
-    info: { vs: "swmm" },
-    show: { terrain: 0.9, pipes: 0.8, flow: 0.35, chambers: 1 },
-    kicker: "Why SWMM",
-    title: "We modelled the water, not just the pipe map",
-    html: `<p>One published approach judges a sensor's reach from the pipe map alone, counting every pipe within a set number of links (<span class="cite" data-src="maprule">He et al. 2026</span>), and so did our first prototype. But growth only shows where the water still has room to rise.</p>
-      <div class="vs">
-        <span></span><b>Map rule</b><b>SWMM</b>
-        <span>What a sensor sees</span><span>Pipes within reach, assumed</span><span>Water depth, computed</span>
-        <span>A pipe already full</span><span>Looks like any other</span><span>No room to rise, so flagged</span>
-        <span>New homes</span><span>Not modelled</span><span>Added and routed, {{runs}} runs</span>
-      </div>
-      <p class="note">{{sites}} manholes and {{swmm_links}} pipes from SA Water's published records, each run routed for {{swmm_minutes}} minutes until the levels settle. Every input is public, so every result can be re-run (Rossman 2017).</p>`,
-    legend: "flow",
-  },
-  {
-    id: "whatif", act: "How we found it", view: "all", fx: "whatif",
-    show: { terrain: 0.9, pipes: 0.6, chambers: 0.45, resp: 1 },
-    kicker: "The test",
-    title: "Then we added homes at every manhole, {{runs}} times",
-    html: `<p>Each run connects new homes at one manhole and records how far the water rises at every other one: {{sites}} sites, five sizes ({{sizes}} homes) and {{cases}} weather cases.</p>`,
-    readout: true,
-    legend: "resp",
-  },
-  {
-    id: "cases", act: "How we found it", view: "all", fx: "cases",
-    info: { seg: "cases" },
-    show: { terrain: 0.9, pipes: 0.6, chambers: 0.35, alarm: 1 },
-    kicker: "The unknowns",
-    title: "Five weather cases, not one",
-    html: `<p>We do not yet have measured data on how much groundwater and rain leaks into Walkerville's pipes, so every growth test ran under five cases, from a dry day to a heavy wet period.</p>
-      <p>Each case is a leakage rate into the pipes, in litres per second for every 100 m of pipe: dry 0, design wet 0.11, severe 0.40. The other two cases use 0.11, one spread by pipe age and one with 1.5 times the flow arriving from outside Walkerville.</p>`,
-    seg: [0, 1, 2, 3, 4], readout: true,
-    after: `<p class="note">In a storm, {{base_surcharged_severe}} manholes are already surcharged before any growth. A sensor there can't show growth, which is why the plan puts its storm watchers elsewhere.</p>
-      <p class="note">The model has no rainfall input, so these rates do not convert to millimetres of rain. Linking them needs SA Water's rain and flow-gauge records.</p>`,
-    legend: "alarm",
-  },
-
-  {
-    id: "stress", act: "How we found it", view: "all", fx: "stress", style: "stress",
-    info: { seg: "stress" },
-    show: { terrain: 0.9, pipes: 1 },
-    kicker: "Before any growth",
-    title: "Where the pipes are already under strain",
-    html: `<p>Colour shows how full each pipe runs before a single new home: the water depth at its manholes as a share of the pipe's width. In design wet weather {{stress_half_wet}} pipes already run more than half full; in the severe case {{stress_half_severe}} do, and {{base_surcharged_severe}} manholes are surcharged.</p>`,
-    seg: [0, 1, 2, 3, 4], readout: true,
-    after: `<p class="note">These are the places with the least spare room. New homes upstream of them use it up first.</p>`,
-    legend: "stress",
-  },
-
-  // ---------------------------------------------------------------- the proof
-  {
-    id: "howmany", act: "Why it holds", view: "plan",
-    info: { chart: "frontier" },
-    show: { terrain: 1, pipes: 0.7, chambers: 0.25, sensors: 1, phase2: 1 },
-    kicker: "Proof 1 · how many",
-    title: "The first five do most of the work",
-    html: `<p>The share of growth the plan sees in its worst weather case, for 1 to {{plan_kmax}} sensors, adding one sensor at a time. The curve is still rising at {{plan_kmax}}.</p>`,
-    chart: "frontier",
-    after: `<p class="note">The first five reach {{plan_k1_worst}}%; the next five add {{kmax_gain}} points between them. The best of 20 random sets of five reaches {{random_k1_worst}}%.</p>`,
-  },
-  {
-    id: "beats", act: "Why it holds", view: "beats", fx: "beats",
-    info: { chart: "beats" },
-    show: { terrain: 1, pipes: 0.6, chambers: 0.2, sensors: 1, trunk: 1 },
-    kicker: "Proof 2 · against the alternatives",
-    title: "It beats every obvious choice",
-    html: `<p>Five sensors each, scored on the same {{runs}} runs, in the worst weather case.</p>`,
-    chart: "beats",
-    after: `<p class="note">The five manholes with the deepest flow today (grey) sit on the trunk and mostly see the same growth. Spreading sensors by what each one adds is what lifts the score.</p>`,
-    legend: "beats",
-  },
-  {
-    id: "holdout", act: "Why it holds", view: "plan",
-    info: { chart: "holdout" },
-    show: { terrain: 0.7, pipes: 0.45, sensors: 0.8 },
-    kicker: "Proof 3 · unseen weather",
-    title: "How it holds on weather it never saw",
-    html: `<p>For each case, we chose five sensors the same way using only the other four, then scored them on the case left out.</p>`,
-    chart: "holdout",
-    after: `<p>Two cases do not move. Three do: chosen without them, the five see {{held_dry_unseen}}% of dry-day growth instead of {{held_dry_seen}}%, {{held_age_unseen}}% when older pipes leak more instead of {{held_age_seen}}%, and {{held_severe_unseen}}% in a storm instead of {{held_severe_seen}}%. <strong>The plan has to be chosen across all the weather it will face</strong>, so SA Water's real normal-day levels are the first thing to check.</p>`,
-  },
-  {
-    id: "tryit", act: "Why it holds", view: "all", fx: "tryit",
-    show: { terrain: 1, pipes: 0.6, chambers: 1, sensors: 1, phase2: 0.8, resp: 1 },
-    kicker: "Try it",
-    title: "Connect {{size_focus}} homes anywhere",
-    html: `<p>Click any manhole. The map shows which manholes rise, and whether one of the five sensors sees it.</p>`,
-    seg: [0, 1, 2], readout: true,
-    legend: "resp",
-  },
-
-  // ---------------------------------------------------------------- 3D: the parameters
-  {
-    id: "below", act: "Below the street", view: "tilt", fx: "below", ms: 2600,
-    info: { params: "params" },
-    show: { terrain: 1, pipes: 1, shafts: 1, sensors: 1 },
-    kicker: "What the numbers rest on",
-    title: "Every manhole, from the lid to the pipe floor",
-    html: `<p>Ground level and pipe depth decide where water can back up, so the model needs both.</p>
-      <div class="params">
-        <div><span class="k">Pipe floor levels</span><span class="v">every main</span><span class="s">From SA Water's records. <span class="chip measured" data-src="inverts">measured</span></span></div>
-        <div><span class="k">Ground level at the lid</span><span class="v">{{contour_error_m}} m avg. error</span><span class="s">From 1 m contours for {{covers_contour}} of {{sites}} manholes, surveyed for {{covers_surveyed}}. <span class="chip sourced" data-src="cover">derived</span></span></div>
-        <div><span class="k">Manhole depth</span><span class="v">{{depth_median_m}} m</span><span class="s">Median; most lie between {{depth_p10_m}} and {{depth_p90_m}} m.</span></div>
-      </div>
-      <p class="note">Heights are stretched nine times so the depth shows.</p>`,
-  },
-  {
-    id: "fall", act: "Below the street", view: "side", fx: "fall", style: "path", ms: 2400,
-    info: { params: "params" },
-    show: { terrain: 0.45, pipes: 1, shafts: 0.5, flow: 1, pumps: 1 },
-    kicker: "Parameter · slope",
-    title: "Gravity does the work",
-    html: `<p>The longest drainage path falls {{path_fall_m}} m over {{path_km}} km. Slope sets how much each pipe carries and which way the water goes.</p>
-      <div class="params">
-        <div><span class="k">Flow direction</span><span class="v">recorded</span><span class="s">SA Water's own direction field, checked against the levels at shared manholes. <span class="chip checked" data-src="direction">checked</span></span></div>
-        <div><span class="k">Slope</span><span class="v">from levels</span><span class="s">Computed from pipe-floor levels; the published gradient field agrees (median ratio {{gradient_ratio}}). <span class="chip checked" data-src="slope">checked</span></span></div>
-        <div><span class="k">Pump stations</span><span class="v">{{pump_modelled}} of {{pump_stations}} modelled</span><span class="s">Where gravity cannot reach the main, {{pump_homes}} homes drain to a pump well that lifts the sewage into it. The third, serving {{pump_outside_homes}} homes, pumps out of the area modelled. No pump rates are published, so each passes on all the flow it receives at once. <span class="chip measured" data-src="pumpsites">measured</span> <span class="chip declared" data-src="pumps">ideal</span></span></div>
-      </div>`,
+    id: "overflow",
+    act: "Problem",
+    kicker: "2 · Why overflow records hide growth",
+    title: "When a pipe fills, sewage backs up upstream long before a lid lifts.",
+    view: "side",
+    ms: 2100,
+    style: "path",
+    show: { basemap: 0.08, terrain: 0.85, pipes: 0.95, shafts: 0.95, flow: 1, pumps: 0.9 },
+    fx: "fall",
     legend: "pumps",
-  },
-  {
-    id: "pipes", act: "Below the street", view: (V) => V.close(V.phase1(2), 230), fx: "pipes", style: "size", ms: 2200,
-    info: { params: "params" },
-    show: { terrain: 0.55, pipes: 1, shafts: 1, chambers: 0.2, sensors: 0.6 },
-    kicker: "Parameter · pipes",
-    title: "Size, material and roughness",
-    html: `<div class="params">
-        <div><span class="k">Diameter</span><span class="v">every main</span><span class="s">{{small_pipe_pct}}% are 150 mm, the smallest size. <span class="chip measured" data-src="diameter">measured</span></span></div>
-        <div><span class="k">Material</span><span class="v">{{clay_pct}}% clay</span><span class="s">Records marked "unknown" are filled from a second published field. <span class="chip measured" data-src="material">measured</span></span></div>
-        <div><span class="k">Roughness (Manning's n)</span><span class="v">{{manning_clay}} / {{manning_pvc}}</span><span class="s">Clay / uPVC, standard values (<span class="cite" data-src="manning">Chow 1959</span>). No roughness is recorded. <span class="chip sourced" data-src="manning">sourced</span> <span class="chip confirm" data-src="manning">to confirm</span></span></div>
-      </div>`,
-    legend: "size",
-  },
-  {
-    id: "load", act: "Below the street", view: (V) => V.close(V.phase1(1), 200, { bearing: 24, pitch: 55 }), fx: "load", ms: 2200,
-    info: { params: "params" },
-    show: { terrain: 0.7, pipes: 1, shafts: 0.8, homes: 1, sensors: 0.6 },
-    kicker: "Parameter · load",
-    title: "What one new home adds",
-    html: `<div class="params">
-        <div><span class="k">People per new home</span><span class="v">{{people_per_new_dwelling}}</span><span class="s">2021 Census household size (<span class="cite" data-src="household">ABS 2022</span>). <span class="chip sourced" data-src="household">sourced</span></span></div>
-        <div><span class="k">Water use</span><span class="v">{{litres_per_person_day}} L/day</span><span class="s">Per person (<span class="cite" data-src="wateruse">Barwon Water n.d.</span>). <span class="chip sourced" data-src="wateruse">sourced</span> <span class="chip confirm" data-src="wateruse">SA value to confirm</span></span></div>
-        <div><span class="k">Peak factor</span><span class="v">×{{peak_factor}}</span><span class="s">Busiest hour against the daily average. <span class="chip declared" data-src="peak">declared</span></span></div>
-        <div><span class="k">People per existing home</span><span class="v">{{people_per_connection}}</span><span class="s">2021 Census population over connected properties (<span class="cite" data-src="population">ABS 2022</span>). <span class="chip derived" data-src="population">derived</span></span></div>
-      </div>
-      <p class="note">{{size_focus}} new homes add about {{growth_focus_lps}} L/s at the peak. New homes are assumed to let in no groundwater, which understates their effect.</p>`,
-  },
-  {
-    id: "rain", act: "Below the street", view: "tilt2", fx: "rain", ms: 2400,
-    show: { terrain: 0.8, pipes: 0.8, shafts: 0.35, water: 1, sensors: 0.7 },
-    kicker: "Parameter · wet weather",
-    title: "Groundwater and rain get into old pipes",
-    html: `<p>Leakage into the pipes is the biggest unknown. We ran three levels: none, the level that just meets the utility's design rating ({{ii_design}} L/s per 100 m of pipe), and a heavy wet period ({{ii_severe}} L/s per 100 m). <span class="chip declared" data-src="infiltration">declared</span> <span class="chip confirm" data-src="infiltration">flow survey to confirm</span></p>`,
-    seg: [0, 1, 2], readout: true,
-    legend: "water",
-  },
-  {
-    id: "sees", act: "Below the street", view: (V) => V.close(V.phase1(1), 300), fx: "sees", ms: 2200,
-    info: { gauge: "gauge" },
-    show: { terrain: 0.55, pipes: 0.8, shafts: 1, chambers: 0.6, sensors: 1, resp: 1, spikes: 1 },
-    kicker: "Parameter · detection",
-    title: "A sensor sees growth as a rise above its normal level",
-    html: `<p>A sensor counts growth when the water at its manhole rises <strong>{{rise_focus_mm}} mm or more</strong> above its own normal level. Each spike is one manhole's rise when these homes connect.</p>`,
-    gauge: true,
-    after: `<p class="note">A fixed {{alarm_mm}} mm alarm (<span class="cite" data-src="alarm">Do et al. 2023</span>), the alert a float switch gives at a fixed height, saw none of {{dry_small_runs}} dry-day growth runs up to {{size_focus}} homes. A rise needs continuous depth, so the plan assumes level sensors. The {{rise_focus_mm}} mm rule is declared until SA Water's level records set it; normal levels at <span class="cite" data-src="levelsensor">a Stonyfell sensor</span> ranged {{stonyfell_low}} to {{stonyfell_high}} mm.</p>`,
-    legend: "resp",
+    html: `
+      <p>Gravity carries flow down a <b>{{path_fall_m}} m</b> fall across <b>{{path_km}} km</b>; once a downstream pipe reaches capacity, water banks up into upstream manholes first.</p>
+      <p>Historical overflow logs mainly record sudden blockages and severe storms, hiding slow housing creep until pipe buffer is already gone.</p>`,
   },
 
-  // ---------------------------------------------------------------- what next
+  // 3 · Problem (Why before what): business case for when to start monitoring as homes are added
   {
-    id: "register", act: "What's next", view: "plan", ms: 2600,
-    info: { params: "register" },
-    show: { terrain: 1, pipes: 0.7, chambers: 0.25, sensors: 1, phase2: 1 },
-    kicker: "Honest limits",
-    title: "What is assumed, and what removes it",
-    html: `<div class="params">
-        <div><span class="k">Steady busiest-hour flows</span><span class="v"><span class="chip declared" data-src="steady">declared</span></span><span class="s">No storms or daily cycle yet. Removed by SA Water's calibrated model or level records.</span></div>
-        <div><span class="k">Leakage into pipes</span><span class="v"><span class="chip declared" data-src="infiltration">declared</span></span><span class="s">Removed by a flow survey or treatment-plant inflow records.</span></div>
-        <div><span class="k">Detection thresholds</span><span class="v"><span class="chip declared" data-src="alarm">declared</span></span><span class="s">{{rise_focus_mm}} mm rise and {{alarm_mm}} mm alarm. Removed by normal-day level records and the alarm settings in use.</span></div>
-        <div><span class="k">Water use and peak factor</span><span class="v"><span class="chip sourced" data-src="wateruse">sourced</span></span><span class="s">Interstate values. Removed by SA Water's design figures.</span></div>
-        <div><span class="k">Pump stations</span><span class="v"><span class="chip declared" data-src="pumps">ideal</span></span><span class="s">Modelled as passing all flow at once. Removed by pump rates and controls.</span></div>
-        <div><span class="k">One model fix pending</span><span class="v"><span class="chip confirm" data-src="modelfix">to fix</span></span><span class="s">Relief pipes return everyday flow to a pump well. A corrected run is needed before final numbers.</span></div>
-        <div><span class="k">No field validation yet</span><span class="v"><span class="chip confirm" data-src="validation">to confirm</span></span><span class="s">Checked against overflow and blockage history once it is shared.</span></div>
+    id: "room",
+    act: "Problem",
+    kicker: "3 · Business case: when to start monitoring",
+    title: "Two of the eight drainage regions run out of pipe buffer before 2041.",
+    view: "all",
+    style: "stress",
+    show: { basemap: 0.38, pipes: 1, chambers: 0.25 },
+    fx: "stress",
+    seg: [0, 1, 2],
+    readout: true,
+    legend: "stress",
+    info: { params: "stress" },
+    html: `
+      <p>Before placing sensors, {{model_version}} checks how many new homes each of the <b>{{regions}}</b> drainage regions can take before a pipe along its path reaches <b>{{limit_bore}}%</b> of pipe height (<span class="chip declared" data-src="infiltration">{{limit_bore_dec}} of bore</span>, tested across <b>{{cap_draws}}</b> starting-level error draws).</p>
+      <p>On a design-wet day, north-east regions <b>R1</b> and <b>R2</b> run out of buffer well inside their 2041 housing share and need monitoring first; four regions still have room left.</p>
+      <div class="params">
+        <div class="p"><b>R1 · Upper main (NE)</b><span><b>{{r1_range}} homes</b> to 0.7 limit (2041 share: {{r1_homes}}; +{{r1_rise}} mm / 100 homes)</span><span class="chip confirm" data-src="infiltration">runs out</span></div>
+        <div class="p"><b>R2 · East branch</b><span><b>{{r2_range}} homes</b> to 0.7 limit (2041 share: {{r2_homes}}; +{{r2_rise}} mm / 100 homes)</span><span class="chip confirm" data-src="infiltration">runs out</span></div>
+        <div class="p"><b>R4 · East &amp; R8 · Terrace</b><span>R4: <b>{{r4_range}}</b> (share {{r4_homes}}) · R8: <b>{{r8_range}}</b> (share {{r8_homes}})</span><span class="chip declared" data-src="infiltration">uncertain</span></div>
+        <div class="p"><b>R3, R5, R6, R7</b><span>R3: {{r3_range}} · R5: {{r5_range}} · R6: {{r6_range}} · R7: {{r7_range}} homes</span><span class="chip checked" data-src="infiltration">room left</span></div>
       </div>`,
-    legend: "plan",
   },
+
+  // 4 · The question: how many sensors, which type, where
   {
-    id: "close", act: "What's next", view: "all", fx: "close",
-    show: { terrain: 1, pipes: 0.75, chambers: 0.25, sensors: 1, phase2: 1 },
-    kicker: "In one line",
-    title: "Five sensors now. Five more as growth is confirmed.",
-    stats: [["{{plan_k1_worst}}%", "worst case, first five"], ["{{plan_kmax_worst}}%", "worst case, all ten"], ["{{runs}}", "simulations behind it"]],
-    html: `<p>Five sensors chosen one at a time, well ahead of the obvious alternatives on our runs. They hold less well on weather they were not chosen for, so SA Water's measured levels come first. When the pilot data arrives, the same pipeline re-runs and every number here updates.</p>
-      <p class="note">Timeline: 23 Oct prototype · 6 Nov scenario and cost comparison · 13 Nov guidelines · 20 Nov business case and handover.</p>`,
-    legend: "plan",
+    id: "question",
+    act: "Question",
+    kicker: "4 · The monitoring question",
+    title: "Where buffer is tight, how many sensors, which type, and at which manholes?",
+    view: "tilt",
+    ms: 1900,
+    show: { basemap: 0.55, terrain: 0.45, pipes: 0.95, chambers: 1 },
+    fx: "brief",
+    stats: [
+      ["{{sites}}", "modelled manholes ({{manholes_published}} published)"],
+      ["{{regions}}", "drainage regions ({{homes_2041}} projected homes)", "accent"],
+    ],
+    html: `
+      <p>Once growth pushes a region toward its pipe ceiling, operators need early warning before the first manhole surcharges.</p>
+      <p>Across <b>{{sites}}</b> candidate manholes, the decision is how many devices to buy, whether to use continuous <span class="cite" data-src="levelsensor">level sensors</span> or <span class="cite" data-src="brieftype">float switches</span>, and where to place them.</p>`,
   },
-  // ---------------------------------------------------------------- references (Harvard, author-date)
+
+  // 5 · Method 1: SWMM model, 8 regions, 7 build-out steps, 8 weather cases
   {
-    id: "references", act: "References", view: "all",
-    show: { terrain: 0.8, pipes: 0.5 },
-    kicker: "Sources",
-    title: "References",
-    html: `<ul class="refs">
-        <li>Australian Bureau of Statistics (ABS) 2022, <em>Walkerville: 2021 Census all persons QuickStats</em> (LGA48260), ABS, Canberra, viewed 22 October 2026, <a href="https://www.abs.gov.au/census/find-census-data/quickstats/2021/LGA48260" target="_blank" rel="noopener">abs.gov.au</a>.</li>
-        <li>Barwon Water n.d., <em>Supplementary information to the WSAA Sewerage Code of Australia 2014</em>, Barwon Water, Geelong, viewed 22 October 2026, <a href="https://www.barwonwater.vic.gov.au/__data/assets/pdf_file/0025/72529/Supplementary-information-to-the-WSAA-Sewerage-Code-of-Australia-2014.pdf" target="_blank" rel="noopener">barwonwater.vic.gov.au</a>.</li>
-        <li>Chow, VT 1959, <em>Open-channel hydraulics</em>, McGraw-Hill, New York.</li>
-        <li>Do, NC, Dix, L, Lambert, MF &amp; Stephens, ML 2023, 'Proactive detection of wastewater overflows for smart sanitary sewer systems: case study in South Australia', <em>Journal of Water Resources Planning and Management</em>, vol. 149, no. 1, article 05022016, <a href="https://doi.org/10.1061/JWRMD5.WRENG-5589" target="_blank" rel="noopener">doi:10.1061/JWRMD5.WRENG-5589</a>, <a href="https://siddhu-123.github.io/waste_water_network_sensor-papers/pdf-viewer.html?paper=31&amp;pdf=.%2Fcontributors%2Fabraham%2Fpapers%2F2023_Do_Stonyfell-SA-overflow-detection.pdf&amp;title=Do%20et%20al.%20(2023)%2C%20Proactive%20Detection%20of%20Wastewater%20Overflows%20for%20Smart%20Sanitary%20Sewer%20Systems%3A%20Case%20Study%20in%20South%20Australia&amp;page=1" target="_blank" rel="noopener">team library copy</a>.</li>
-        <li>He, L, Nan, J, Chen, L &amp; Ye, X 2026, 'A topology-first and demand-driven sensor placement framework for hydraulic-state reconstruction in urban drainage networks', <em>Water Research</em>, vol. 307, article 126713, <a href="https://doi.org/10.1016/j.watres.2026.126713" target="_blank" rel="noopener">doi:10.1016/j.watres.2026.126713</a>, <a href="https://siddhu-123.github.io/waste_water_network_sensor-papers/pdf-viewer.html?paper=55&amp;pdf=.%2Fcontributors%2Frijoy-john%2Fpapers%2F2026_Li%20He_A%20topology-first%20and%20demand-driven%20sensor%20placement%20framework%20for.pdf&amp;title=He%20et%20al.%20(2026)%2C%20A%20topology-first%20and%20demand-driven%20sensor%20placement%20framework%20for%20urban%20drainage%20networks&amp;page=1" target="_blank" rel="noopener">team library copy</a>.</li>
-        <li>Icon Water n.d., <em>WSA 02 gravity sewerage code supplement</em> (STD-SPE-G-011), Icon Water, Canberra, viewed 23 October 2026, <a href="https://www.iconwater.com.au/sites/default/files/2025-10/STD-SPE-G-011%20WSA%2002%20Gravity%20Sewage%20Code%20Supplement.pdf" target="_blank" rel="noopener">iconwater.com.au</a>.</li>
-        <li>Rossman, LA 2017, <em>Storm Water Management Model reference manual, volume II: hydraulics</em>, EPA/600/R-17/111, US Environmental Protection Agency, Cincinnati, OH, <a href="https://siddhu-123.github.io/waste_water_network_sensor-papers/pdf-viewer.html?paper=SATYA-GL-01&amp;pdf=.%2Fcontributors%2Fsatya-siddhartha%2Fgrey%2FGL_2017_USEPA_SWMM_Reference_Manual_Vol2_Hydraulics.pdf&amp;title=US%20EPA%20SWMM%205.2%20Reference%20Manual%2C%20Vol.%20II%3A%20Hydraulics&amp;page=1" target="_blank" rel="noopener">team library copy</a>.</li>
-        <li>SA Water 2026, <em>WIL Schedule 2: optimal placement of sensors in a water network</em>, unpublished project request, SA Water, Adelaide.</li>
-        <li>SA Water n.d., <em>Waste water gravity main</em>, dataset from the SA Water wastewater reticulation asset register, Infrastructure and Utilities map service, layer 9, Government of South Australia, viewed 22 October 2026, <a href="https://agsplus.geodata.sa.gov.au/arcgis/rest/services/Infrastructure_Utilities/MapServer/9" target="_blank" rel="noopener">agsplus.geodata.sa.gov.au</a>.</li>
-        <li>Simone, A, Di Cristo, C, Guadagno, V &amp; Del Giudice, G 2023, 'Sewer networks monitoring through a topological backtracking', <em>Journal of Environmental Management</em>, vol. 346, article 119015, <a href="https://doi.org/10.1016/j.jenvman.2023.119015" target="_blank" rel="noopener">doi:10.1016/j.jenvman.2023.119015</a>.</li>
-        <li>Town of Walkerville 2021, <em>SA Water sewer network</em> (SA Water Sewer June 2021), ArcGIS Online feature service, viewed 22 October 2026, <a href="https://services-ap1.arcgis.com/38lmAqtkEsaNGT6T/arcgis/rest/services/SA_Water_Sewer_Network/FeatureServer" target="_blank" rel="noopener">services-ap1.arcgis.com</a>.</li>
-        <li>Town of Walkerville n.d., <em>Contours (1 m)</em>, ArcGIS Online feature service, viewed 22 October 2026, <a href="https://services-ap1.arcgis.com/38lmAqtkEsaNGT6T/arcgis/rest/services/Contours_1m/FeatureServer" target="_blank" rel="noopener">services-ap1.arcgis.com</a>.</li>
-        <li>United States Environmental Protection Agency (US EPA) 2004, <em>Report to Congress: impacts and control of CSOs and SSOs</em>, EPA-833-R-04-001, Office of Water, Washington, DC.</li>
-      </ul>`,
+    id: "swmm",
+    act: "Method",
+    kicker: "5 · Hydraulic simulation",
+    title: "{{model_version}} tests {{regions}} regions across {{steps}} build-out steps and {{cases}} weather cases.",
+    view: "tilt2",
+    ms: 1900,
+    show: { basemap: 0.3, terrain: 0.55, pipes: 0.75, shafts: 0.55, water: 1 },
+    fx: "rain",
+    seg: [0, 1, 2],
+    readout: true,
+    legend: "water",
+    stats: [
+      ["{{regions}} × {{steps}} × {{cases}}", "regional growth grid ({{regions}} regions × {{steps}} steps × {{cases}} cases)"],
+      ["{{suburb_runs}}", "whole-suburb runs across 7 build-out steps", "accent"],
+    ],
+    html: `
+      <p>The team built an <span class="cite" data-src="swmmlevel">EPA SWMM 5.2</span> dynamic-wave model of <b>{{sites}}</b> manholes and <b>{{swmm_links}}</b> pipe links, scaling each of the <b>{{regions}}</b> regions across <b>{{steps}}</b> steps (10% to 300% of its 2041 housing share).</p>
+      <p>Every step is settled across <b>{{cases}}</b> weather and leakage cases (one dry day and <b>{{wet_cases}}</b> wet-weather infiltration cases from <b>{{ii_design}}</b> to <b>{{ii_severe}} L/s per 100 m</b>).</p>`,
+  },
+
+  // 6 · Method 2: Early warning score before surcharge
+  {
+    id: "sees",
+    act: "Method",
+    kicker: "6 · Early-warning rule",
+    title: "A sensor earns credit only if it rises {{rise_focus_mm}} mm at least one step before surcharge.",
+    view: (V) => V.close(V.phase1(1), 240, { pitch: 60, bearing: -38 }),
+    ms: 1900,
+    show: { basemap: 0.28, terrain: 0.65, pipes: 0.9, chambers: 0.7, sensors: 1, resp: 1, spikes: 1 },
+    fx: "sees",
+    gauge: true,
+    info: { gauge: "gauge" },
+    html: `
+      <p>Of the <b>{{sim3_seen_runs}}</b> growth runs credited to five sensors in the previous model, <b>{{sim3_late_runs}} ({{sim3_late_pct}}%)</b> already had a newly surcharged manhole.</p>
+      <p>{{model_version}} scores whether a sensor rises <b>{{rise_focus_mm}} mm</b> above its normal baseline at least one build-out step <i>before</i> the first new surcharge (<b>{{plausible_overloads}}</b> plausible overloads by 100% build-out, <b>{{total_overloads}}</b> including stress steps).</p>`,
+  },
+
+  // 7 · Sim 3.5 Results: how many sensors, where, and what they catch
+  {
+    id: "answer",
+    act: "Results",
+    kicker: "7 · {{model_version}} sensor placement",
+    title: "Five level sensors warn of {{warn_k5_weather}} of {{plausible_overloads}} plausible overloads on unseen weather.",
+    view: "p1",
+    ms: 1800,
+    show: { basemap: 0.55, pipes: 0.9, chambers: 0.55, sensors: 1 },
+    fx: "answer",
+    legend: "plan1",
+    info: { stats: "answerstats" },
+    stats: [
+      ["{{warn_k5_weather}} / {{plausible_overloads}}", "plausible overloads warned on unseen weather ({{warn_k5_plausible}} / {{plausible_overloads}} in-sample)", "accent"],
+      ["{{detect_k5_worst}}%", "worst-case wet growth seen ({{detect_k5_mean}}% wet-case average)"],
+    ],
+    html: `
+      <p>Three level sensors (<b>{{warn_k3_cost}}</b>) warn before all <b>{{warn_k3_plausible}} of {{plausible_overloads}}</b> plausible overloads on the runs they were chosen on.</p>
+      <p>Five level sensors (<b>{{warn_k5_cost}}</b>) hold <b>{{warn_k5_weather}} of {{plausible_overloads}}</b> warnings on unseen weather (<b>{{warn_k5_region}} of {{plausible_overloads}}</b> on an unseen region) and detect <b>{{detect_k5_worst}}%</b> of wet-weather growth in the worst case (<b>{{detect_k5_mean}}%</b> average).</p>`,
+  },
+
+  // 8 · Sim 3.5 Results: which sensor covers which region
+  {
+    id: "roles",
+    act: "Results",
+    kicker: "8 · Regional coverage",
+    title: "Each sensor sits where a drainage region feeds into the trunk main.",
+    view: "p1",
+    ms: 1700,
+    show: { basemap: 0.45, terrain: 0.35, pipes: 0.95, chambers: 0.4, sensors: 1, flow: 0.65 },
+    fx: "roles",
+    legend: "plan1",
+    html: `
+      <p>Sensors 1 to 3 watch the north-east, east and central branches (<b>R1</b>, <b>R2/R4</b> and <b>R5</b>), catching every in-sample overload one build-out step early.</p>
+      <p>Sensors 4 and 5 add the <b>R1–R2</b> trunk junction and south-west branch <b>R6</b>, lifting worst-case wet growth detection from <b>{{warn3_detect_worst}}%</b> to <b>{{warn5_detect_worst}}%</b> (and <b>{{detect_k5_worst}}%</b> with the detection-optimised five).</p>
+      <div class="params">
+        <div class="p"><b>1 · MH4449173</b><span><b>R1 (North-east)</b> · watches 48 upstream manholes ({{r1_homes}} projected homes)</span></div>
+        <div class="p"><b>2 · MH4450531</b><span><b>R2 &amp; R4 (East)</b> · watches 40 branch manholes (72 projected homes; first pipe to hit 0.7)</span></div>
+        <div class="p"><b>3 · MH4452541</b><span><b>R5 (Central)</b> · watches 19 branch manholes and central trunk backwater</span></div>
+        <div class="p"><b>4 · MH4450922</b><span><b>R1–R2 Trunk (R7/R8)</b> · watches 134 upstream manholes below R1 and R2</span></div>
+        <div class="p"><b>5 · MH4454629</b><span><b>R6 (South-west)</b> · watches 14 branch manholes ({{r6_homes}} projected homes)</span></div>
+      </div>`,
+  },
+
+  // 9 · Sim 3.5 Results: level sensors vs float switches
+  {
+    id: "floats",
+    act: "Results",
+    kicker: "9 · Level sensors vs float switches",
+    title: "On unseen weather, a {{float_25_count}}-float budget ({{float_25_bought}} floats bought) drops to {{float_25_unseen_wx}}% while one level sensor holds {{level_1_unseen_wx}}%.",
+    view: "beats",
+    ms: 1700,
+    show: { basemap: 0.45, pipes: 0.85, chambers: 0.4, sensors: 1, trunk: 0.95 },
+    fx: "beats",
+    chart: "beats",
+    legend: "beats",
+    info: { chart: "beats" },
+    html: `
+      <p>At assumed prices of <b>{{level_price}}</b> per level sensor and <b>{{float_price}}</b> per float switch, a <b>{{float_25_count}}-float budget</b> (<b>{{float_25_cost}}</b>) buys <b>{{float_25_bought}} floats</b> ($22,000) that average <b>{{float_25_avg}}%</b> on the weather they were tuned on, but fall to <b>{{float_25_unseen_wx}}%</b> detection and <b>{{float_warn_unseen_wx}}%</b> warning on unseen weather.</p>
+      <p>A float switch trips at one fixed height while normal water depth moves with rainfall; one level sensor (<b>{{level_price}}</b>) holds <b>{{level_1_unseen_wx}}%</b> on unseen weather and five (<b>{{warn_k5_cost}}</b>) hold <b>{{detect_k5_unseen_wx}}%</b>.</p>`,
+  },
+
+  // 10 · Sim 3.5 Results: how many sensors (1 to 10 frontier)
+  {
+    id: "howmany",
+    act: "Results",
+    kicker: "10 · How many sensors to install",
+    title: "Three sensors cover in-sample warnings; five balance unseen weather and growth.",
+    view: "plan",
+    ms: 1700,
+    show: { basemap: 0.5, pipes: 0.85, chambers: 0.45, sensors: 1, phase2: 0.95 },
+    chart: "frontier",
+    legend: "plan",
+    info: { chart: "frontier" },
+    html: `
+      <p>Unseen-weather overload warning reaches <b>{{warn_k5_weather_all}}%</b> (<b>{{warn_k5_weather}} of {{plausible_overloads}}</b> plausible overloads) at three to six sensors, while worst-case wet growth detection climbs from <b>{{warn3_detect_worst}}%</b> at three sensors to <b>{{warn5_detect_worst}}%</b> at five.</p>
+      <p>Adding five phase-2 sensors (ten in total) lifts unseen-weather warnings to <b>{{warn_k10_weather}} of {{plausible_overloads}} ({{warn_k10_weather_all}}%)</b> and worst-case growth detection to <b>{{warn10_detect_worst}}%</b>.</p>`,
+  },
+
+  // 11 · Sim 3.5 Results: unseen weather & region holdout
+  {
+    id: "holdout",
+    act: "Results",
+    kicker: "11 · Unseen weather and region check",
+    title: "Left-out wet cases still see {{detect_k5_unseen_wx}}% of growth and {{warn_k5_weather}} of {{plausible_overloads}} warnings.",
+    view: "p1",
+    ms: 1600,
+    show: { basemap: 0.45, pipes: 0.9, chambers: 0.4, sensors: 1 },
+    chart: "holdout",
+    legend: "plan1",
+    info: { chart: "holdout" },
+    html: `
+      <p>When five level sensors are chosen on six wet cases and scored on the seventh left-out case, growth detection averages <b>{{detect_k5_unseen_wx}}%</b> (against <b>{{detect_k5_mean}}%</b> in-sample) and overload warning holds at <b>{{warn_k5_weather}} of {{plausible_overloads}}</b>.</p>
+      <p>Holding out an entire drainage region leaves <b>{{detect_k5_unseen_reg}}%</b> growth detection and <b>{{warn_k5_region}} of {{plausible_overloads}}</b> plausible overload warnings (<b>{{warn_k5_region_all}}%</b> across all <b>{{total_overloads}}</b> overloads).</p>`,
+  },
+
+  // 12 · Greenfield: estates join only trunk mains of 225 mm or more
+  {
+    id: "greenfield",
+    act: "Greenfield",
+    kicker: "12 · Greenfield estates vs infill",
+    title: "Greenfield estates join only trunk mains of {{trunk_min_mm}} mm or more.",
+    view: (V) => V.close(V.phase1(3), 420, { pitch: 48, bearing: -24 }),
+    ms: 1800,
+    style: "size",
+    show: { basemap: 0.35, terrain: 0.5, pipes: 1, chambers: 0.5, sensors: 0.9 },
+    fx: "pipes",
+    legend: "size",
+    stats: [
+      ["{{trunk_min_mm}} mm+", "minimum trunk diameter for greenfield estates", "accent"],
+      ["{{trunk_pipe_pct}}%", "of Walkerville pipes are {{trunk_min_mm}} to 450 mm trunk mains"],
+    ],
+    html: `
+      <p>Unlike infill housing that trickles into <b>{{small_pipe_pct}}%</b> of 150 mm street mains, a greenfield estate builds new internal sewers and joins the existing network only at a trunk main of <b>{{trunk_min_mm}} mm or larger</b>.</p>
+      <p>Monitoring for a greenfield development therefore belongs on the receiving <b>{{trunk_min_mm}}–450 mm</b> trunk main rather than inside upstream 150 mm street branches.</p>`,
+  },
+
+  // 13 · Limits and what waits on real network data
+  {
+    id: "register",
+    act: "Limits",
+    kicker: "13 · Limits and what waits on real data",
+    title: "Detection thresholds and pipe buffer wait on normal-day level records.",
+    view: "all",
+    ms: 1700,
+    show: { basemap: 0.55, pipes: 0.85, chambers: 0.5, pumps: 0.85, sensors: 0.9 },
+    fx: "register",
+    legend: "pumps",
+    info: { params: "register" },
+    html: `
+      <p>Tightening the rise rule from <b>{{rise_focus_mm}} mm</b> to <b>{{rise_strict_mm}} mm</b> cuts five-sensor unseen-weather warnings from <b>{{warn_k5_weather}} of {{plausible_overloads}}</b> to <b>{{warn25_k5_weather}} of {{plausible_overloads}}</b> (and <b>{{warn25_k5_region}} of {{plausible_overloads}}</b> on an unseen region).</p>
+      <p>All figures come from uncalibrated steady-flow runs; field deployment waits on normal-day level logs, pipe capacity ratings, pump rates and overflow records.</p>
+      <div class="params">
+        <div class="p"><b>Rise rule ({{rise_focus_mm}} vs {{rise_strict_mm}} mm)</b><span>Moves unseen-weather warnings from {{warn_k5_weather}}/{{plausible_overloads}} to {{warn25_k5_weather}}/{{plausible_overloads}}; needs normal-day level logs</span><span class="chip confirm" data-src="levelsensor">confirm</span></div>
+        <div class="p"><b>Pipe limit ({{limit_bore_dec}} of bore ± {{limit_err_mm}} mm)</b><span>Shifts R2, R7 and R8 outlook if tightened to 0.6; needs per-pipe capacity ratings</span><span class="chip declared" data-src="infiltration">declared</span></div>
+        <div class="p"><b>Float clearance ({{float_margin_mm}} mm margin)</b><span>Cutting margin to 10 mm lifts floats to 25% / 59% in-sample, but unseen weather stays at 10%</span><span class="chip declared" data-src="alarm">declared</span></div>
+        <div class="p"><b>Steady flows &amp; ideal pumps</b><span>Constant loads and pass-through pumps; needs hydrographs, pump rates and overflow history</span><span class="chip ideal" data-src="pumps">ideal</span></div>
+      </div>`,
+  },
+
+  // 14 · Close
+  {
+    id: "close",
+    act: "Close",
+    kicker: "14 · Decision summary",
+    title: "Start monitoring in R1 and R2; five level sensors cover Walkerville as it grows.",
+    view: "plan",
+    ms: 1800,
+    show: { basemap: 0.55, pipes: 0.95, chambers: 0.4, sensors: 1, phase2: 0.85 },
+    fx: "close",
+    legend: "plan",
+    stats: [
+      ["{{warn_k3}} → {{plan_k1}}", "level sensors ({{warn_k3_cost}} in-sample; {{warn_k5_cost}} across unseen weather)", "accent"],
+      ["R1 & R2", "first regions to monitor ({{r1_range}} and {{r2_range}} homes to 0.7 limit)"],
+    ],
+    html: `
+      <p>North-east regions <b>R1</b> and <b>R2</b> use up their <b>{{limit_bore}}%</b> pipe buffer well within their 2041 housing share, giving a clear business case to begin monitoring there first with <b>{{warn_k3}} to {{plan_k1}}</b> continuous level sensors.</p>
+      <p>The team's SWMM and placement pipeline is open and repeatable: once normal-day level logs and pipe ratings are plugged in, it re-solves sensor locations directly.</p>`,
   },
 ];
