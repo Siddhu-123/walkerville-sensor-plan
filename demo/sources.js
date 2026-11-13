@@ -162,49 +162,59 @@ window.OSP_LIB = {
     validation: {
       lib: [],
       team: { page: 19, quote: "The SWMM model was physically grounded but not validated against field measurements, so it was used as a scenario generator rather than a calibrated operational digital twin." },
-      gap: "Field check waits on SA Water's overflow and blockage history.",
+      gap: "Field check waits on utility overflow and blockage history.",
+    },
+    kim2022: {
+      lib: [],
+      web: [
+        {
+          title: "Kim, K., Ban, M. J., Kim, S., Park, M.-H., Stenstrom, M. K. and Kang, J.-H. (2022), Journal of Environmental Management, 320, 115806",
+          url: "https://doi.org/10.1016/j.jenvman.2022.115806",
+          says: "Optimal allocation and operation of sewer monitoring sites using recursive spatial bisection so each sub-region holds a near-equal share of existing connections.",
+        },
+      ],
     },
   },
 
   info: {
     frontier: {
       title: "Reading this chart",
-      html: `<p><b>x-axis:</b> number of level sensors in the plan, 1 to 10.<br><b>y-axis:</b> score under the 10 mm rise rule.</p>
-        <p><b>Teal curve:</b> share of the 25 regional overloads warned at least one build-out step before the first manhole surcharges, when sensors are chosen without the weather case being tested (reaches 88%, or 11 of 13 plausible overloads, at 3 to 6 sensors, and 90%, or 12 of 13, at 7 to 10 sensors).</p>
-        <p><b>Dark curve:</b> share of detectable growth runs seen by those same warning-first sensor sets in their worst wet weather case (rises from 25% at 3 sensors to 80% at 5 sensors and 90% at 10 sensors).</p>`,
+      html: `<p><b>x-axis:</b> number of continuous level sensors on the Simulation 4 ladder, 1 to 8.<br><b>y-axis:</b> share of detectable growth runs seen across the target regions (R1, R3, R4, R7 and R9) up to 100% build-out under the 10 mm rise rule.</p>
+        <p><b>Teal curve:</b> average share of growth runs seen across the 7 wet weather cases (climbs from 53% at 1 sensor to 94% at 5 sensors and 98% at 8 sensors).</p>
+        <p><b>Dark curve:</b> worst-case wet weather score on the same nested sensor ladder (climbs from 0% at 1–2 sensors to 44% at 3, 69% at 4, 81% at 5 and 94% at 7–8 sensors). From 2 sensors upward, the ladder warns of all 11 of 11 overloads.</p>`,
       team: { page: 20, quote: "Exact and convex methods can be accurate but do not scale easily; greedy methods are efficient but can be locally suboptimal; evolutionary methods explore more alternatives but cost more computation." },
     },
     beats: {
       title: "Reading this chart",
-      html: `<p><b>x-axis:</b> share of detectable regional growth seen on unseen weather (chosen on six wet cases and tested on the seventh left-out case).<br><b>y-axis:</b> level sensors versus float switches at $25,000 and $125,000 budgets.</p>
-        <p>Prices are assumed ($25,000 per level sensor, $1,000 per float switch). A float switch earns credit when it sits at least 25 mm above normal depth, stays quiet on a Design wet day, and growth lifts water past it.</p>
-        <p><b>Why floats drop on unseen weather:</b> a float trips at one fixed height, whereas normal water depth shifts with rainfall and infiltration. In a median of 2 of the 7 wet cases, chosen floats are already under water before any new homes connect.</p>`,
+      html: `<p><b>x-axis:</b> average share of detectable target-region growth seen across the 7 wet cases (with unseen-weather scores noted in the table).<br><b>y-axis:</b> continuous level sensors, free mix, and float switches across Simulation 4 budgets.</p>
+        <p>Prices are assumed ($25k per level sensor, $1k per float switch). A float switch earns credit when it sits at least 25 mm above its manhole's normal level, stays quiet on a design wet day, and growth lifts water past it.</p>
+        <p><b>Why floats stall at 35% average and 0% worst case:</b> 15 floats ($15k) already reach the float ceiling at any budget from $25k to $200k. In a design wet day where older pipes leak more (age-weighted), no float sees any run, and on weather they were not chosen for floats see 0%.</p>`,
       team: { page: 9, quote: "Float or tilt devices can provide a robust threshold event, such as a high-level alarm, with a simple sensing principle. They do not provide the level history, rate of rise, or normal-pattern information available from a continuous sensor." },
     },
     holdout: {
       title: "Reading this chart",
-      html: `<p><b>x-axis:</b> share of that wet weather case's detectable growth seen by five level sensors (10 mm rule).<br><b>y-axis:</b> five representative wet-weather and infiltration cases from Simulation 3.5.</p>
-        <p><b>Dark bar:</b> the five level sensors chosen using all seven wet cases (91% average, 86% worst case). <b>Second bar:</b> five sensors chosen without that weather case and tested on it (76% average across left-out wet cases).</p>`,
+      html: `<p><b>x-axis:</b> share of detectable growth runs seen by 5 level sensors (10 mm rule).<br><b>y-axis:</b> Simulation 4 in-sample, holdout and random-baseline tests.</p>
+        <p>Chosen without the weather case tested, 5 sensors see 77% of growth runs (10 of 11 overloads warned). Chosen without the region tested, 5 sensors see 76% (10 of 11 warned), beating 5,000 random draws of responsive manholes (55%) or any manholes (33%).</p>`,
       team: { page: 19, quote: "The method was robust in average reconstruction across SWMM parameter variants, but exact sensor locations changed with model parameterisation." },
     },
     answerstats: {
       title: "What these numbers mean",
-      html: `<p><b>Overloads warned:</b> across the 7 wet weather cases, 13 region overloads happen by 100% of the 2041 housing projection (and 25 including the 150% and 300% stress steps). A sensor warns if it rises 10 mm or more at least one build-out step before the first manhole surcharges.</p>
-        <p><b>Growth seen:</b> share of detectable regional growth runs where at least one of the five sensors rises 10 mm or more.</p>`,
+      html: `<p><b>Overloads warned:</b> across the 7 wet cases up to 100% of the 2041 housing projection (315 runs), 50 runs show a new surcharge and 1 shows a new spill across 14 manholes, giving 11 region-weather overloads. A sensor warns if it rises 10 mm or more at least one build-out step before a manhole newly surcharges.</p>
+        <p><b>Growth seen:</b> share of detectable growth runs in the target regions (R1, R3, R4, R7 and R9) where at least one chosen sensor rises 10 mm or more.</p>`,
     },
     stress: {
       title: "Reading this map and table",
-      html: `<p>The map colours each pipe by its baseline depth-to-diameter ratio in the selected weather case. The table reports Simulation 3.5's capacity check at a declared ceiling of 0.7 of pipe bore across 400 random draws of 0.05-of-bore (7.5 mm on a 150 mm pipe) starting-level error.</p>
-        <p><b>Runs out:</b> reaches 0.7 within the 2041 dwelling share in at least 80% of draws (R1 and R2). <b>Uncertain:</b> between 20% and 80% of draws (R4 and R8). <b>Room left:</b> under 20% of draws (R3, R5, R6, R7).</p>`,
+      html: `<p>The map colours each pipe by its baseline depth-to-diameter ratio in the selected weather case. The table reports Simulation 4's region triage on a design wet day at an assumed pipe limit of 0.7 of bore.</p>
+        <p><b>Regions:</b> 8 regions holding near-equal numbers of existing homes (233 to 418 homes), cut by the spatial bisection of Kim et al. (2022) at the pipe leaving the most nearly equal number of homes on either side, plus R9, the Walkerville Terrace corridor (485 projected homes), which overlaps them.</p>`,
     },
     gauge: {
       title: "Reading this gauge",
-      html: `<p>A cut-through manhole. Blue is the water depth in mm. The grey line is this sensor's normal baseline depth. The dashed dark line is 10 mm above normal, which Simulation 3.5 uses to score early warning at least one step before surcharge. The dashed red line is a fixed 150 mm float-switch alarm.</p>`,
+      html: `<p>A cut-through manhole. Blue is the water depth in mm. The grey line is this sensor's normal baseline depth. The dashed dark line is 10 mm above normal (assumed), which Simulation 4 uses to score growth detection and early warning before surcharge. The dashed red line is a fixed 150 mm alarm.</p>`,
       team: { page: 9, quote: "Float or tilt devices can provide a robust threshold event, such as a high-level alarm, with a simple sensing principle. They do not provide the level history, rate of rise, or normal-pattern information available from a continuous sensor." },
     },
     register: {
       title: "Reading this table",
-      html: `<p>Key assumptions and sensitivities measured in Simulation 3.5, and the utility records needed to replace them before field deployment.</p>`,
+      html: `<p>Key limitations and assumptions stated in Simulation 4, along with the data checklist a new suburb must supply to run the method again.</p>`,
     },
   },
 };

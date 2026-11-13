@@ -6,12 +6,14 @@
 // the same camera every frame, so the network sits on real Adelaide streets at any zoom or tilt.
 (function () {
   "use strict";
-  const S = window.OSP_STORY, SCENES = window.OSP_SCENES, LIB = window.OSP_LIB, STATIC = window.OSP_STATIC || {};
-  const FACTS = Object.assign({}, S.facts, STATIC);
-  FACTS.greedy_k1_worst = Math.round(100 * S.curves.greedy[4]);
-  const heldAge = S.held_out.find((row) => row.case === "Design wet + age-weighted I&I");
-  FACTS.held_age_unseen = Math.round(100 * heldAge["unseen_k" + FACTS.plan_k1]);
-  FACTS.held_age_seen = Math.round(100 * heldAge["seen_k" + FACTS.plan_k1]);
+  const S = window.OSP_STORY, SCENES = window.OSP_SCENES, LIB = window.OSP_LIB, STATIC = window.OSP_STATIC || {}, SIM4 = window.OSP_SIM4 || {};
+  const FACTS = Object.assign({}, S.facts, STATIC, SIM4.facts || SIM4);
+  if (!SIM4.facts) {
+    FACTS.greedy_k1_worst = Math.round(100 * S.curves.greedy[4]);
+    const heldAge = S.held_out.find((row) => row.case === "Design wet + age-weighted I&I");
+    FACTS.held_age_unseen = Math.round(100 * heldAge["unseen_k" + FACTS.plan_k1]);
+    FACTS.held_age_seen = Math.round(100 * heldAge["seen_k" + FACTS.plan_k1]);
+  }
   const $ = (id) => document.getElementById(id);
   const canvas = $("stage-canvas"), ctx = canvas.getContext("2d");
   const card = $("card"), sheet = $("sheet") || card, labelsEl = $("labels"), tip = $("tip");
@@ -192,9 +194,9 @@
   for (let i = 0; i < S.homes.length; i += 2) homes.push([S.homes[i], S.homes[i + 1], groundAt(S.homes[i], S.homes[i + 1])]);
 
   // the plan
-  const phase1 = S.plan.phase1.map((id) => chIndex.get(id));
-  const phase2 = S.plan.phase2.map((id) => chIndex.get(id));
-  const trunk = S.alt_sets.trunk.map((id) => chIndex.get(id));
+  const phase1 = (SIM4.ladder5 || S.plan.phase1).map((id) => chIndex.get(id));
+  const phase2 = (SIM4.ladderExtra || S.plan.phase2).map((id) => chIndex.get(id));
+  const trunk = (SIM4.floatSites || S.alt_sets.trunk).map((id) => chIndex.get(id));
   const ROLE = { "Dry": ["Dry-day watcher", "dry-day"], "Design wet": ["Wet-weather watcher", "wet-weather"], "Severe": ["Storm watcher", "storm"] };
   const CASE_NOTE = ["Sewage only, no leakage into the pipes.",
     "Leakage at the level that just meets the utility's design rating for these pipes.",
@@ -620,6 +622,7 @@
   function drawSet(set, a, kind, now) {
     set.forEach((i, k) => {
       if (i == null) return;
+      if (kind === "phase1" && fx.onlyK1 && k > 0) return;
       let al = a;
       if (kind === "phase1" && fx.sensorT0) al *= Math.max(0, Math.min(1, ((now - fx.sensorT0) / 1000 - k * 0.32) / 0.35));
       if (al < 0.01) return;
@@ -736,17 +739,17 @@
 
   function legendHtml(key) {
     const L1 = {
-      plan1: `<span class="key"><i style="background:var(--canvas-ink)"></i>Recommended sensor</span><span class="key"><i style="background:var(--canvas-white);border:1.5px solid var(--ink-muted)"></i>Manhole in the model</span>`,
-      plan: `<span class="key"><i style="background:var(--canvas-ink)"></i>Sensor, phase 1</span><span class="key"><i class="ring"></i>Phase 2</span>`,
+      plan1: `<span class="key"><i style="background:var(--canvas-ink)"></i>Recommended level sensor</span><span class="key"><i style="background:var(--canvas-white);border:1.5px solid var(--ink-muted)"></i>Manhole in the model</span>`,
+      plan: `<span class="key"><i style="background:var(--canvas-ink)"></i>Sensors 1–5 ($125k ladder)</span><span class="key"><i class="ring"></i>Sensors 6–8 (up to $200k)</span>`,
       age: `<div class="ramp">1896<i style="background:linear-gradient(90deg,var(--canvas-ink),var(--teal),var(--age-2),var(--age-3))"></i>2010</div><span class="key"><i style="background:var(--canvas-home);border-radius:2px"></i>Connected property</span>`,
       flow: `<span class="key"><i class="line" style="background:var(--water)"></i>Sewage, moving downhill</span><span class="key"><i style="background:var(--canvas-white);border:1.5px solid var(--ink-muted)"></i>Manhole in the model</span>`,
       pumps: `<span class="key"><i class="line" style="background:var(--water)"></i>Sewage, moving downhill</span><span class="key"><i style="background:var(--canvas-ink);border-radius:1px;transform:rotate(45deg) scale(.85)"></i>Pump station</span><span class="key"><i class="line" style="background:repeating-linear-gradient(90deg,var(--water) 0 4px,transparent 4px 7px)"></i>Rising main, pumped uphill</span><span class="key"><i style="background:var(--canvas-white);border:1.5px dashed var(--canvas-ink);border-radius:1px;transform:rotate(45deg) scale(.85)"></i>Not modelled</span>`,
       resp: `<div class="ramp">2 mm<i style="background:linear-gradient(90deg,var(--rise-0),var(--rise-1),var(--rust),var(--rise-3))"></i>80 mm rise</div><span class="key"><i style="background:var(--amber)"></i>New homes connect here</span><span class="key"><i style="background:var(--rise-1);border:1.5px solid var(--canvas-ink)"></i>Rises ${FACTS.rise_focus_mm} mm or more</span>`,
       stress: `<b>How full each pipe runs</b>${["Under 25%", "25–50%", "50–75%", "75–100%", "Over 100% (surcharged)"].map((label, i) => `<span class="key"><i class="line" style="background:${["var(--canvas-faint)", "color-mix(in srgb, var(--rise-0), var(--rise-1))", "var(--rise-1)", "var(--rise-2)", "var(--rise-3)"][i]}"></i>${label}</span>`).join("")}`,
       alarm: `<span class="key"><i style="background:var(--rust)"></i>Over the 150 mm alarm already</span><span class="key"><i style="background:var(--canvas-sur)"></i>Pipe running full</span>`,
-      beats: `<span class="key"><i style="background:var(--canvas-ink)"></i>Recommended level sensors (5)</span><span class="key"><i style="background:var(--canvas-trunk);border-radius:2px"></i>Sample float-switch sites</span>`,
+      beats: `<span class="key"><i style="background:var(--canvas-ink)"></i>Recommended level sensors (5)</span><span class="key"><i style="background:var(--canvas-trunk);border-radius:2px"></i>Float-switch sites (15)</span>`,
       size: `<span class="key"><i class="line" style="background:var(--size-0)"></i>150 mm street pipe</span><span class="key"><i class="line" style="background:var(--size-1)"></i>225 mm trunk</span><span class="key"><i class="line" style="background:var(--teal)"></i>300 mm trunk</span><span class="key"><i class="line" style="background:var(--size-3)"></i>375–450 mm trunk</span>`,
-      water: `<span class="key"><i class="line" style="background:var(--water)"></i>Normal water depth at each manhole (bar height)</span><span class="key"><i class="line" style="background:var(--canvas-sur)"></i>Pipe running full</span>`,
+      water: `<span class="key"><i class="line" style="background:var(--water)"></i>Normal water depth at each manhole (bar height)</span><span class="key"><i class="line" style="background:var(--canvas-sur)"></i>Pipe running full (surcharged)</span>`,
     };
     return key ? `<div class="legend">${L1[key] || ""}</div>` : "";
   }
@@ -754,25 +757,26 @@
   // charts ------------------------------------------------------------
   const pctTxt = (v) => Math.round(v * 100) + "%";
   function chartFrontier() {
-    const w = 380, h = 240, l = 60, r = 12, t = 16, b = 42, K = S.curves.greedy.length;
-    const warnLine = S.curves.warn_out_case || S.curves.random;
+    const curves = SIM4.curves || { average: S.curves.detect_avg, worst: S.curves.greedy };
+    const avgLine = curves.average, worstLine = curves.worst;
+    const w = 380, h = 240, l = 60, r = 12, t = 16, b = 42, K = worstLine.length;
     const X = (k) => l + (k - 1) / (K - 1) * (w - l - r), Y = (v) => t + (1 - v) * (h - t - b);
     const line = (arr) => arr.map((v, i) => (i ? "L" : "M") + X(i + 1).toFixed(1) + " " + Y(v).toFixed(1)).join(" ");
-    const len = 900, k1 = FACTS.plan_k1, v1 = S.curves.greedy[k1 - 1], w1 = warnLine[2];
+    const len = 900, k1 = FACTS.plan_k1, vWorst = worstLine[k1 - 1], vAvg = avgLine[k1 - 1];
     let g = "";
     for (const v of [0, 0.25, 0.5, 0.75, 1]) g += `<line class="grid" x1="${l}" x2="${w - r}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${l - 6}" y="${Y(v) + 4}" text-anchor="end">${v * 100}%</text>`;
     for (let k = 1; k <= K; k++) g += `<text x="${X(k)}" y="${h - b + 18}" text-anchor="middle">${k}</text>`;
-    g += `<text x="${(l + w - r) / 2}" y="${h - 8}" text-anchor="middle">Number of level sensors</text>`;
-    g += `<text transform="translate(12 ${(t + h - b) / 2}) rotate(-90)" text-anchor="middle">Score (10 mm rule)</text>`;
-    g += `<path class="draw" style="--len:${len}" d="${line(warnLine)}" fill="none" stroke="var(--teal)" stroke-width="2.2"/>`;
-    g += `<path class="draw" style="--len:${len}" d="${line(S.curves.greedy)}" fill="none" stroke="var(--canvas-ink)" stroke-width="3"/>`;
-    g += `<g class="pop"><line x1="${X(k1)}" x2="${X(k1)}" y1="${Y(0)}" y2="${Y(v1)}" stroke="var(--canvas-ink)" stroke-dasharray="3 3"/>`;
-    S.curves.greedy.forEach((v, i) => { g += `<circle cx="${X(i + 1)}" cy="${Y(v)}" r="${i + 1 === k1 ? 5 : 2.6}" fill="var(--canvas-ink)" stroke="var(--canvas-white)" stroke-width="1.5"/>`; });
-    g += `<circle cx="${X(3)}" cy="${Y(w1)}" r="4.2" fill="var(--teal)" stroke="var(--canvas-white)" stroke-width="1.5"/>`;
-    g += `<text class="val" x="${X(k1) + 8}" y="${Y(v1) + 16}">${pctTxt(v1)}</text>`;
-    g += `<text x="${X(K) - 2}" y="${Y(warnLine[K - 1]) - 8}" text-anchor="end" style="fill:var(--teal);font-weight:600">Overload warning, unseen weather (${pctTxt(w1)} at 3)</text>`;
-    g += `<text x="${X(K) - 2}" y="${Y(S.curves.greedy[K - 1]) + 16}" text-anchor="end" style="fill:var(--canvas-ink);font-weight:600">Growth seen, worst wet case</text></g>`;
-    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Overload warning on unseen weather and worst-case wet growth seen, by number of level sensors">${g}</svg>`;
+    g += `<text x="${(l + w - r) / 2}" y="${h - 8}" text-anchor="middle">Number of level sensors (1 to ${K})</text>`;
+    g += `<text transform="translate(12 ${(t + h - b) / 2}) rotate(-90)" text-anchor="middle">Growth seen (10 mm rule)</text>`;
+    g += `<path class="draw" style="--len:${len}" d="${line(avgLine)}" fill="none" stroke="var(--teal)" stroke-width="2.4"/>`;
+    g += `<path class="draw" style="--len:${len}" d="${line(worstLine)}" fill="none" stroke="var(--canvas-ink)" stroke-width="3"/>`;
+    g += `<g class="pop"><line x1="${X(k1)}" x2="${X(k1)}" y1="${Y(0)}" y2="${Y(vAvg)}" stroke="var(--canvas-ink)" stroke-dasharray="3 3"/>`;
+    worstLine.forEach((v, i) => { g += `<circle cx="${X(i + 1)}" cy="${Y(v)}" r="${i + 1 === k1 ? 5 : 2.6}" fill="var(--canvas-ink)" stroke="var(--canvas-white)" stroke-width="1.5"/>`; });
+    avgLine.forEach((v, i) => { g += `<circle cx="${X(i + 1)}" cy="${Y(v)}" r="${i + 1 === 1 || i + 1 === k1 ? 4.2 : 2.2}" fill="var(--teal)" stroke="var(--canvas-white)" stroke-width="1.5"/>`; });
+    g += `<text class="val" x="${X(k1) + 8}" y="${Y(vWorst) + 15}">${pctTxt(vWorst)} worst</text>`;
+    g += `<text x="${X(K) - 2}" y="${Y(avgLine[K - 1]) - 8}" text-anchor="end" style="fill:var(--teal);font-weight:600">7-case average (${pctTxt(avgLine[0])} at 1 · ${pctTxt(vAvg)} at 5)</text>`;
+    g += `<text x="${X(K) - 2}" y="${Y(worstLine[K - 1]) + 16}" text-anchor="end" style="fill:var(--canvas-ink);font-weight:600">Worst wet case (${pctTxt(vWorst)} at 5)</text></g>`;
+    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Simulation 4 ladder: average and worst-case wet growth seen from 1 to ${K} level sensors">${g}</svg>`;
   }
   function chartAxis(l, r, y, title, w) {
     return `<line class="axis" x1="${l}" x2="${r}" y1="${y}" y2="${y}"/>` + [0, 0.5, 1].map((v) => {
@@ -781,18 +785,26 @@
     }).join("") + `<text x="${w / 2}" y="${y + 43}" text-anchor="middle">${title}</text>`;
   }
   function chartBars(rows, max, axisTitle, headerTitle) {
-    const w = 380, rh = 30, l = 174, t = 26, y0 = t + rows.length * rh, h = y0 + 52;
+    const w = 380, rh = 30, l = 178, t = 26, y0 = t + rows.length * rh, h = y0 + 52;
     let g = `<text x="0" y="12">${headerTitle || "Sensor option"}</text>`;
     rows.forEach((row, i) => {
       const y = t + i * rh + 4, bw = (w - l - 44) * row.v / (max || 1);
       g += `<text class="lab" x="0" y="${y + 15}">${row.label}</text>`;
       g += `<rect class="bar" style="transition-delay:${0.15 + i * 0.12}s" x="${l}" y="${y + 3}" width="${Math.max(2, bw)}" height="16" rx="3" fill="${row.col}"/>`;
-      g += `<text class="val pop" x="${l + Math.max(2, bw) + 6}" y="${y + 15}">${pctTxt(row.v)}</text>`;
+      g += `<text class="val pop" x="${l + Math.max(2, bw) + 6}" y="${y + 15}">${row.valTxt || pctTxt(row.v)}</text>`;
     });
-    g += chartAxis(l, w - 44, y0, axisTitle || "Share of detectable growth seen on unseen weather", w);
-    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Comparison of level sensors and float switches on unseen weather">${g}</svg>`;
+    g += chartAxis(l, w - 44, y0, axisTitle || "Average share of growth seen across 7 wet cases", w);
+    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Comparison of level sensors and float switches">${g}</svg>`;
   }
   function chartBeats() {
+    if (SIM4.compare_float) {
+      return chartBars(SIM4.compare_float.map((r) => ({
+        label: r.label,
+        v: r.avg,
+        valTxt: `${pctTxt(r.avg)} (${pctTxt(r.worst)} worst)`,
+        col: r.col,
+      })), 1.15, "Average growth seen across 7 wet cases (and worst case)", "Budget option (assumed $25k level vs $1k float)");
+    }
     if (S.compare_float) {
       return chartBars(S.compare_float.map((r) => ({ label: r.label, v: r.unseen_wx, col: r.col })), 1,
         "Share of detectable growth seen on unseen weather", "Option (10 mm level rule vs 25 mm float margin)");
@@ -803,19 +815,20 @@
       { label: "Random (best of 20 sets)", v: c.random[k], col: "var(--chart-other)" },
     ], 1);
   }
-  const HOLD_SHORT = {
-    "Design wet": "Design wet",
-    "Beyond design": "Beyond design",
-    "Severe": "Severe wet",
-    "Design wet + age-weighted I&I": "Age-weighted I&I",
-    "Design wet + outside inflow x1.5": "Extra inflow ×1.5",
-  };
   function chartHoldout() {
+    if (SIM4.holdout_k5) {
+      return chartBars(SIM4.holdout_k5.map((r) => ({
+        label: r.label,
+        v: r.v,
+        valTxt: `${pctTxt(r.v)} · ${r.note}`,
+        col: r.col,
+      })), 1.25, "Share of detectable growth runs seen (5 level sensors)", "Simulation 4 check (5 sensors, $125k assumed)");
+    }
     const k = FACTS.plan_k1, w = 380, rh = 40, l = 118, t = 26;
     let g = `<text x="0" y="12">Wet weather case left out</text>`;
     S.held_out.forEach((row, i) => {
       const y = t + i * rh + 2, a = row["seen_k" + k], b = row["unseen_k" + k], sc = (w - l - 44);
-      const name = HOLD_SHORT[row.case] || CASE_SHORT[i] || row.case;
+      const name = row.case;
       g += `<text class="lab" x="0" y="${y + 17}">${name}</text>`;
       g += `<rect class="bar" style="transition-delay:${0.1 + i * 0.1}s" x="${l}" y="${y + 4}" width="${sc * a}" height="12" rx="2" fill="var(--canvas-ink)"/>`;
       g += `<text class="val pop" x="${l + sc * a + 5}" y="${y + 14}">${pctTxt(a)}</text>`;
@@ -824,8 +837,7 @@
     });
     const y0 = t + S.held_out.length * rh, h = y0 + 52;
     g += chartAxis(l, w - 44, y0, "Share of that case’s detectable growth seen (five sensors)", w);
-    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Share of detectable growth seen for each weather case left out">${g}</svg>
-      <div class="legend"><span class="key"><i style="background:var(--canvas-ink);border-radius:2px"></i>Planned with this case</span><span class="key"><i style="background:var(--rust);border-radius:2px"></i>Planned without it</span></div>`;
+    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Share of detectable growth seen for each weather case left out">${g}</svg>`;
   }
   function gaugeHtml() {
     return `<div class="gauge"><svg viewBox="0 0 120 170" aria-hidden="true">
@@ -986,8 +998,9 @@
   function setStyle(s) { if (s === fx.style) return; fx.prevStyle = fx.style; fx.style = s; fx.styleMix = 0; }
   function respond(site, c, opts) { fx.resp = Object.assign({ site, c, t0: performance.now() }, opts || {}); }
   function rolesOf() {
-    return S.plan.roles.map((r, k) => ({ ch: phase1[k], cls: "accent", delay: 250 * k,
-      html: r.region ? `${k + 1} · ${r.region}<small>${r.watches}</small>`
+    const roles = SIM4.roles || S.plan.roles;
+    return roles.map((r, k) => ({ ch: phase1[k], cls: "accent", delay: 250 * k,
+      html: r.region ? `${k + 1} · ${r.id ? r.id + " · " : ""}${r.region}<small>${r.watches}</small>`
         : `${k + 1} · ${ROLE[r.case][0]}<small>sees ${r.share}% of ${ROLE[r.case][1]} growth on its own</small>` }));
   }
   // sites whose growth shows widely, spread over the map, for the what-if loop
@@ -1055,7 +1068,13 @@
       setLabels([{ x: N.x[mid.n], y: N.y[mid.n], html: fmt(FACTS.sites) + " manholes, each a possible sensor site", cls: "quiet", delay: 900 }]);
     },
     answer() { fx.sensorT0 = performance.now(); setLabels(rolesOf().map((l) => Object.assign(l, { html: "Sensor " + (phase1.indexOf(l.ch) + 1), cls: "accent quiet" }))); },
-    roles() { setLabels(rolesOf()); },
+    sensor1() {
+      fx.onlyK1 = true; fx.sensorT0 = performance.now();
+      setLabels([
+        { ch: phase1[0], html: `1 · ${FACTS.sensor_1_id}<small>Sees ${FACTS.design_wet_k1_seen}/${FACTS.design_wet_runs} Design wet runs (${FACTS.avg_k1}% across 7 wet cases)</small>`, cls: "accent", dy: -10, delay: 200 },
+      ]);
+    },
+    roles() { fx.sensorT0 = performance.now(); setLabels(rolesOf()); },
     infill() { setStyle("age"); },
     downhill() { setLabels([{ x: N.x[S.outlet], y: N.y[S.outlet], html: "Lowest point: the network drains here", cls: "accent" }]); },
     swmm() { fx.chamberPop = performance.now(); },
@@ -1090,17 +1109,17 @@
       };
       show(1);
       setLabels([
-        { ch: chIndex.get(4449173), html: `R1 (North-east)<small>Runs out in ${FACTS.r1_range} homes</small>`, cls: "accent", dy: -10, delay: 200 },
-        { ch: chIndex.get(4450531), html: `R2 & R4 (East)<small>R2: ${FACTS.r2_range} · R4: ${FACTS.r4_range} homes</small>`, cls: "accent", dy: -10, delay: 450 },
-        { ch: chIndex.get(4452541), html: `R5 (Central)<small>Room left (${FACTS.r5_range} homes)</small>`, cls: "quiet", dy: -8, delay: 700 },
-        { ch: chIndex.get(4501866), html: `R3 (South-west)<small>Room left (${FACTS.r3_range} homes)</small>`, cls: "quiet", dy: -8, delay: 950 },
+        { ch: chIndex.get(4450531), html: `Monitor · R3 & R7<small>R3: ${FACTS.r3_range} · R7: ${FACTS.r7_range} homes to 0.7</small>`, cls: "accent", dy: -10, delay: 200 },
+        { ch: chIndex.get(4448345), html: `Watch · R1 & R4<small>R1: ${FACTS.r1_range} · R4: ${FACTS.r4_range} homes</small>`, cls: "accent", dy: -10, delay: 450 },
+        { ch: chIndex.get(4450922), html: `Watch · R9 Terrace<small>${FACTS.r9_range} homes (anchor: ${FACTS.r9_homes})</small>`, cls: "quiet", dy: -8, delay: 700 },
+        { ch: chIndex.get(4501866), html: `Leave · R2, R5, R6 & R8<small>Room left on Design wet</small>`, cls: "quiet", dy: -8, delay: 950 },
       ]);
       card.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => show(+b.dataset.case)));
     },
     beats() {
       setLabels([
-        { ch: trunk[0], html: "Float switch site<small>Fixed height trips as weather shifts</small>", cls: "quiet", dy: -6 },
-        { ch: phase1[1], html: "Level sensor (MH4450531)<small>Tracks rise above normal level</small>", cls: "accent", dy: -8 },
+        { ch: trunk[0], html: "Float switch site<small>15 floats ($15k) cap at 35% avg, 0% worst</small>", cls: "quiet", dy: -6 },
+        { ch: phase1[0], html: `Level sensor (${FACTS.sensor_1_id})<small>Tracks rise above normal level</small>`, cls: "accent", dy: -8 },
       ]);
     },
     tryit() {
@@ -1228,7 +1247,7 @@
     i = Math.max(0, Math.min(SCENES.length - 1, i));
     if (i === cur && !instant) return;
     closeSource();
-    clearTimers(); fx.onPick = null; fx.laterals = null; fx.chamberPop = 0; fx.drift = 0; fx.widthTarget = 1; fx.reveal = 1;
+    clearTimers(); fx.onPick = null; fx.laterals = null; fx.chamberPop = 0; fx.drift = 0; fx.widthTarget = 1; fx.reveal = 1; fx.onlyK1 = false;
     document.body.classList.toggle("is-welcome", !!SCENES[i].welcome);
     fx.resp = null; fx.hover = -1;
     const sc = SCENES[i], prev = cur; cur = i; sceneT0 = performance.now();
