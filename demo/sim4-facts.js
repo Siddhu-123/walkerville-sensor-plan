@@ -4,7 +4,6 @@
 window.OSP_SIM4 = {
   facts: {
     model_version: "Simulation 4",
-    project_no: 2669,
     uni_name: "Adelaide University",
 
     // Step 1: Network & growth (from sim4.js and regions.js)
@@ -193,9 +192,8 @@ window.OSP_SIM4 = {
     cost_k6: "$150k",
     cost_k7: "$175k",
     cost_k8: "$200k",
-    save_sensors: 4,
-    save_cost: "$100k",
-    save_cost_full: "$100,000",
+    sensors_100pct_all_wet: 10,
+    sensors_90pct_all_wet: 6,
 
     // Level vs Float budget comparison
     float_cap_count: 15,
@@ -266,10 +264,34 @@ window.OSP_SIM4 = {
   curves: {
     average: [0.5338, 0.7157, 0.8586, 0.9211, 0.9389, 0.9568, 0.9746, 0.9836],
     worst: [0.0, 0.0, 0.4375, 0.6875, 0.8125, 0.875, 0.9375, 0.9375],
+    average_25: [0.21, 0.34, 0.39, 0.44, 0.45, 0.50, 0.50, 0.52],
+    worst_25: [0, 0, 0.19, 0.36, 0.36, 0.36, 0.36, 0.36],
     unseen_wx: [0.55, 0.71, 0.71, 0.76, 0.77, 0.78, 0.78, 0.79],
     unseen_reg: [0.50, 0.60, 0.66, 0.76, 0.76, 0.76, 0.76, 0.76],
     warned: [8, 11, 11, 11, 11, 11, 11, 11],
   },
+
+  // Level or float, for the same money ($25k, $75k, $125k) from window.SIM4.expert.tables
+  budget_compare: [
+    {
+      budget: "$25k",
+      level: { bought: "1 level", worst: 0.0, avg: 0.53, unseen: 0.55 },
+      floats: { bought: "15 floats, $15k", worst: 0.0, avg: 0.35, unseen: 0.0 },
+      mix: { bought: "1 level", worst: 0.12, avg: 0.42, unseen: 0.34 },
+    },
+    {
+      budget: "$75k",
+      level: { bought: "3 level", worst: 0.44, avg: 0.86, unseen: 0.71 },
+      floats: { bought: "15 floats, $15k", worst: 0.0, avg: 0.35, unseen: 0.0 },
+      mix: { bought: "2 level + 6 floats, $56k", worst: 0.62, avg: 0.79, unseen: 0.55 },
+    },
+    {
+      budget: "$125k",
+      level: { bought: "5 level", worst: 0.81, avg: 0.94, unseen: 0.77 },
+      floats: { bought: "15 floats, $15k", worst: 0.0, avg: 0.35, unseen: 0.0 },
+      mix: { bought: "5 level", worst: 0.88, avg: 0.94, unseen: 0.76 },
+    },
+  ],
 
   // Level vs float comparison across Sim 4 budgets
   compare_float: [

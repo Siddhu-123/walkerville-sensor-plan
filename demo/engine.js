@@ -6,14 +6,8 @@
 // the same camera every frame, so the network sits on real Adelaide streets at any zoom or tilt.
 (function () {
   "use strict";
-  const S = window.OSP_STORY, SCENES = window.OSP_SCENES, LIB = window.OSP_LIB, STATIC = window.OSP_STATIC || {}, SIM4 = window.OSP_SIM4 || {};
-  const FACTS = Object.assign({}, S.facts, STATIC, SIM4.facts || SIM4);
-  if (!SIM4.facts) {
-    FACTS.greedy_k1_worst = Math.round(100 * S.curves.greedy[4]);
-    const heldAge = S.held_out.find((row) => row.case === "Design wet + age-weighted I&I");
-    FACTS.held_age_unseen = Math.round(100 * heldAge["unseen_k" + FACTS.plan_k1]);
-    FACTS.held_age_seen = Math.round(100 * heldAge["seen_k" + FACTS.plan_k1]);
-  }
+  const S = window.OSP_STORY, SCENES = window.OSP_SCENES, LIB = window.OSP_LIB, STATIC = window.OSP_STATIC || {}, SIM4 = window.OSP_SIM4 || {}, REGIONS = window.OSP_SIM4_REGIONS || {};
+  const FACTS = Object.assign({}, STATIC, SIM4.facts || {});
   const $ = (id) => document.getElementById(id);
   const canvas = $("stage-canvas"), ctx = canvas.getContext("2d");
   const card = $("card"), sheet = $("sheet") || card, labelsEl = $("labels"), tip = $("tip");
@@ -62,20 +56,6 @@
   const CH = S.chambers, nch = CH.length;
   const chIndex = new Map(CH.map((c, i) => [c.id, i]));
   const chamberAtNode = new Map(CH.map((c, i) => [c.n, i]));
-  function pipeStress(p, c) {
-    const ends = [p.a, p.b].filter((n) => chamberAtNode.has(n));
-    if (!ends.length || !(p.d > 0)) return null;
-    const depth = S.base_depth[String(c)];
-    return ends.reduce((sum, n) => sum + depth[chamberAtNode.get(n)], 0) / ends.length * 1000 / p.d;
-  }
-  const stressRatios = S.cases.map((_, c) => S.pipes.map((p) => pipeStress(p, c)));
-  const stressOrders = stressRatios.map((ratios) => ratios.map((_, i) => i)
-    .sort((a, b) => (ratios[a] ?? -Infinity) - (ratios[b] ?? -Infinity)));
-  const stressWidths = [1, 1.4, 1.8, 2.3, 2.8];
-  const stressBand = (v) => v === null || v < 0.25 ? 0 : v <= 0.5 ? 1 : v <= 0.75 ? 2 : v <= 1 ? 3 : 4;
-  FACTS.stress_half_wet = stressRatios[1].filter((v) => v !== null && v > 0.5).length;
-  FACTS.stress_half_severe = stressRatios[2].filter((v) => v !== null && v > 0.5).length;
-  let stressCase = 1;
   const cover = N.cover.map((v, i) => (v > 0 ? v : N.inv[i] + 2.9));
 
   const pipes = S.pipes.map((p) => {
@@ -133,8 +113,6 @@
       pipes[pick].onPath = true; path.push(pick); v = pipes[pick].b;
     }
   })();
-  FACTS.path_fall_m = (N.inv[pipes[path[0]].a] - N.inv[pipes[path[path.length - 1]].b]).toFixed(1);
-  FACTS.path_km = (path.reduce((t, i) => t + pipes[i].len, 0) / 1000).toFixed(1);
 
   // bounds
   let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
@@ -193,22 +171,22 @@
   const homes = [];
   for (let i = 0; i < S.homes.length; i += 2) homes.push([S.homes[i], S.homes[i + 1], groundAt(S.homes[i], S.homes[i + 1])]);
 
-  // the plan
-  const phase1 = (SIM4.ladder5 || S.plan.phase1).map((id) => chIndex.get(id));
-  const phase2 = (SIM4.ladderExtra || S.plan.phase2).map((id) => chIndex.get(id));
-  const trunk = (SIM4.floatSites || S.alt_sets.trunk).map((id) => chIndex.get(id));
-  const ROLE = { "Dry": ["Dry-day watcher", "dry-day"], "Design wet": ["Wet-weather watcher", "wet-weather"], "Severe": ["Storm watcher", "storm"] };
-  const CASE_NOTE = ["Sewage only, no leakage into the pipes.",
-    "Leakage at the level that just meets the utility's design rating for these pipes.",
-    "A heavy wet period: leakage at " + S.facts.ii_severe + " L/s per 100 m of pipe.",
-    "Design-wet leakage, shifted toward the older pipes.",
-    "Design wet, with half as much again arriving from outside the area."];
-  const caseIdx = {}; S.cases.forEach((c, i) => { caseIdx[c.label] = i; });
-  const caseRate = (c) => {
-    const rate = c === 0 ? "0" : (c === 2 ? S.facts.ii_severe : S.facts.ii_design).toFixed(2);
-    return `${rate} L/s per 100 m${c === 3 ? ", by pipe age" : c === 4 ? ", outside flow x1.5" : ""}`;
-  };
-  const CASE_SHORT = ["Dry day", "Design wet", "Storm", "Leaky old pipes", "Extra inflow"];
+  // Region membership can overlap, including the R9 corridor.
+  const regionList = (REGIONS.regions || []).map((r) => ({ ...r,
+    triage: r.triage || (REGIONS.triage || {})[r.id] || "leave",
+    indices: (r.manholes || []).map((id) => chIndex.get(Number(id))).filter((i) => i != null),
+    ids: new Set((r.manholes || []).map(Number)) }));
+  const memberships = CH.map((c) => regionList.filter((r) => r.ids.has(Number(c.id))));
+  const pipeRegions = pipes.map((p) => regionList.filter((r) => {
+    const a = chamberAtNode.get(p.a), b = chamberAtNode.get(p.b);
+    return a != null && b != null && r.ids.has(Number(CH[a].id)) && r.ids.has(Number(CH[b].id));
+  }));
+  const phase1 = (SIM4.ladder5 || []).map((id) => chIndex.get(Number(id)));
+  const trunk = (SIM4.floatSites || []).map((id) => chIndex.get(Number(id))).filter((i) => i != null);
+  const weatherNames = { design: "Design wet", beyond: "Beyond design", severe: "Severe" };
+  const surcharge = Object.fromEntries(Object.keys(weatherNames).map((key) => [key,
+    new Set(((REGIONS.baseline || {})[key]?.surcharged || []).map(Number))]));
+  let weather = "design";
 
   // ------------------------------------------------------------------ colour helpers
   const hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
@@ -226,16 +204,13 @@
   let darkTheme = false;
   const SIZE = (d) => sizes[d <= 150 ? 0 : d <= 225 ? 1 : d <= 300 ? 2 : 3];
   const riseCol = (mm) => ramp(RISE, Math.log(1 + mm) / Math.log(1 + 80));
-  function updateStressColours() {
-    const colours = [C.faint, mix(RISE[0][1], RISE[1][1], 0.5), RISE[1][1], RISE[2][1], RISE[3][1]];
-    pipeCols.stress = stressRatios[stressCase].map((v) => colours[stressBand(v)]);
-  }
+  const triageColour = (triage) => triage === "monitor" ? C.warn : triage === "watch" ? C.growth : C.leave;
   function updatePalette() {
     darkTheme = document.documentElement.dataset.theme === "dark";
     const css = getComputedStyle(document.documentElement);
     const colour = (token) => hex(css.getPropertyValue("--" + token).trim());
     for (const [key, token] of Object.entries({ ink: "canvas-ink", accent: "canvas-ink", pipe: "teal",
-      faint: "canvas-faint", water: "water", growth: "amber", warn: "rust", alarm: "rust", sur: "canvas-sur",
+      leave: "triage-leave", faint: "canvas-faint", water: "water", growth: "amber", warn: "rust", alarm: "rust", sur: "canvas-sur",
       white: "canvas-white", paper: "canvas-paper", home: "canvas-home", trunk: "canvas-trunk", rain: "canvas-rain" })) C[key] = colour(token);
     AGE.splice(0, AGE.length, ...[0, 0.35, 0.7, 1].map((t, i) => [t, colour("age-" + i)]));
     RISE.splice(0, RISE.length, ...[0, 0.3, 0.6, 1].map((t, i) => [t, colour("rise-" + i)]));
@@ -244,7 +219,7 @@
     pipeCols.age = pipes.map((p) => ramp(AGE, ((p.y || 1950) - 1896) / (2010 - 1896)));
     pipeCols.size = pipes.map((p) => SIZE(p.d));
     pipeCols.path = pipes.map((p) => p.onPath ? C.accent : C.faint);
-    updateStressColours();
+    pipeCols.regions = pipeRegions.map((rs) => triageColour(rs.find((r) => r.id !== "R9")?.triage));
   }
   updatePalette();
 
@@ -292,6 +267,7 @@
     return c;
   }
   function boxOf(idx, padm, useNodes) {
+    if (!idx.length) return ALL;
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, z0 = Infinity, z1 = -Infinity;
     for (const i of idx) {
       const x = useNodes ? N.x[i] : CH[i].x, y = useNodes ? N.y[i] : CH[i].y;
@@ -316,7 +292,7 @@
   const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
   function flyTo(target, ms) {
     if (reduced || !ms) { Object.assign(cam, target); tween = null; return; }
-    tween = { from: Object.assign({}, cam), to: target, t0: performance.now(), ms };
+    tween = { from: Object.assign({}, cam), to: target, t0: performance.now(), ms: Math.min(1400, ms) };
   }
   function stepCamera(now) {
     if (!tween) return;
@@ -332,12 +308,15 @@
 
   // ------------------------------------------------------------------ layers and effects
   const L = {}, LT = {};
-  const LAYERS = ["basemap", "terrain", "homes", "pipes", "chambers", "shafts", "water", "sensors", "phase2", "trunk", "alarm", "resp", "flow", "pumps", "rain", "spikes"];
+  const LAYERS = ["basemap", "terrain", "homes", "pipes", "chambers", "shafts", "water", "sensors", "trunk", "alarm", "resp", "flow", "pumps", "rain", "spikes"];
   LAYERS.forEach((k) => { L[k] = 0; LT[k] = 0; });
   const fx = { style: "plain", prevStyle: "plain", styleMix: 1, widthMul: 1, reveal: 1, revealT0: 0, sensorT0: 0,
     resp: null, alarmCase: 1, waterCase: 1, waterShown: 1, laterals: null, drift: 0, hover: -1, focus: -1, pathLabels: false };
 
-  function setLayers(show) { LAYERS.forEach((k) => { LT[k] = show && show[k] != null ? show[k] : k === "basemap" ? 0.58 : 0; }); }
+  function setLayers(show) {
+    LAYERS.forEach((k) => { LT[k] = show && show[k] != null ? show[k] : k === "basemap" ? 0.58 : 0; });
+    if (!(show && show.sensors > 0)) { L.sensors = 0; L.trunk = 0; LT.trunk = 0; }
+  }
   function stepLayers(dt) {
     const a = 1 - Math.exp(-dt / 260);
     LAYERS.forEach((k) => { L[k] += (LT[k] - L[k]) * a; if (Math.abs(LT[k] - L[k]) < 0.002) L[k] = LT[k]; });
@@ -358,24 +337,37 @@
       });
     } catch (e) { gl = null; }   // no WebGL: the overlay still tells the story on the cream ground
   }
+  let mapNeedsResize = true;
+  const mapVisible = () => mapEl.clientWidth > 0 && mapEl.clientHeight > 0;
+  const matrixError = (e) => /failed to invert matrix/i.test(String(e?.message || e?.error?.message || e));
+  function mapCall(fn) {
+    try { fn(); return true; }
+    catch (e) { if (!matrixError(e)) throw e; glKey = ""; mapNeedsResize = true; return false; }
+  }
+  if (gl) gl.on("error", (e) => { if (matrixError(e)) { glKey = ""; mapNeedsResize = true; } });
+  if (window.ResizeObserver) new ResizeObserver(() => { resize(); }).observe(mapEl);
   function syncMap() {
     if (!gl) return;
+    if (!mapVisible()) { mapNeedsResize = true; glKey = ""; return; }
+    if (mapNeedsResize) {
+      if (!mapCall(() => gl.resize())) return;
+      mapNeedsResize = false; glKey = "";
+    }
     // fade the street map as the camera tilts, so the raised network reads against it
     const op = (L.basemap * (1 - 0.62 * Math.min(1, cam.pitch / 0.9))).toFixed(3);
     if (mapEl.style.opacity !== op) mapEl.style.opacity = op;
     const ll = lngLat(cam.x, cam.y), z = Math.log2(cam.zoom * GEO.Sm / 512);
     const key = [ll[0].toFixed(7), ll[1].toFixed(7), z.toFixed(4), cam.pitch.toFixed(4), cam.bearing.toFixed(4), cam.sx.toFixed(1), cam.sy.toFixed(1), W, H].join();
     if (key === glKey) return;
-    glKey = key;
     // padding puts the basemap's centre (and vanishing point) where the overlay camera has it
     const sx = Math.max(1, Math.min(W - 1, cam.sx)), sy = Math.max(1, Math.min(H - 1, cam.sy));
-    gl.jumpTo({ center: ll, zoom: z, bearing: cam.bearing * 180 / Math.PI, pitch: cam.pitch * 180 / Math.PI,
-      padding: { left: Math.max(0, 2 * sx - W), right: Math.max(0, W - 2 * sx), top: Math.max(0, 2 * sy - H), bottom: Math.max(0, H - 2 * sy) } });
-    if (glReady) gl.redraw();
+    if (!mapCall(() => gl.jumpTo({ center: ll, zoom: z, bearing: cam.bearing * 180 / Math.PI, pitch: cam.pitch * 180 / Math.PI,
+      padding: { left: Math.max(0, 2 * sx - W), right: Math.max(0, W - 2 * sx), top: Math.max(0, 2 * sy - H), bottom: Math.max(0, H - 2 * sy) } }))) return;
+    glKey = key;
+    if (glReady) mapCall(() => gl.redraw ? gl.redraw() : gl.triggerRepaint());
   }
 
   // ------------------------------------------------------------------ drawing
-  const SUR = {}; for (const k in S.base_surcharged) SUR[k] = new Set(S.base_surcharged[k]);
   const scr = new Float64Array(nch * 3); // projected chambers, for picking and labels
   let frameDt = 16;
   function draw(now) {
@@ -391,14 +383,13 @@
     if (L.flow > 0.01) drawFlow(now, zoomScale);
     if (L.pumps > 0.01) drawPumps(now, zoomScale);
     if (fx.laterals && L.homes > 0.01) drawLaterals(now);
-    if (L.water > 0.01) drawWater(zoomScale, frameDt);
     projectChambers();
     if (L.chambers > 0.01) drawChambers(zoomScale);
-    if (L.alarm > 0.01) drawAlarm(now);
-    if (L.resp > 0.01 && fx.resp) drawResponse(now, zoomScale);
-    if (L.trunk > 0.01) drawSet(trunk, L.trunk, "trunk", now);
-    if (L.phase2 > 0.01) drawSet(phase2, L.phase2, "phase2", now);
-    if (L.sensors > 0.01) drawSet(phase1, L.sensors, "phase1", now);
+    if (fx.style === "regions") drawRegionOverlay(zoomScale);
+    if (SCENES[cur]?.show?.sensors > 0 && LT.sensors > 0 && L.sensors > 0.01) {
+      if (SCENES[cur]?.fx === "beats") drawSet(trunk, L.sensors, "trunk", now);
+      drawSet(phase1, L.sensors, "phase1", now);
+    }
     if (fx.hover >= 0) drawHover();
     if (L.rain > 0.01) drawRain(now);
     placeLabels();
@@ -447,9 +438,8 @@
     const R = reveal * (maxOut + 400);
     const prev = pipeCols[fx.prevStyle], cur = pipeCols[fx.style], m = fx.styleMix;
     ctx.lineCap = "round"; ctx.lineJoin = "round";
-    const pathMode = fx.style === "path", stressMode = fx.style === "stress";
-    const order = stressMode ? stressOrders[stressCase] : null;
-    const widthMul = (i) => stressMode ? 1 + (stressWidths[stressBand(stressRatios[stressCase][i])] - 1) * m : 1;
+    const pathMode = fx.style === "path", order = null;
+    const widthMul = () => 1;
     // a paper casing first, so the network reads apart from the basemap's streets
     if (L.basemap > 0.05) {
       ctx.strokeStyle = rgba(C.paper, 0.8 * L.pipes * Math.min(1, L.basemap * 1.6));
@@ -467,7 +457,6 @@
         const i = order ? order[j] : j, p = pipes[i];
         if (pathMode && (pass === 0) === p.onPath) continue;
         let a = L.pipes;
-        if (fx.style === "stress" && stressRatios[stressCase][i] === null) a *= 0.18;
         if (reveal < 1) a *= Math.max(0, Math.min(1, (R - p.dOut) / 380));
         if (a < 0.01) continue;
         const col = m >= 1 ? cur[i] : mix(prev[i], cur[i], m);
@@ -537,23 +526,6 @@
     }
   }
 
-  const shownDepth = new Float64Array(nch);
-  function drawWater(zs, dt) {
-    const c = String(fx.waterCase), depth = S.base_depth[c], bot = [0, 0, 0, 0], sur = SUR[c];
-    const a = 1 - Math.exp(-(dt || 16) / 380);
-    ctx.lineCap = "round";
-    for (let i = 0; i < nch; i++) {
-      shownDepth[i] += (Math.min(depth[i] || 0, 1.5) - shownDepth[i]) * a;
-      const d = shownDepth[i]; if (!(d > 0.004)) continue;
-      const ch = CH[i];
-      P(ch.x, ch.y, ch.cover, cam, bot); P(ch.x, ch.y, ch.cover + d * 60 / Math.max(cam.ve, 1));
-      const full = sur.has(i);
-      ctx.strokeStyle = rgba(full ? C.sur : C.water, 0.88 * L.water);
-      ctx.lineWidth = Math.max(3, 3 * zs);
-      ctx.beginPath(); ctx.moveTo(bot[0], bot[1]); ctx.lineTo(pt[0], pt[1]); ctx.stroke();
-    }
-  }
-
   function projectChambers() {
     for (let i = 0; i < nch; i++) { const c = CH[i]; P(c.x, c.y, c.cover); scr[3 * i] = pt[0]; scr[3 * i + 1] = pt[1]; scr[3 * i + 2] = pt[3]; }
   }
@@ -567,56 +539,30 @@
       if (fx.reveal < 1) al *= Math.max(0, Math.min(1, (R - distOut[CH[i].n]) / 380));
       if (fx.chamberPop) al *= Math.max(0, Math.min(1, (performance.now() - fx.chamberPop - distOut[CH[i].n] / 3) / 300));
       if (al < 0.01) continue;
-      ctx.fillStyle = rgba(C.white, al); ctx.strokeStyle = rgba(C.ink, 0.55 * al);
+      const region = memberships[i].find((r) => r.id !== "R9");
+      const full = fx.problem && surcharge[weather].has(Number(CH[i].id));
+      const col = full ? C.sur : fx.style === "regions" ? triageColour(region?.triage) : C.white;
+      ctx.fillStyle = rgba(col, al); ctx.strokeStyle = rgba(full ? C.warn : C.ink, 0.65 * al);
       ctx.beginPath(); ctx.arc(scr[3 * i], scr[3 * i + 1], r, 0, 7); ctx.fill(); ctx.stroke();
     }
   }
 
-  function drawAlarm(now) {
-    const c = String(fx.alarmCase), al = S.base_alarm[c], sur = new Set(S.base_surcharged[c]);
-    for (const i of al) {
-      const x = scr[3 * i], y = scr[3 * i + 1], s = sur.has(i);
-      ctx.fillStyle = rgba(s ? C.sur : C.alarm, 0.92 * L.alarm);
-      ctx.beginPath(); ctx.arc(x, y, s ? 4.4 : 3.6, 0, 7); ctx.fill();
-    }
-  }
-
-  function drawResponse(now, zs) {
-    const r = fx.resp, list = S.response[String(r.c)][r.site] || [];
-    const age = (now - r.t0) / 1000, a = L.resp;
-    const sx = scr[3 * r.site], sy = scr[3 * r.site + 1];
-    // responders, in order of how much they rise
-    const spikes = L.spikes;
-    list.forEach(([i, mm], k) => {
-      const appear = Math.max(0, Math.min(1, (age - 0.25 - k * 0.035) / 0.35));
-      if (appear <= 0) return;
-      const col = riseCol(mm), x = scr[3 * i], y = scr[3 * i + 1];
-      const big = mm >= FACTS.rise_focus_mm;
-      if (spikes > 0.01) {
-        const ch = CH[i], h = Math.min(mm, 120) * appear;
-        const top = [0, 0, 0, 0]; P(ch.x, ch.y, ch.cover, cam, top); P(ch.x, ch.y, ch.cover + h * 0.65 / Math.max(cam.ve, 1));
-        // a ground ring at the lid, then the rise as an upright bar with a cap
-        const rr = (3 + Math.sqrt(mm) * 0.9) * appear * Math.min(1.6, zs * 0.7 + 0.5);
-        ctx.fillStyle = rgba(col, 0.22 * a * spikes); ctx.beginPath(); ctx.ellipse(top[0], top[1], rr, rr * Math.max(0.3, T.cp), 0, 0, 7); ctx.fill();
-        ctx.lineCap = "round"; ctx.strokeStyle = rgba(col, 0.95 * a * spikes); ctx.lineWidth = Math.max(2.4, (big ? 3.2 : 2.2) * zs * 0.8);
-        ctx.beginPath(); ctx.moveTo(top[0], top[1]); ctx.lineTo(pt[0], pt[1]); ctx.stroke(); ctx.lineCap = "butt";
-        ctx.fillStyle = rgba(col, a * spikes); ctx.beginPath(); ctx.arc(pt[0], pt[1], big ? 4.2 : 2.8, 0, 7); ctx.fill();
-        if (big) { ctx.strokeStyle = rgba(C.white, 0.9 * a * spikes); ctx.lineWidth = 1.2; ctx.stroke(); }
-      }
-      const flat = 1 - spikes;
-      if (flat > 0.01) {
-        const rad = (2.4 + Math.sqrt(mm) * 1.15) * appear * Math.min(1.6, zs * 0.7 + 0.5);
-        ctx.fillStyle = rgba(col, 0.82 * a * flat); ctx.beginPath(); ctx.arc(x, y, rad, 0, 7); ctx.fill();
-        if (big) { ctx.strokeStyle = rgba(C.ink, 0.55 * a * flat); ctx.lineWidth = 1.2; ctx.stroke(); }
-      }
+  function drawRegionOverlay(zs) {
+    const overlap = regionList.find((r) => r.id === "R9");
+    if (!overlap) return;
+    ctx.save(); ctx.strokeStyle = rgba(triageColour(overlap.triage), L.pipes); ctx.lineWidth = 1.8;
+    // Outline the shared pipes and ring the shared manholes, preserving the underlying region tint.
+    ctx.setLineDash([5, 3]);
+    pipes.forEach((p, i) => {
+      if (!pipeRegions[i].includes(overlap)) return;
+      ctx.lineWidth = pipeWidth(p, zs) + 4;
+      ctx.beginPath();
+      for (let v = 0; v < p.n; v++) { P(p.xs[v], p.ys[v], p.zs[v]); v ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1]); }
+      ctx.stroke();
     });
-    // the growth site
-    const pulse = (age % 1.6) / 1.6;
-    ctx.strokeStyle = rgba(C.growth, a * (1 - pulse)); ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(sx, sy, 8 + pulse * 26, 0, 7); ctx.stroke();
-    ctx.fillStyle = rgba(C.growth, a); ctx.beginPath(); ctx.arc(sx, sy, 7.5, 0, 7); ctx.fill();
-    ctx.strokeStyle = rgba(C.white, a); ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(sx - 3.6, sy); ctx.lineTo(sx + 3.6, sy); ctx.moveTo(sx, sy - 3.6); ctx.lineTo(sx, sy + 3.6); ctx.stroke();
+    ctx.setLineDash([]); ctx.lineWidth = 1.8;
+    overlap.indices.forEach((i) => { ctx.beginPath(); ctx.arc(scr[3 * i], scr[3 * i + 1], 4.5 * Math.min(zs, 1.8), 0, 7); ctx.stroke(); });
+    ctx.restore();
   }
 
   function drawSet(set, a, kind, now) {
@@ -635,11 +581,6 @@
         ctx.beginPath(); ctx.arc(x, y, 10, 0, 7); ctx.fill(); ctx.stroke();
         ctx.fillStyle = rgba(C.white, al); ctx.font = "700 11px Inter, system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText(String(k + 1), x, y + 0.5);
-      } else if (kind === "phase2") {
-        ctx.fillStyle = rgba(C.white, al * 0.95); ctx.strokeStyle = rgba(C.accent, al); ctx.lineWidth = 2.2; ctx.setLineDash([3, 2.5]);
-        ctx.beginPath(); ctx.arc(x, y, 8.5, 0, 7); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
-        ctx.fillStyle = rgba(C.accent, al); ctx.font = "700 10px Inter, system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-        ctx.fillText(String(k + 6), x, y + 0.5);
       } else {
         ctx.fillStyle = rgba(C.trunk, al * 0.9); ctx.strokeStyle = rgba(C.white, al); ctx.lineWidth = 2;
         ctx.beginPath(); ctx.rect(x - 6.5, y - 6.5, 13, 13); ctx.fill(); ctx.stroke();
@@ -697,17 +638,21 @@
       let x, y;
       if (l.ch != null) { x = scr[3 * l.ch]; y = scr[3 * l.ch + 1]; }
       else { P(l.x, l.y, l.z != null ? l.z : groundAt(l.x, l.y)); x = pt[0]; y = pt[1]; }
-      const off = x < a.x0 - 40 || x > a.x1 + 60 || y < a.y0 - 10 || y > a.y1 + 40;
-      l.el.style.visibility = off ? "hidden" : "visible";
-      if (!l.w) { l.w = l.el.offsetWidth; l.h = l.el.offsetHeight; }
-      let top = y + (l.dy || 0) - 12 - l.h;
-      for (let pass = 0; pass < 4; pass++) {
-        const hit = placed.find((r) => Math.abs(r.x - x) < (r.w + l.w) / 2 + 4 && top < r.top + r.h + 3 && top + l.h > r.top - 3);
-        if (!hit) break; top = hit.top - l.h - 4;
+      const hidden = x < a.x0 - 40 || x > a.x1 + 40 || y < a.y0 - 20 || y > a.y1 + 40 || (l.sensor && !(LT.sensors > 0));
+      l.el.style.visibility = hidden ? "hidden" : "visible";
+      if (hidden) continue;
+      const w = l.el.offsetWidth, h = l.el.offsetHeight;
+      let left = Math.max(a.x0, Math.min(a.x1 - w, x - w / 2)), top = Math.max(a.y0, y - h - 18);
+      for (let pass = 0; pass < 40; pass++) {
+        const box = { left, top, right: left + w, bottom: top + h };
+        const hit = placed.find((r) => box.left < r.right + 5 && box.right > r.left - 5 && box.top < r.bottom + 5 && box.bottom > r.top - 5);
+        const marker = l.sensor && phase1.some((i) => i != null && scr[3 * i] > box.left - 12 && scr[3 * i] < box.right + 12 && scr[3 * i + 1] > box.top - 12 && scr[3 * i + 1] < box.bottom + 12);
+        if (!hit && !marker) break;
+        top += h + 7;
+        if (top + h > a.y1) { top = a.y0; left = Math.min(a.x1 - w, left + w + 8); }
       }
-      placed.push({ x, w: l.w, h: l.h, top });
-      y = top + 12 + l.h - (l.dy || 0);
-      l.el.style.transform = `translate(${(x + (l.dx || 0)).toFixed(1)}px, ${(y + (l.dy || 0)).toFixed(1)}px) translate(-50%, -100%)`;
+      placed.push({ left, top, right: left + w, bottom: top + h });
+      l.el.style.transform = `translate(${left.toFixed(1)}px, ${top.toFixed(1)}px)`;
     }
   }
 
@@ -738,121 +683,90 @@
   }
 
   function legendHtml(key) {
-    const L1 = {
-      plan1: `<span class="key"><i style="background:var(--canvas-ink)"></i>Recommended level sensor</span><span class="key"><i style="background:var(--canvas-white);border:1.5px solid var(--ink-muted)"></i>Manhole in the model</span>`,
-      plan: `<span class="key"><i style="background:var(--canvas-ink)"></i>Sensors 1–5 ($125k ladder)</span><span class="key"><i class="ring"></i>Sensors 6–8 (up to $200k)</span>`,
-      age: `<div class="ramp">1896<i style="background:linear-gradient(90deg,var(--canvas-ink),var(--teal),var(--age-2),var(--age-3))"></i>2010</div><span class="key"><i style="background:var(--canvas-home);border-radius:2px"></i>Connected property</span>`,
-      flow: `<span class="key"><i class="line" style="background:var(--water)"></i>Sewage, moving downhill</span><span class="key"><i style="background:var(--canvas-white);border:1.5px solid var(--ink-muted)"></i>Manhole in the model</span>`,
-      pumps: `<span class="key"><i class="line" style="background:var(--water)"></i>Sewage, moving downhill</span><span class="key"><i style="background:var(--canvas-ink);border-radius:1px;transform:rotate(45deg) scale(.85)"></i>Pump station</span><span class="key"><i class="line" style="background:repeating-linear-gradient(90deg,var(--water) 0 4px,transparent 4px 7px)"></i>Rising main, pumped uphill</span><span class="key"><i style="background:var(--canvas-white);border:1.5px dashed var(--canvas-ink);border-radius:1px;transform:rotate(45deg) scale(.85)"></i>Not modelled</span>`,
-      resp: `<div class="ramp">2 mm<i style="background:linear-gradient(90deg,var(--rise-0),var(--rise-1),var(--rust),var(--rise-3))"></i>80 mm rise</div><span class="key"><i style="background:var(--amber)"></i>New homes connect here</span><span class="key"><i style="background:var(--rise-1);border:1.5px solid var(--canvas-ink)"></i>Rises ${FACTS.rise_focus_mm} mm or more</span>`,
-      stress: `<b>How full each pipe runs</b>${["Under 25%", "25–50%", "50–75%", "75–100%", "Over 100% (surcharged)"].map((label, i) => `<span class="key"><i class="line" style="background:${["var(--canvas-faint)", "color-mix(in srgb, var(--rise-0), var(--rise-1))", "var(--rise-1)", "var(--rise-2)", "var(--rise-3)"][i]}"></i>${label}</span>`).join("")}`,
-      alarm: `<span class="key"><i style="background:var(--rust)"></i>Over the 150 mm alarm already</span><span class="key"><i style="background:var(--canvas-sur)"></i>Pipe running full</span>`,
-      beats: `<span class="key"><i style="background:var(--canvas-ink)"></i>Recommended level sensors (5)</span><span class="key"><i style="background:var(--canvas-trunk);border-radius:2px"></i>Float-switch sites (15)</span>`,
-      size: `<span class="key"><i class="line" style="background:var(--size-0)"></i>150 mm street pipe</span><span class="key"><i class="line" style="background:var(--size-1)"></i>225 mm trunk</span><span class="key"><i class="line" style="background:var(--teal)"></i>300 mm trunk</span><span class="key"><i class="line" style="background:var(--size-3)"></i>375–450 mm trunk</span>`,
-      water: `<span class="key"><i class="line" style="background:var(--water)"></i>Normal water depth at each manhole (bar height)</span><span class="key"><i class="line" style="background:var(--canvas-sur)"></i>Pipe running full (surcharged)</span>`,
+    const dot = (colour, label, style = "") => `<span class="key"><i style="background:var(--${colour});${style}"></i>${label}</span>`;
+    const entries = {
+      problem: dot("canvas-sur", "Surcharged manhole"),
+      triage: dot("rust", "Monitor") + dot("amber", "Watch") + dot("triage-leave", "Leave") + `<span>pipe limit 0.7 of bore, assumed</span>`,
+      sensors: dot("canvas-ink", "Level sensors 1-5"),
+      type: dot("canvas-ink", "Circle = level sensor") + dot("canvas-trunk", "Square = float switch", "border-radius:0"),
     };
-    return key ? `<div class="legend">${L1[key] || ""}</div>` : "";
+    return entries[key] ? `<div class="legend">${entries[key]}</div>` : "";
   }
 
-  // charts ------------------------------------------------------------
-  const pctTxt = (v) => Math.round(v * 100) + "%";
+  // Charts read only Sim 4 tables. Missing optional series are simply omitted.
+  const pct = (v) => Math.round(Number(v) <= 1 ? Number(v) * 100 : Number(v));
+  const pctTxt = (v) => pct(v) + "%";
+  const missingChart = () => `<p class="note">Chart data is not available.</p>`;
   function chartFrontier() {
-    const curves = SIM4.curves || { average: S.curves.detect_avg, worst: S.curves.greedy };
-    const avgLine = curves.average, worstLine = curves.worst;
-    const w = 380, h = 240, l = 60, r = 12, t = 16, b = 42, K = worstLine.length;
-    const X = (k) => l + (k - 1) / (K - 1) * (w - l - r), Y = (v) => t + (1 - v) * (h - t - b);
-    const line = (arr) => arr.map((v, i) => (i ? "L" : "M") + X(i + 1).toFixed(1) + " " + Y(v).toFixed(1)).join(" ");
-    const len = 900, k1 = FACTS.plan_k1, vWorst = worstLine[k1 - 1], vAvg = avgLine[k1 - 1];
+    const curves = SIM4.curves || {}, average = curves.average || [], worst = curves.worst || [];
+    if (!average.length && !worst.length) return missingChart();
+    const w = 440, h = 212, l = 48, r = 16, t = 38, b = 40;
+    const X = (k) => l + (k - 1) / 7 * (w - l - r), Y = (v) => t + (1 - pct(v) / 100) * (h - t - b);
     let g = "";
-    for (const v of [0, 0.25, 0.5, 0.75, 1]) g += `<line class="grid" x1="${l}" x2="${w - r}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${l - 6}" y="${Y(v) + 4}" text-anchor="end">${v * 100}%</text>`;
-    for (let k = 1; k <= K; k++) g += `<text x="${X(k)}" y="${h - b + 18}" text-anchor="middle">${k}</text>`;
-    g += `<text x="${(l + w - r) / 2}" y="${h - 8}" text-anchor="middle">Number of level sensors (1 to ${K})</text>`;
-    g += `<text transform="translate(12 ${(t + h - b) / 2}) rotate(-90)" text-anchor="middle">Growth seen (10 mm rule)</text>`;
-    g += `<path class="draw" style="--len:${len}" d="${line(avgLine)}" fill="none" stroke="var(--teal)" stroke-width="2.4"/>`;
-    g += `<path class="draw" style="--len:${len}" d="${line(worstLine)}" fill="none" stroke="var(--canvas-ink)" stroke-width="3"/>`;
-    g += `<g class="pop"><line x1="${X(k1)}" x2="${X(k1)}" y1="${Y(0)}" y2="${Y(vAvg)}" stroke="var(--canvas-ink)" stroke-dasharray="3 3"/>`;
-    worstLine.forEach((v, i) => { g += `<circle cx="${X(i + 1)}" cy="${Y(v)}" r="${i + 1 === k1 ? 5 : 2.6}" fill="var(--canvas-ink)" stroke="var(--canvas-white)" stroke-width="1.5"/>`; });
-    avgLine.forEach((v, i) => { g += `<circle cx="${X(i + 1)}" cy="${Y(v)}" r="${i + 1 === 1 || i + 1 === k1 ? 4.2 : 2.2}" fill="var(--teal)" stroke="var(--canvas-white)" stroke-width="1.5"/>`; });
-    g += `<text class="val" x="${X(k1) + 8}" y="${Y(vWorst) + 15}">${pctTxt(vWorst)} worst</text>`;
-    g += `<text x="${X(K) - 2}" y="${Y(avgLine[K - 1]) - 8}" text-anchor="end" style="fill:var(--teal);font-weight:600">7-case average (${pctTxt(avgLine[0])} at 1 · ${pctTxt(vAvg)} at 5)</text>`;
-    g += `<text x="${X(K) - 2}" y="${Y(worstLine[K - 1]) + 16}" text-anchor="end" style="fill:var(--canvas-ink);font-weight:600">Worst wet case (${pctTxt(vWorst)} at 5)</text></g>`;
-    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Simulation 4 ladder: average and worst-case wet growth seen from 1 to ${K} level sensors">${g}</svg>`;
-  }
-  function chartAxis(l, r, y, title, w) {
-    return `<line class="axis" x1="${l}" x2="${r}" y1="${y}" y2="${y}"/>` + [0, 0.5, 1].map((v) => {
-      const x = l + (r - l) * v;
-      return `<line class="axis" x1="${x}" x2="${x}" y1="${y}" y2="${y + 4}"/><text x="${x}" y="${y + 18}" text-anchor="middle">${pctTxt(v)}</text>`;
-    }).join("") + `<text x="${w / 2}" y="${y + 43}" text-anchor="middle">${title}</text>`;
-  }
-  function chartBars(rows, max, axisTitle, headerTitle) {
-    const w = 380, rh = 30, l = 178, t = 26, y0 = t + rows.length * rh, h = y0 + 52;
-    let g = `<text x="0" y="12">${headerTitle || "Sensor option"}</text>`;
-    rows.forEach((row, i) => {
-      const y = t + i * rh + 4, bw = (w - l - 44) * row.v / (max || 1);
-      g += `<text class="lab" x="0" y="${y + 15}">${row.label}</text>`;
-      g += `<rect class="bar" style="transition-delay:${0.15 + i * 0.12}s" x="${l}" y="${y + 3}" width="${Math.max(2, bw)}" height="16" rx="3" fill="${row.col}"/>`;
-      g += `<text class="val pop" x="${l + Math.max(2, bw) + 6}" y="${y + 15}">${row.valTxt || pctTxt(row.v)}</text>`;
+    for (const v of [0, .25, .5, .75, 1]) g += `<line class="grid" x1="${l}" x2="${w - r}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${l - 6}" y="${Y(v) + 4}" text-anchor="end">${pctTxt(v)}</text>`;
+    for (let k = 1; k <= 8; k++) g += `<text x="${X(k)}" y="${h - b + 17}" text-anchor="middle">${k}</text>`;
+    for (const k of [1, 5]) g += `<line x1="${X(k)}" x2="${X(k)}" y1="${t}" y2="${h - b}" stroke="var(--ink-muted)" stroke-dasharray="3 4"/><text class="val" x="${X(k) + 4}" y="${t - 8}">k = ${k}</text>`;
+    const series = [[worst, "canvas-ink", "Worst, 10 mm", false], [average, "teal", "Average, 10 mm", false], [curves.average_25 || [], "rust", "Average, 25 mm", true]];
+    series.forEach(([values, colour, label, dashed], j) => {
+      const data = values.slice(0, 8);
+      if (!data.length) return;
+      const d = data.map((v, i) => `${i ? "L" : "M"}${X(i + 1)} ${Y(v)}`).join(" ");
+      g += `<path d="${d}" fill="none" stroke="var(--${colour})" stroke-width="2.5"${dashed ? ' stroke-dasharray="6 4"' : ""}/>`;
+      [1, 5].forEach((k) => { if (data[k - 1] != null) g += `<circle cx="${X(k)}" cy="${Y(data[k - 1])}" r="4" fill="var(--${colour})" stroke="var(--paper)" stroke-width="1.5"/>`; });
+      // Three compact keys above the axis leave the plotted lines unobstructed.
+      const x = j * 146;
+      g += `<line x1="${x}" x2="${x + 14}" y1="9" y2="9" stroke="var(--${colour})" stroke-width="2.5"${dashed ? ' stroke-dasharray="4 2"' : ""}/><text x="${x + 18}" y="13">${label}</text>`;
     });
-    g += chartAxis(l, w - 44, y0, axisTitle || "Average share of growth seen across 7 wet cases", w);
-    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Comparison of level sensors and float switches">${g}</svg>`;
+    g += `<text x="${w / 2}" y="${h - 2}" text-anchor="middle">Number of level sensors · assumed rise rules</text>`;
+    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Growth seen by one to eight level sensors: worst and average at the assumed 10 mm rise rule, and average at 25 mm">${g}</svg>`;
   }
   function chartBeats() {
-    if (SIM4.compare_float) {
-      return chartBars(SIM4.compare_float.map((r) => ({
-        label: r.label,
-        v: r.avg,
-        valTxt: `${pctTxt(r.avg)} (${pctTxt(r.worst)} worst)`,
-        col: r.col,
-      })), 1.15, "Average growth seen across 7 wet cases (and worst case)", "Budget option (assumed $25k level vs $1k float)");
-    }
-    if (S.compare_float) {
-      return chartBars(S.compare_float.map((r) => ({ label: r.label, v: r.unseen_wx, col: r.col })), 1,
-        "Share of detectable growth seen on unseen weather", "Option (10 mm level rule vs 25 mm float margin)");
-    }
-    const k = FACTS.plan_k1 - 1, c = S.curves;
-    return chartBars([
-      { label: "Our plan", v: c.greedy[k], col: "var(--canvas-ink)" },
-      { label: "Random (best of 20 sets)", v: c.random[k], col: "var(--chart-other)" },
-    ], 1);
+    const rows = SIM4.budget_compare || [];
+    if (!rows.length) return missingChart();
+    const w = 440, h = 222, l = 40, r = 10, t = 36, b = 58, plot = h - t - b;
+    const Y = (v) => t + plot * (1 - pct(v) / 100);
+    const colours = ["canvas-ink", "rust", "teal"], options = ["level", "floats", "mix"], names = ["Level list", "Floats only", "Free mix"];
+    let g = `<text x="0" y="12">Growth seen (%) · prices assumed</text>`;
+    for (const v of [0, .5, 1]) g += `<line class="grid" x1="${l}" x2="${w - r}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${l - 5}" y="${Y(v) + 4}" text-anchor="end">${pctTxt(v)}</text>`;
+    const group = (w - l - r) / rows.length;
+    rows.forEach((row, i) => {
+      options.forEach((key, j) => {
+        const value = row[key]; if (!value) return;
+        const x = l + group * i + 7 + j * (group - 14) / 3, bw = 12;
+        ["worst", "avg"].forEach((metric, m) => {
+          if (!Number.isFinite(Number(value[metric]))) return;
+          const v = value[metric], bx = x + m * (bw + 1), y = Y(v);
+          g += `<rect x="${bx}" y="${y}" width="${bw}" height="${Math.max(1, t + plot - y)}" fill="var(--${colours[j]})" opacity="${m ? .45 : 1}"/><text x="${bx + bw / 2}" y="${y - 5}" text-anchor="middle" class="bar-value">${pct(v)}</text>`;
+        });
+      });
+      g += `<text class="val" x="${l + group * (i + .5)}" y="${h - b + 20}" text-anchor="middle">${esc(row.budget)}</text>`;
+    });
+    names.forEach((label, j) => { const x = j * 145; g += `<rect x="${x}" y="${h - 22}" width="9" height="9" fill="var(--${colours[j]})"/><text x="${x + 14}" y="${h - 14}">${label}</text>`; });
+    g += `<text x="${w}" y="26" text-anchor="end">Solid: worst · pale: average</text>`;
+    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Worst and average growth seen by level list, floats only and free mix at assumed budgets of $25k, $75k and $125k">${g}</svg>`;
   }
   function chartHoldout() {
-    if (SIM4.holdout_k5) {
-      return chartBars(SIM4.holdout_k5.map((r) => ({
-        label: r.label,
-        v: r.v,
-        valTxt: `${pctTxt(r.v)} · ${r.note}`,
-        col: r.col,
-      })), 1.25, "Share of detectable growth runs seen (5 level sensors)", "Simulation 4 check (5 sensors, $125k assumed)");
-    }
-    const k = FACTS.plan_k1, w = 380, rh = 40, l = 118, t = 26;
-    let g = `<text x="0" y="12">Wet weather case left out</text>`;
-    S.held_out.forEach((row, i) => {
-      const y = t + i * rh + 2, a = row["seen_k" + k], b = row["unseen_k" + k], sc = (w - l - 44);
-      const name = row.case;
-      g += `<text class="lab" x="0" y="${y + 17}">${name}</text>`;
-      g += `<rect class="bar" style="transition-delay:${0.1 + i * 0.1}s" x="${l}" y="${y + 4}" width="${sc * a}" height="12" rx="2" fill="var(--canvas-ink)"/>`;
-      g += `<text class="val pop" x="${l + sc * a + 5}" y="${y + 14}">${pctTxt(a)}</text>`;
-      g += `<rect class="bar" style="transition-delay:${0.2 + i * 0.1}s" x="${l}" y="${y + 19}" width="${Math.max(2, sc * b)}" height="12" rx="2" fill="${b < a - 0.05 ? "var(--rust)" : "var(--chart-other)"}"/>`;
-      g += `<text class="val pop" x="${l + Math.max(2, sc * b) + 5}" y="${y + 29}" style="fill:${b < a - 0.05 ? "var(--rust)" : "var(--ink-muted)"}">${pctTxt(b)}</text>`;
+    const rows = SIM4.holdout_k5 || [];
+    if (!rows.length) return missingChart();
+    const w = 440, rh = 26, t = 22, l = 248, right = 408, y0 = t + rows.length * rh, h = y0 + 40;
+    const labels = {
+      "In-sample average (7 wet cases)": "In-sample average",
+      "In-sample worst wet case": "In-sample worst",
+      "Unseen weather (held-out case)": "Unseen weather",
+      "Unseen region (held-out region)": "Unseen region",
+      "Random responsive manholes (5,000 draws)": "Random responsive manholes",
+      "Random any manholes (5,000 draws)": "Random manholes",
+    };
+    let g = `<text x="0" y="12">Growth seen with five level sensors</text>`;
+    rows.forEach((row, i) => {
+      const y = t + i * rh, v = row.v;
+      if (!Number.isFinite(Number(v))) return;
+      const bw = (right - l) * pct(v) / 100;
+      g += `<text class="lab" x="0" y="${y + 16}">${esc(labels[row.label] || row.label)}</text><rect x="${l}" y="${y + 3}" width="${bw}" height="18" rx="2" fill="${esc(row.col || "var(--teal)")}"/><text class="val" x="${l + bw + 5}" y="${y + 17}">${pctTxt(v)}</text>`;
     });
-    const y0 = t + S.held_out.length * rh, h = y0 + 52;
-    g += chartAxis(l, w - 44, y0, "Share of that case’s detectable growth seen (five sensors)", w);
-    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Share of detectable growth seen for each weather case left out">${g}</svg>`;
-  }
-  function gaugeHtml() {
-    return `<div class="gauge"><svg viewBox="0 0 120 170" aria-hidden="true">
-      <rect x="30" y="4" width="60" height="150" rx="3" fill="var(--canvas-paper)" stroke="var(--chart-greedy)" stroke-width="2"/>
-      <rect x="4" y="132" width="112" height="24" rx="12" fill="var(--canvas-white)" stroke="var(--chart-greedy)" stroke-width="2"/>
-      <rect id="gW" x="31" y="156" width="58" height="0" fill="var(--water)" opacity=".85"/>
-      <g id="gAx"></g>
-      <line id="gN" x1="22" x2="98" y1="0" y2="0" stroke="var(--ink-muted)" stroke-width="1.6"/>
-      <line id="gR" x1="22" x2="98" y1="0" y2="0" stroke="var(--canvas-ink)" stroke-width="1.6" stroke-dasharray="4 3"/>
-      <line id="gA" x1="22" x2="98" y1="0" y2="0" stroke="var(--rust)" stroke-width="1.6" stroke-dasharray="4 3"/>
-      <text id="gNt" x="100" y="0" font-size="9" fill="var(--ink-muted)" font-weight="700"></text>
-      <text id="gRt" x="100" y="0" font-size="9" fill="var(--canvas-ink)" font-weight="700">+${FACTS.rise_focus_mm}</text>
-      <text id="gAt" x="100" y="0" font-size="9" fill="var(--rust)" font-weight="700">${FACTS.alarm_mm}</text>
-      <rect x="36" y="2" width="48" height="5" rx="2" fill="var(--ink-muted)"/></svg>
-      <div><div class="read" id="gRead"></div><div class="gkey" id="gKey"></div></div></div>`;
+    for (const v of [0, .5, 1]) { const x = l + (right - l) * v; g += `<text x="${x}" y="${y0 + 14}" text-anchor="middle">${pctTxt(v)}</text>`; }
+    g += `<text x="${w / 2}" y="${h - 2}" text-anchor="middle">Share of detectable growth runs seen (%)</text>`;
+    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Five-sensor checks on unseen weather and unseen regions, compared with random picks">${g}</svg>`;
   }
 
   // One shared source/info card, outside the scrolling slide.
@@ -932,7 +846,7 @@
   document.addEventListener("scroll", placeSource, true);
   function wireSources(sc) {
     if (!LIB) return;
-    const selectors = { chart: "svg.chart", params: ".params", steps: ".steps", vs: ".vs", stats: ".stats", seg: ".seg", gauge: ".gauge" };
+    const selectors = { chart: "svg.chart", params: ".params", steps: ".steps", vs: ".vs", stats: ".stats", seg: ".seg" };
     Object.entries(sc.info || {}).forEach(([type, key]) => {
       const el = selectors[type] && card.querySelector(selectors[type]); if (!el) return;
       const host = document.createElement("div"), b = document.createElement("button");
@@ -971,16 +885,15 @@
       card.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => enter(i + 1)));
       return;
     }
-    const act = sc.act && !sc.noAct ? `<span class="act">${sc.act}</span><span>·</span>` : "";
-    let h = `<div class="kicker">${act}<span>${tok(sc.kicker || "")}</span></div><h1>${tok(sc.title)}</h1>`;
+    const act = sc.act && !sc.noAct ? `<span class="act">${tok(sc.act)}</span>` : "";
+    let h = `<div class="kicker">${act}</div><h1>${tok(sc.title)}</h1>`;
     if (sc.stats) h += `<div class="stats">${sc.stats.map((s) => `<div class="stat ${s[2] || ""}"><b>${tok(s[0])}</b><span>${tok(s[1])}</span></div>`).join("")}</div>`;
     if (sc.html) h += `<div>${tok(sc.html)}</div>`;
-    if (sc.chart === "frontier") h += chartFrontier();
-    if (sc.chart === "beats") h += chartBeats();
+    if (sc.chart === "ladder") h += chartFrontier();
+    if (sc.chart === "type") h += chartBeats();
     if (sc.chart === "holdout") h += chartHoldout();
-    if (sc.gauge) h += gaugeHtml();
-    if (sc.seg) h += `<div class="seg" role="group" aria-label="Weather case">${sc.seg.map((c) => `<button type="button" data-case="${c}">${CASE_SHORT[c]}</button>`).join("")}</div>`;
-    if (sc.readout) h += `<div class="readout" id="readout"></div>`;
+    if (sc.fx === "problem") h += `<div class="seg" role="group" aria-label="Weather case">${Object.entries(weatherNames).map(([key, name]) => `<button type="button" data-weather="${key}" aria-pressed="${key === "design"}">${name}</button>`).join("")}</div>`;
+    if (sc.readout || sc.fx === "problem") h += `<div class="readout" id="readout" role="status"></div>`;
     if (sc.after) h += `<div>${tok(sc.after)}</div>`;
     if (sc.legend) h += legendHtml(sc.legend);
     card.innerHTML = h;
@@ -996,49 +909,14 @@
   function clearTimers() { while (timers.length) { const t = timers.pop(); clearTimeout(t); clearInterval(t); } }
 
   function setStyle(s) { if (s === fx.style) return; fx.prevStyle = fx.style; fx.style = s; fx.styleMix = 0; }
-  function respond(site, c, opts) { fx.resp = Object.assign({ site, c, t0: performance.now() }, opts || {}); }
-  function rolesOf() {
-    const roles = SIM4.roles || S.plan.roles;
-    return roles.map((r, k) => ({ ch: phase1[k], cls: "accent", delay: 250 * k,
-      html: r.region ? `${k + 1} · ${r.id ? r.id + " · " : ""}${r.region}<small>${r.watches}</small>`
-        : `${k + 1} · ${ROLE[r.case][0]}<small>sees ${r.share}% of ${ROLE[r.case][1]} growth on its own</small>` }));
-  }
-  // sites whose growth shows widely, spread over the map, for the what-if loop
-  function exampleSites(c, n) {
-    const resp = S.response[String(c)];
-    const ranked = resp.map((l, i) => [i, l.filter((t) => t[1] >= FACTS.rise_focus_mm).length]).filter((t) => t[1] >= 3).sort((a, b) => b[1] - a[1]);
-    const out = [];
-    for (const [i] of ranked) {
-      if (out.every((j) => Math.hypot(CH[i].x - CH[j].x, CH[i].y - CH[j].y) > 700)) out.push(i);
-      if (out.length >= n) break;
-    }
-    return out;
-  }
-  function seenBy(site, c, set) {
-    const l = S.response[String(c)][site] || [];
-    const hit = l.filter(([i, mm]) => mm >= FACTS.rise_focus_mm && set.includes(i)).sort((a, b) => b[1] - a[1]);
-    return { list: l, hit };
-  }
-  function describe(site, c) {
-    const { list, hit } = seenBy(site, c, phase1);
-    const n25 = list.filter((t) => t[1] >= FACTS.rise_focus_mm).length;
-    const top = list[0];
-    let s = `<b>${S.focus_size} new homes at manhole ${CH[site].id}</b> (${CASE_SHORT[c].toLowerCase()}, ${caseRate(c)}): `;
-    if (!n25) return s + `no manhole rises ${FACTS.rise_focus_mm} mm${top ? `; the largest rise is ${top[1]} mm` : ""}. Growth this small here is not detectable by any sensor, so it does not count against the plan.`;
-    s += `${n25} manhole${n25 > 1 ? "s" : ""} rise ${FACTS.rise_focus_mm} mm or more. `;
-    if (hit.length) s += `<b class="hit">Seen by sensor ${phase1.indexOf(hit[0][0]) + 1}</b> (+${hit[0][1]} mm).`;
-    else s += `<b class="miss">Not seen by the first five</b>${(() => { const h2 = seenBy(site, c, phase2).hit; return h2.length ? `; sensor ${phase2.indexOf(h2[0][0]) + 6} in phase 2 sees it (+${h2[0][1]} mm).` : "."; })()}`;
-    return s;
-  }
-
   const V = {}; // named views, resolved at scene entry so they follow the window size
   V.all = () => fit(ALL, { pad: 0.06 });
   // the welcome page's own view of Greater Adelaide (index.html VIEWS.adelaide), centred on the screen
   V.region = () => { const q = local(138.578, -34.922), zoom = 512 * Math.pow(2, 12.15) / GEO.Sm;
     return { x: q[0], y: q[1], z: zMid, zoom, pitch: 0, bearing: 0, ve: 0, D: 1.5 * H / zoom, sx: W / 2, sy: H / 2 }; };
-  V.plan = () => fit(boxOf(phase1.concat(phase2), 350), { pad: 0.1 });
-  V.p1 = () => fit(boxOf(phase1, 420), { pad: 0.12 });
-  V.beats = () => fit(boxOf(phase1.concat(trunk), 380), { pad: 0.1 });
+  V.plan = () => fit(boxOf(phase1.filter((i) => i != null), 350), { pad: 0.1 });
+  V.p1 = () => fit(boxOf(phase1.filter((i) => i != null), 420), { pad: 0.12 });
+  V.beats = () => fit(boxOf(phase1.filter((i) => i != null).concat(trunk), 380), { pad: 0.1 });
   V.tilt = () => fit(ALL, { pitch: 54, bearing: -AX + 14, ve: 9, z: zMid, pad: 0.04 });
   V.tilt2 = () => fit(ALL, { pitch: 50, bearing: -AX - 10, ve: 9, z: zMid, pad: 0.04 });
   V.side = () => {
@@ -1052,205 +930,50 @@
   V.close = (i, r, o) => fit(around(i, r), Object.assign({ pitch: 58, bearing: -32, ve: 9, z: CH[i].cover - 2, pad: 0.04, persp: 2.2 }, o || {}));
 
   let cur = -1, sceneT0 = 0;
+  function sensorLabels() {
+    if (!(LT.sensors > 0)) return;
+    fx.sensorT0 = performance.now();
+    setLabels(phase1.flatMap((ch, k) => ch == null ? [] : [{ ch, sensor: true, html: "Sensor " + (k + 1), cls: "accent quiet" }]));
+  }
   const SCN = {
     welcome() { fx.reveal = 0; },
-    title() {
-      // the network draws itself from the outlet uphill while the camera lands
-      fx.reveal = 0; fx.revealT0 = performance.now() + (cur > 0 && SCENES[cur - 1].welcome ? 1500 : 0);
-      setLabels([{ x: N.x[S.outlet], y: N.y[S.outlet], html: "Where Walkerville's network ends", cls: "quiet", delay: 2600 }]);
-    },
-    brief() {
-      // every manhole is a candidate site: pop them all, label the one nearest the middle
-      fx.chamberPop = performance.now();
-      let cx = 0, cy = 0; CH.forEach((c) => { cx += N.x[c.n]; cy += N.y[c.n]; }); cx /= CH.length; cy /= CH.length;
-      const d2 = (c) => (N.x[c.n] - cx) ** 2 + (N.y[c.n] - cy) ** 2;
-      const mid = CH.reduce((b, c) => (d2(c) < d2(b) ? c : b), CH[0]);
-      setLabels([{ x: N.x[mid.n], y: N.y[mid.n], html: fmt(FACTS.sites) + " manholes, each a possible sensor site", cls: "quiet", delay: 900 }]);
-    },
-    answer() { fx.sensorT0 = performance.now(); setLabels(rolesOf().map((l) => Object.assign(l, { html: "Sensor " + (phase1.indexOf(l.ch) + 1), cls: "accent quiet" }))); },
-    sensor1() {
-      fx.onlyK1 = true; fx.sensorT0 = performance.now();
-      setLabels([
-        { ch: phase1[0], html: `1 · ${FACTS.sensor_1_id}<small>Sees ${FACTS.design_wet_k1_seen}/${FACTS.design_wet_runs} Design wet runs (${FACTS.avg_k1}% across 7 wet cases)</small>`, cls: "accent", dy: -10, delay: 200 },
-      ]);
-    },
-    roles() { fx.sensorT0 = performance.now(); setLabels(rolesOf()); },
+    all() { if (LT.sensors > 0) sensorLabels(); },
     infill() { setStyle("age"); },
-    downhill() { setLabels([{ x: N.x[S.outlet], y: N.y[S.outlet], html: "Lowest point: the network drains here", cls: "accent" }]); },
-    swmm() { fx.chamberPop = performance.now(); },
-    whatif() {
-      const sites = exampleSites(1, 5); let k = 0;
-      const show = () => {
-        const s = sites[k++ % sites.length]; respond(s, 1);
-        setLabels([{ ch: s, html: `+${S.focus_size} homes`, cls: "growth", dy: -10 }]);
-        const ro = $("readout"); if (ro) ro.innerHTML = describe(s, 1);
+    problem() {
+      fx.problem = true;
+      const show = (key) => {
+        weather = key;
+        card.querySelectorAll("[data-weather]").forEach((b) => {
+          const selected = b.dataset.weather === key;
+          b.classList.toggle("on", selected); b.setAttribute("aria-pressed", String(selected));
+        });
+        const readout = $("readout");
+        if (readout) readout.textContent = `${surcharge[key].size} manholes surcharged (water above the pipe top)`;
       };
-      show(); every(show, 3600);
+      show("design");
+      card.querySelectorAll("[data-weather]").forEach((b) => b.addEventListener("click", () => show(b.dataset.weather)));
     },
-    cases() {
-      let k = 0; const order = [0, 1, 2, 3, 4];
-      const show = (c) => {
-        fx.alarmCase = c;
-        card.querySelectorAll(".seg button").forEach((b) => b.classList.toggle("on", +b.dataset.case === c));
-        const ro = $("readout");
-        const b = S.base_alarm[String(c)].length, s = S.base_surcharged[String(c)].length;
-        if (ro) ro.innerHTML = `<span class="casepill">${CASE_SHORT[c]}</span> ${caseRate(c)}. ${CASE_NOTE[c]}<br><b>${b}</b> manholes over the ${FACTS.alarm_mm} mm alarm and <b>${s}</b> pipes running full, before any new home connects.`;
-      };
-      show(0);
-      every(() => show(order[++k % order.length]), 2600);
-      card.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => { clearTimers(); show(+b.dataset.case); }));
+    regions() {
+      setStyle("regions");
+      setLabels(regionList.filter((r) => r.indices.length).map((r) => ({
+        x: r.indices.reduce((v, i) => v + CH[i].x, 0) / r.indices.length,
+        y: r.indices.reduce((v, i) => v + CH[i].y, 0) / r.indices.length,
+        html: r.id, cls: "region-label" + (r.id === "R9" ? " overlap" : ""),
+      })));
     },
-    stress() {
-      const show = (c) => {
-        stressCase = c; updateStressColours();
-        card.querySelectorAll(".seg button").forEach((b) => b.classList.toggle("on", +b.dataset.case === c));
-        const ro = $("readout");
-        if (ro) ro.innerHTML = `<span class="casepill">${CASE_SHORT[c]}</span> ${caseRate(c)}`;
-      };
-      show(1);
-      setLabels([
-        { ch: chIndex.get(4450531), html: `Monitor · R3 & R7<small>R3: ${FACTS.r3_range} · R7: ${FACTS.r7_range} homes to 0.7</small>`, cls: "accent", dy: -10, delay: 200 },
-        { ch: chIndex.get(4448345), html: `Watch · R1 & R4<small>R1: ${FACTS.r1_range} · R4: ${FACTS.r4_range} homes</small>`, cls: "accent", dy: -10, delay: 450 },
-        { ch: chIndex.get(4450922), html: `Watch · R9 Terrace<small>${FACTS.r9_range} homes (anchor: ${FACTS.r9_homes})</small>`, cls: "quiet", dy: -8, delay: 700 },
-        { ch: chIndex.get(4501866), html: `Leave · R2, R5, R6 & R8<small>Room left on Design wet</small>`, cls: "quiet", dy: -8, delay: 950 },
-      ]);
-      card.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => show(+b.dataset.case)));
-    },
-    beats() {
-      setLabels([
-        { ch: trunk[0], html: "Float switch site<small>15 floats ($15k) cap at 35% avg, 0% worst</small>", cls: "quiet", dy: -6 },
-        { ch: phase1[0], html: `Level sensor (${FACTS.sensor_1_id})<small>Tracks rise above normal level</small>`, cls: "accent", dy: -8 },
-      ]);
-    },
-    tryit() {
-      let c = 1, user = false;
-      const pick = (s) => { respond(s, c); setLabels([{ ch: s, html: `+${S.focus_size} homes`, cls: "growth", dy: -10 }]); const ro = $("readout"); if (ro) ro.innerHTML = describe(s, c); };
-      const setCase = (v) => { c = v; card.querySelectorAll(".seg button").forEach((b) => b.classList.toggle("on", +b.dataset.case === c)); if (fx.resp) pick(fx.resp.site); };
-      card.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => { user = true; setCase(+b.dataset.case); }));
-      setCase(1);
-      const demo = exampleSites(1, 6); let k = 0;
-      pick(demo[0]);
-      every(() => { if (!user) pick(demo[++k % demo.length]); }, 3800);
-      fx.onPick = (s) => { user = true; pick(s); };
-    },
-    below() { fx.drift = 1; },
-    fall() {
-      setStyle("path");
-      const a = pipes[path[0]], z = pipes[path[path.length - 1]];
-      setLabels([
-        { x: N.x[a.a], y: N.y[a.a], z: N.inv[a.a], html: `Pipe floor ${N.inv[a.a].toFixed(1)} m`, cls: "quiet", dy: -6 },
-        { x: N.x[z.b], y: N.y[z.b], z: N.inv[z.b], html: `${N.inv[z.b].toFixed(1)} m above sea level`, cls: "accent", dy: -6 },
-        ...pumps.map((s, k) => ({ x: N.x[s.wet], y: N.y[s.wet], z: cover[s.wet], html: s.modelled ? "Pump station" : "Pump station<small>not modelled</small>",
-          cls: "quiet", dy: -10, delay: 600 + k * 250 })),
-      ]);
-    },
-    pipes() {
-      setStyle("size"); fx.widthTarget = 2.2;
-      const c = CH[phase1[3] ?? phase1[2]];
-      const pick = pipes.map((p, i) => [i, Math.hypot(p.xs[Math.floor(p.n / 2)] - c.x, p.ys[Math.floor(p.n / 2)] - c.y)]).sort((a, b) => a[1] - b[1]).slice(0, 45);
-      const seen = new Set(), list = [];
-      for (const [i] of pick) {
-        const p = pipes[i], band = p.d >= 225 ? "trunk" : "street"; if (seen.has(band + "-" + p.d) || list.length >= 3 || p.len < 35) continue; seen.add(band + "-" + p.d);
-        const v = Math.floor(p.n / 2);
-        const role = p.d >= 225 ? "Trunk main (greenfield eligible)" : "Street main (infill only)";
-        list.push({ x: p.xs[v], y: p.ys[v], z: p.zs[v], html: `${p.d} mm ${["clay", "uPVC", "concrete"][p.m] || ""}<small>${role} · laid ${p.y}</small>`, cls: p.d >= 225 ? "accent" : "quiet", delay: list.length * 250 });
-      }
-      setLabels(list);
-    },
-    load() {
-      const c = CH[phase1[1]];
-      const hs = homes.map((h, i) => [i, Math.hypot(h[0] - c.x, h[1] - c.y)]).filter((t) => t[1] < 260).slice(0, 80);
-      fx.laterals = hs.map(([i]) => {
-        const h = homes[i]; let best = null;
-        for (const p of pipes) for (let v = 0; v < p.n; v++) {
-          const d = Math.hypot(p.xs[v] - h[0], p.ys[v] - h[1]); if (!best || d < best.d) best = { d, x: p.xs[v], y: p.ys[v], z: p.zs[v] };
-        }
-        return { h: i, x: best.x, y: best.y, z: best.z, o: Math.random(), isNew: false };
-      });
-      fx.laterals.filter((_, k) => k % 11 === 0).forEach((l) => { l.isNew = true; });
-      const first = fx.laterals.find((l) => l.isNew);
-      setLabels(first ? [{ x: homes[first.h][0], y: homes[first.h][1], z: homes[first.h][2], html: `New home: about ${FACTS.dwelling_peak_l_per_day} L a day<small>at the peak rate</small>`, cls: "growth", dy: -8 }] : []);
-    },
-    rain() {
-      const order = [0, 1, 2]; let k = 0;
-      const show = (c) => {
-        fx.waterCase = c; L.rain = 0; LT.rain = c === 2 ? 1 : c === 1 ? 0.45 : 0;
-        card.querySelectorAll(".seg button").forEach((b) => b.classList.toggle("on", +b.dataset.case === c));
-        const ro = $("readout");
-        if (ro) ro.innerHTML = `<span class="casepill">${CASE_SHORT[c]}</span> ${caseRate(c)}. ${CASE_NOTE[c]} <b>${S.base_surcharged[String(c)].length}</b> pipes running full before any growth.`;
-      };
-      show(0); every(() => show(order[++k % order.length]), 3200);
-      card.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => { clearTimers(); show(+b.dataset.case); }));
-    },
-    sees() {
-      // the wet-weather sensor and the growth site that raises it most while it stays under the alarm
-      const resp = S.response["1"];
-      let sIdx = phase1[S.plan.roles.findIndex((r) => r.case === "Design wet")] ?? phase1[0], best = null;
-      const base = S.base_depth["1"][sIdx], normal = base * 1000;
-      resp.forEach((l, site) => l.forEach(([i, mm]) => { if (i === sIdx && mm >= FACTS.rise_focus_mm && normal + mm < FACTS.alarm_mm && (!best || mm > best.mm)) best = { site, mm }; }));
-      if (!best) resp.forEach((l, site) => l.forEach(([i, mm]) => { if (i === sIdx && (!best || mm > best.mm)) best = { site, mm }; }));
-      flyTo(fit(boxOf([sIdx, best.site], 260), { pitch: 60, bearing: -38, ve: 9, z: CH[sIdx].cover - 2, pad: 0.12, persp: 2.4 }), 1800);
-      respond(best.site, 1);
-      setLabels([{ ch: best.site, html: `+${S.focus_size} homes`, cls: "growth", dy: -10 }, { ch: sIdx, html: `Sensor ${phase1.indexOf(sIdx) + 1}`, cls: "accent", dy: -12 }]);
-      const rise = best.mm, alarm = FACTS.alarm_mm, thr = FACTS.rise_focus_mm;
-      const maxMM = Math.max(220, Math.ceil((normal + rise + 60) / 50) * 50);
-      const yOf = (mm) => 154 - mm * 150 / maxMM;
-      const gN = $("gN"), gR = $("gR"), gA = $("gA"), gW = $("gW");
-      const set = (el, mm) => { el.setAttribute("y1", yOf(mm)); el.setAttribute("y2", yOf(mm)); };
-      set(gN, normal); set(gR, normal + thr); set(gA, alarm);
-      $("gNt").setAttribute("y", yOf(normal) + 3); $("gRt").setAttribute("y", yOf(normal + thr) + 3); $("gAt").setAttribute("y", yOf(alarm) + 3);
-      $("gNt").textContent = Math.round(normal); $("gRt").textContent = Math.round(normal + thr); $("gAt").textContent = alarm;
-      const gAx = $("gAx"), step = maxMM <= 250 ? 50 : 100;
-      gAx.innerHTML = "";
-      for (let t = 0; t <= maxMM; t += step) {
-        const tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        tick.setAttribute("x1", 25); tick.setAttribute("x2", 30);
-        tick.setAttribute("y1", yOf(t)); tick.setAttribute("y2", yOf(t));
-        tick.setAttribute("stroke", "var(--ink-muted)"); tick.setAttribute("stroke-width", 1);
-        gAx.appendChild(tick);
-        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        label.setAttribute("text-anchor", "end"); label.setAttribute("x", 23); label.setAttribute("y", yOf(t) + 3);
-        label.setAttribute("font-size", 8); label.setAttribute("fill", "var(--ink-muted)"); label.textContent = t;
-        gAx.appendChild(label);
-      }
-      const unit = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      unit.setAttribute("text-anchor", "end"); unit.setAttribute("x", 23); unit.setAttribute("y", 167);
-      unit.setAttribute("font-size", 8); unit.setAttribute("fill", "var(--ink-muted)"); unit.textContent = "mm";
-      gAx.appendChild(unit);
-      $("gKey").innerHTML = `<span class="k"><i class="n"></i>Normal level, ${Math.round(normal)} mm</span>
-        <span class="k"><i class="r"></i>Rise rule: normal + ${thr} mm = ${Math.round(normal + thr)} mm</span>
-        <span class="k"><i class="a"></i>Float-switch alarm, ${alarm} mm</span>`;
-      const read = $("gRead"), name = "sensor " + (phase1.indexOf(sIdx) + 1);
-      const verdict = normal >= alarm
-        ? `Already over the ${alarm} mm alarm before any growth, so a fixed alarm can never report it. Against its own normal level the rise is clear.`
-        : normal + rise < alarm ? `Stays under the ${alarm} mm alarm, so a fixed alarm misses it. The rise rule sees it.`
-          : `Crosses the ${alarm} mm alarm as well.`;
-      const anim = (from, to, ms) => {
-        const t0 = performance.now();
-        const st = (now) => {
-          const t = Math.min(1, (now - t0) / ms), v = from + (to - from) * ease(t), up = v - normal;
-          gW.setAttribute("y", yOf(v)); gW.setAttribute("height", Math.max(0, 154 - yOf(v)));
-          read.innerHTML = `<b class="${up >= thr ? "hit" : ""}">+${Math.round(up)} mm</b>rise at ${name} (normal ${Math.round(normal)} mm, now ${Math.round(v)} mm)` +
-            (t >= 1 ? `<br>${verdict}` : "");
-          if (t < 1) requestAnimationFrame(st);
-        };
-        requestAnimationFrame(st);
-      };
-      const cycle = () => { anim(normal, normal, 10); later(() => { respond(best.site, 1); anim(normal, normal + rise, 1600); }, 900); };
-      cycle(); every(cycle, 6200);
-    },
-    register() { setLabels([]); },
-    close() { fx.sensorT0 = performance.now(); setLabels(rolesOf().map((l) => Object.assign(l, { html: "Sensor " + (phase1.indexOf(l.ch) + 1), cls: "accent quiet" }))); },
+    ladder: sensorLabels, holdout: sensorLabels, plan: sensorLabels, beats: sensorLabels, close: sensorLabels,
   };
 
   function enter(i, instant) {
     i = Math.max(0, Math.min(SCENES.length - 1, i));
     if (i === cur && !instant) return;
     closeSource();
-    clearTimers(); fx.onPick = null; fx.laterals = null; fx.chamberPop = 0; fx.drift = 0; fx.widthTarget = 1; fx.reveal = 1; fx.onlyK1 = false;
+    clearTimers(); fx.onPick = null; fx.laterals = null; fx.chamberPop = 0; fx.drift = 0; fx.widthTarget = 1; fx.reveal = 1; fx.onlyK1 = false; fx.problem = false; tip.classList.remove("on");
     document.body.classList.toggle("is-welcome", !!SCENES[i].welcome);
     fx.resp = null; fx.hover = -1;
     const sc = SCENES[i], prev = cur; cur = i; sceneT0 = performance.now();
+    setLayers(sc.show);
+    if (!(sc.show && sc.show.sensors > 0)) setLabels([]);
     card.classList.remove("in"); card.classList.add("out");
     const swap = () => {
       renderCard(sc, i);
@@ -1258,13 +981,16 @@
       setStyle(sc.style || "plain");
       setLayers(sc.show);
       setLabels([]);
-      const view = typeof sc.view === "function" ? sc.view(V) : (V[sc.view || "all"] || V.all)();
-      flyTo(view, instant ? 0 : sc.ms || 1700);
+      if (W > 0 && H > 0) {
+        const view = typeof sc.view === "function" ? sc.view(V) : (V[sc.view || "all"] || V.all)();
+        flyTo(view, instant ? 0 : Math.min(1400, sc.ms ?? 1400));
+      }
       if (sc.fx && SCN[sc.fx]) SCN[sc.fx]();
+      else if (LT.sensors > 0) sensorLabels();
       updateBar();
       try { history.replaceState(null, "", "#" + sc.id); } catch (e) { /* file:// in some browsers */ }
     };
-    if (prev < 0 || instant || reduced) swap(); else setTimeout(swap, 230);
+    if (prev < 0 || instant || reduced) swap(); else later(swap, 180);
   }
 
   // ------------------------------------------------------------------ bar and navigation
@@ -1274,8 +1000,8 @@
   $("acts").innerHTML = acts.map((a, k) => `<button class="act-seg" type="button" style="--n:${a.n}" data-k="${k}" aria-label="${a.name}"><span>${a.name}</span><i></i></button>`).join("");
   $("acts").querySelectorAll(".act-seg").forEach((b) => b.addEventListener("click", () => enter(acts[+b.dataset.k].first)));
   function updateBar() {
-    $("count").textContent = String(Math.max(1, cur + 1 - lead)).padStart(2, "0") + " / " + (SCENES.length - lead);
-    const act = acts.find((a) => cur >= a.first && cur < a.first + a.n); $("actname").textContent = act ? act.name : "";
+    $("count").textContent = String(Math.max(0, cur + 1 - lead)) + " / " + (SCENES.length - lead);
+    $("actname").textContent = "";
     $("prev").disabled = cur === 0; $("next").disabled = cur === SCENES.length - 1;
     $("acts").querySelectorAll(".act-seg").forEach((b, k) => {
       const a = acts[k], done = Math.max(0, Math.min(a.n, cur - a.first + 1));
@@ -1300,7 +1026,7 @@
   document.addEventListener("themechange", () => {
     updatePalette();
     updateThemeButton();
-    if (glReady) window.applyBasemapTheme(document.documentElement.dataset.theme || "light");
+    if (glReady) window.applyBasemapTheme(document.documentElement.dataset.theme || "light", gl);
     draw(performance.now());
   });
   updateThemeButton();
@@ -1315,7 +1041,7 @@
   document.addEventListener("keydown", (e) => {
     if (e.target.closest && e.target.closest("input, select, textarea, .source-card")) return;
     const k = e.key;
-    if ((k === " " || k === "Enter") && e.target.closest && e.target.closest("a, [role=button], #theme-toggle")) return;
+    if ((k === " " || k === "Enter") && e.target.closest && e.target.closest("a, button, [role=button]")) return;
     if (["ArrowRight", "ArrowDown", "PageDown", " "].includes(k)) { e.preventDefault(); enter(cur + 1); }
     else if (["ArrowLeft", "ArrowUp", "PageUp"].includes(k)) { e.preventDefault(); enter(cur - 1); }
     else if (k === "Home") enter(0);
@@ -1350,23 +1076,30 @@
   canvas.addEventListener("mousemove", (e) => {
     if (L.chambers < 0.3 && L.sensors < 0.3) { tip.classList.remove("on"); fx.hover = -1; return; }
     const i = nearestChamber(e.clientX, e.clientY, 12);
-    fx.hover = i; canvas.style.cursor = i >= 0 && fx.onPick ? "pointer" : "default";
+    fx.hover = i; canvas.style.cursor = i >= 0 ? "pointer" : "default";
     if (i < 0) { tip.classList.remove("on"); return; }
-    const c = CH[i], k1 = phase1.indexOf(i), k2 = phase2.indexOf(i), d = S.base_depth["1"][i];
-    let h = `<b>${k1 >= 0 ? "Sensor " + (k1 + 1) + " · " : k2 >= 0 ? "Phase-2 sensor " + (k2 + 6) + " · " : ""}Manhole ${c.id}</b><br>`;
-    h += `Ground ${c.cover.toFixed(1)} m · pipe floor ${c.inv.toFixed(1)} m (${(c.cover - c.inv).toFixed(1)} m deep)<br>Normal wet-weather depth ${Math.round(d * 1000)} mm`;
-    if (fx.onPick) h += `<br><i>Click to connect ${S.focus_size} homes here</i>`;
+    const h = chamberReadout(i, LT.sensors > 0);
     tip.innerHTML = h; tip.style.left = e.clientX + "px"; tip.style.top = e.clientY + "px"; tip.classList.add("on");
   });
   canvas.addEventListener("mouseleave", () => { tip.classList.remove("on"); fx.hover = -1; });
+  function chamberReadout(i, showSensor = true) {
+    const regions = memberships[i].map((r) => `${r.id}: ${r.triage[0].toUpperCase() + r.triage.slice(1)}`).join(" · ");
+    const k = phase1.indexOf(i);
+    return `<b>MH${CH[i].id}</b><br>${regions || "Outside the study regions"}${k >= 0 && showSensor ? `<br>Sensor ${k + 1}` : ""}`;
+  }
   canvas.addEventListener("click", (e) => {
-    if (!fx.onPick) return;
-    const i = nearestChamber(e.clientX, e.clientY, 22); if (i >= 0) fx.onPick(i);
+    const i = nearestChamber(e.clientX, e.clientY, 22);
+    if (i < 0) return;
+    tip.innerHTML = chamberReadout(i); tip.style.left = Math.min(W - 270, e.clientX) + "px";
+    tip.style.top = Math.min(H - 100, e.clientY) + "px"; tip.classList.add("on");
   });
 
   // ------------------------------------------------------------------ loop
   function resize() {
-    DPR = Math.min(2, window.devicePixelRatio || 1); W = window.innerWidth; H = window.innerHeight;
+    const bounds = canvas.getBoundingClientRect();
+    if (!(bounds.width > 0 && bounds.height > 0)) { mapNeedsResize = true; return; }
+    DPR = Math.min(2, window.devicePixelRatio || 1); W = bounds.width; H = bounds.height;
+    mapNeedsResize = true; glKey = "";
     canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
     if (cur >= 0) { const sc = SCENES[cur]; const v = typeof sc.view === "function" ? sc.view(V) : (V[sc.view || "all"] || V.all)(); flyTo(v, 0); }
   }
@@ -1374,6 +1107,7 @@
   const drift = { t0: -1, base: 0 };
   function loop(now) {
     const dt = Math.min(64, now - last); last = now;
+    if (!(W > 0 && H > 0)) { resize(); requestAnimationFrame(loop); return; }
     stepCamera(now); stepLayers(dt); frameDt = dt;
     cam.D = 1.5 * H / cam.zoom;
     if (fx.reveal < 1 && !SCENES[cur].welcome) fx.reveal = Math.max(0, Math.min(1, (now - fx.revealT0) / 2600));
@@ -1386,7 +1120,7 @@
     draw(now);
     requestAnimationFrame(loop);
   }
-  window.addEventListener("resize", () => { clearTimeout(resize.t); resize.t = setTimeout(resize, 120); });
+  window.addEventListener("resize", () => { cancelAnimationFrame(resize.t); resize.t = requestAnimationFrame(resize); });
   resize();
   const start = Math.max(0, SCENES.findIndex((s) => "#" + s.id === location.hash));
   enter(start, true);
