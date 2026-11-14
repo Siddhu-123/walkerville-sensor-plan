@@ -387,8 +387,9 @@
     if (L.chambers > 0.01) drawChambers(zoomScale);
     if (fx.style === "regions") drawRegionOverlay(zoomScale);
     if (SCENES[cur]?.show?.sensors > 0 && LT.sensors > 0 && L.sensors > 0.01) {
-      if (SCENES[cur]?.fx === "beats") drawSet(trunk, L.sensors, "trunk", now);
-      drawSet(phase1, L.sensors, "phase1", now);
+      const compare = SCENES[cur]?.chart === "type";
+      if (compare) drawSet(trunk, L.trunk, "trunk", now);
+      drawSet(compare ? phase1.slice(0, 3) : phase1, L.sensors, "phase1", now);
     }
     if (fx.hover >= 0) drawHover();
     if (L.rain > 0.01) drawRain(now);
@@ -686,9 +687,9 @@
     const dot = (colour, label, style = "") => `<span class="key"><i style="background:var(--${colour});${style}"></i>${label}</span>`;
     const entries = {
       problem: dot("canvas-sur", "Surcharged manhole"),
-      triage: dot("rust", "Monitor") + dot("amber", "Watch") + dot("triage-leave", "Leave") + `<span>pipe limit 0.7 of bore, assumed</span>`,
-      sensors: dot("canvas-ink", "Level sensors 1-5"),
-      type: dot("canvas-ink", "Circle = level sensor") + dot("canvas-trunk", "Square = float switch", "border-radius:0"),
+      triage: dot("rust", "Monitor") + dot("amber", "Watch") + dot("triage-leave", "Room on a design wet day"),
+      sensors: dot("canvas-ink", "Level sensors 1 to 5"),
+      type: dot("canvas-ink", "Level sensor") + dot("canvas-trunk", "Float switch", "border-radius:0"),
     };
     return entries[key] ? `<div class="legend">${entries[key]}</div>` : "";
   }
@@ -700,73 +701,79 @@
   function chartFrontier() {
     const curves = SIM4.curves || {}, average = curves.average || [], worst = curves.worst || [];
     if (!average.length && !worst.length) return missingChart();
-    const w = 440, h = 212, l = 48, r = 16, t = 38, b = 40;
-    const X = (k) => l + (k - 1) / 7 * (w - l - r), Y = (v) => t + (1 - pct(v) / 100) * (h - t - b);
+    const w = 380, h = 230, l = 38, r = 100, t = 22, b = 38, K = 8;
+    const X = (k) => l + (k - 1) / (K - 1) * (w - l - r);
+    const Y = (v) => t + (1 - pct(v) / 100) * (h - t - b);
     let g = "";
     for (const v of [0, .25, .5, .75, 1]) g += `<line class="grid" x1="${l}" x2="${w - r}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${l - 6}" y="${Y(v) + 4}" text-anchor="end">${pctTxt(v)}</text>`;
-    for (let k = 1; k <= 8; k++) g += `<text x="${X(k)}" y="${h - b + 17}" text-anchor="middle">${k}</text>`;
-    for (const k of [1, 5]) g += `<line x1="${X(k)}" x2="${X(k)}" y1="${t}" y2="${h - b}" stroke="var(--ink-muted)" stroke-dasharray="3 4"/><text class="val" x="${X(k) + 4}" y="${t - 8}">k = ${k}</text>`;
-    const series = [[worst, "canvas-ink", "Worst, 10 mm", false], [average, "teal", "Average, 10 mm", false], [curves.average_25 || [], "rust", "Average, 25 mm", true]];
-    series.forEach(([values, colour, label, dashed], j) => {
-      const data = values.slice(0, 8);
+    for (let k = 1; k <= K; k++) g += `<text x="${X(k)}" y="${h - b + 18}" text-anchor="middle">${k}</text>`;
+    const series = [
+      [worst, "canvas-ink", "Worst, 10 mm", 14, false],
+      [average, "chart-greedy", "Average, 10 mm", -12, false],
+      [curves.average_25 || [], "chart-greedy", "Average, 25 mm", 0, true],
+    ];
+    series.forEach(([values, colour, label, dy, dashed]) => {
+      const data = values.slice(0, K);
       if (!data.length) return;
-      const d = data.map((v, i) => `${i ? "L" : "M"}${X(i + 1)} ${Y(v)}`).join(" ");
-      g += `<path d="${d}" fill="none" stroke="var(--${colour})" stroke-width="2.5"${dashed ? ' stroke-dasharray="6 4"' : ""}/>`;
-      [1, 5].forEach((k) => { if (data[k - 1] != null) g += `<circle cx="${X(k)}" cy="${Y(data[k - 1])}" r="4" fill="var(--${colour})" stroke="var(--paper)" stroke-width="1.5"/>`; });
-      // Three compact keys above the axis leave the plotted lines unobstructed.
-      const x = j * 146;
-      g += `<line x1="${x}" x2="${x + 14}" y1="9" y2="9" stroke="var(--${colour})" stroke-width="2.5"${dashed ? ' stroke-dasharray="4 2"' : ""}/><text x="${x + 18}" y="13">${label}</text>`;
+      const d = data.map((v, i) => `${i ? "L" : "M"}${X(i + 1).toFixed(1)} ${Y(v).toFixed(1)}`).join(" ");
+      // A reveal mask preserves the dashed 25 mm line during the draw animation.
+      if (dashed) g += `<defs><mask id="ladder-25-reveal" maskUnits="userSpaceOnUse" x="0" y="0" width="${w}" height="${h}"><path class="draw" style="--len:900" d="${d}" fill="none" stroke="white" stroke-width="6"/></mask></defs>`;
+      g += `<path ${dashed ? 'mask="url(#ladder-25-reveal)" stroke-dasharray="6 4"' : 'class="draw" style="--len:900"'} d="${d}" fill="none" stroke="var(--${colour})" stroke-width="${colour === "canvas-ink" ? 3 : 2}"/>`;
+      const v = data[data.length - 1], x = X(data.length) + 7, y = Y(v) + dy;
+      g += `<text class="pop" x="${x}" y="${y}" style="fill:var(--${colour})">${label}<tspan x="${x}" dy="12">${pctTxt(v)}</tspan></text>`;
     });
-    g += `<text x="${w / 2}" y="${h - 2}" text-anchor="middle">Number of level sensors · assumed rise rules</text>`;
-    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Growth seen by one to eight level sensors: worst and average at the assumed 10 mm rise rule, and average at 25 mm">${g}</svg>`;
+    if (worst[4] != null) g += `<g class="pop"><line x1="${X(5)}" x2="${X(5)}" y1="${Y(0)}" y2="${Y(worst[4])}" stroke="var(--canvas-ink)" stroke-dasharray="3 3"/><circle cx="${X(5)}" cy="${Y(worst[4])}" r="5" fill="var(--canvas-ink)" stroke="var(--canvas-white)" stroke-width="1.5"/><text class="val" x="${X(5) + 8}" y="${Y(worst[4]) + 16}">${pctTxt(worst[4])}</text></g>`;
+    g += `<text x="${(l + w - r) / 2}" y="${h - 6}" text-anchor="middle">Number of level sensors</text>`;
+    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Growth seen by one to eight level sensors: worst case and average at the 10 mm rise rule, and average at 25 mm">${g}</svg>`;
+  }
+  function chartAxis(l, r, y, title, w) {
+    return `<line class="axis" x1="${l}" x2="${r}" y1="${y}" y2="${y}"/>` + [0, .5, 1].map((v) => {
+      const x = l + (r - l) * v;
+      return `<line class="axis" x1="${x}" x2="${x}" y1="${y}" y2="${y + 4}"/><text x="${x}" y="${y + 18}" text-anchor="middle">${pctTxt(v)}</text>`;
+    }).join("") + `<text x="${w / 2}" y="${y + 43}" text-anchor="middle">${title}</text>`;
   }
   function chartBeats() {
-    const rows = SIM4.budget_compare || [];
-    if (!rows.length) return missingChart();
-    const w = 440, h = 222, l = 40, r = 10, t = 36, b = 58, plot = h - t - b;
-    const Y = (v) => t + plot * (1 - pct(v) / 100);
-    const colours = ["canvas-ink", "rust", "teal"], options = ["level", "floats", "mix"], names = ["Level list", "Floats only", "Free mix"];
-    let g = `<text x="0" y="12">Growth seen (%) · prices assumed</text>`;
-    for (const v of [0, .5, 1]) g += `<line class="grid" x1="${l}" x2="${w - r}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${l - 5}" y="${Y(v) + 4}" text-anchor="end">${pctTxt(v)}</text>`;
-    const group = (w - l - r) / rows.length;
-    rows.forEach((row, i) => {
-      options.forEach((key, j) => {
-        const value = row[key]; if (!value) return;
-        const x = l + group * i + 7 + j * (group - 14) / 3, bw = 12;
-        ["worst", "avg"].forEach((metric, m) => {
-          if (!Number.isFinite(Number(value[metric]))) return;
-          const v = value[metric], bx = x + m * (bw + 1), y = Y(v);
-          g += `<rect x="${bx}" y="${y}" width="${bw}" height="${Math.max(1, t + plot - y)}" fill="var(--${colours[j]})" opacity="${m ? .45 : 1}"/><text x="${bx + bw / 2}" y="${y - 5}" text-anchor="middle" class="bar-value">${pct(v)}</text>`;
-        });
-      });
-      g += `<text class="val" x="${l + group * (i + .5)}" y="${h - b + 20}" text-anchor="middle">${esc(row.budget)}</text>`;
+    const comparison = (SIM4.budget_compare || []).find((row) => row.budget === "$75k");
+    if (!comparison) return missingChart();
+    const rows = [["level", "Staged level plan"], ["floats", "Float switches only"], ["mix", "Separately chosen mix"]];
+    const w = 380, rh = 30, l = 154, t = 26, right = w - 44, y0 = t + rows.length * rh, h = y0 + 52;
+    let g = `<text x="0" y="12">$75k budget · worst case</text>`;
+    rows.forEach(([key, label], i) => {
+      const v = comparison[key]?.worst;
+      if (!Number.isFinite(Number(v))) return;
+      const y = t + i * rh + 4, bw = (right - l) * pct(v) / 100;
+      g += `<text class="lab" x="0" y="${y + 15}">${label}</text>`;
+      g += `<rect class="bar" style="transition-delay:${.15 + i * .12}s" x="${l}" y="${y + 3}" width="${bw}" height="16" rx="3" fill="var(--${key === "level" ? "canvas-ink" : "chart-other"})"/>`;
+      g += `<text class="val pop" x="${l + bw + 6}" y="${y + 15}">${pctTxt(v)}</text>`;
     });
-    names.forEach((label, j) => { const x = j * 145; g += `<rect x="${x}" y="${h - 22}" width="9" height="9" fill="var(--${colours[j]})"/><text x="${x + 14}" y="${h - 14}">${label}</text>`; });
-    g += `<text x="${w}" y="26" text-anchor="end">Solid: worst · pale: average</text>`;
-    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Worst and average growth seen by level list, floats only and free mix at assumed budgets of $25k, $75k and $125k">${g}</svg>`;
+    g += chartAxis(l, right, y0, "Share of detectable growth seen (worst case)", w);
+    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Worst-case growth seen at a $75k budget by the staged level plan, float switches only and a separately chosen mix">${g}</svg>`;
   }
   function chartHoldout() {
-    const rows = SIM4.holdout_k5 || [];
-    if (!rows.length) return missingChart();
-    const w = 440, rh = 26, t = 22, l = 248, right = 408, y0 = t + rows.length * rh, h = y0 + 40;
+    const data = SIM4.holdout_k5 || [];
+    if (!data.length) return missingChart();
     const labels = {
-      "In-sample average (7 wet cases)": "In-sample average",
-      "In-sample worst wet case": "In-sample worst",
-      "Unseen weather (held-out case)": "Unseen weather",
-      "Unseen region (held-out region)": "Unseen region",
-      "Random responsive manholes (5,000 draws)": "Random responsive manholes",
-      "Random any manholes (5,000 draws)": "Random manholes",
+      "In-sample worst wet case": "Chosen with all weather · worst case",
+      "In-sample average (7 wet cases)": "Chosen with all weather · average",
+      "Unseen weather (held-out case)": "Weather left out · average",
+      "Unseen region (held-out region)": "Region left out · average",
+      "Random responsive manholes (5,000 draws)": "Random responsive · average",
+      "Random any manholes (5,000 draws)": "Random any · average",
     };
-    let g = `<text x="0" y="12">Growth seen with five level sensors</text>`;
+    // Keep the worst case before the average; the other checks report averages.
+    const rows = Object.keys(labels).flatMap((label) => data.filter((row) => row.label === label));
+    const w = 380, rh = 34, t = 4, l = 0, right = w - 44, y0 = t + rows.length * rh, h = y0 + 52;
+    const reference = data.find((row) => row.label === "In-sample average (7 wet cases)")?.v;
+    let g = "";
     rows.forEach((row, i) => {
-      const y = t + i * rh, v = row.v;
-      if (!Number.isFinite(Number(v))) return;
-      const bw = (right - l) * pct(v) / 100;
-      g += `<text class="lab" x="0" y="${y + 16}">${esc(labels[row.label] || row.label)}</text><rect x="${l}" y="${y + 3}" width="${bw}" height="18" rx="2" fill="${esc(row.col || "var(--teal)")}"/><text class="val" x="${l + bw + 5}" y="${y + 17}">${pctTxt(v)}</text>`;
+      if (!Number.isFinite(Number(row.v))) return;
+      const y = t + i * rh, bw = (right - l) * pct(row.v) / 100;
+      const heldOut = row.label.startsWith("Unseen "), chosen = row.label.startsWith("In-sample ");
+      const colour = heldOut && Number(row.v) < Number(reference) ? "rust" : chosen ? row.label.includes("worst") ? "canvas-ink" : "chart-greedy" : "chart-other";
+      g += `<text class="lab" x="0" y="${y + 12}">${labels[row.label]}</text><rect class="bar" style="transition-delay:${.1 + i * .1}s" x="${l}" y="${y + 17}" width="${bw}" height="11" rx="2" fill="var(--${colour})"/><text class="val pop" x="${l + bw + 6}" y="${y + 27}" style="fill:var(--${colour})">${pctTxt(row.v)}</text>`;
     });
-    for (const v of [0, .5, 1]) { const x = l + (right - l) * v; g += `<text x="${x}" y="${y0 + 14}" text-anchor="middle">${pctTxt(v)}</text>`; }
-    g += `<text x="${w / 2}" y="${h - 2}" text-anchor="middle">Share of detectable growth runs seen (%)</text>`;
-    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Five-sensor checks on unseen weather and unseen regions, compared with random picks">${g}</svg>`;
+    g += chartAxis(l, right, y0, "Share of detectable growth seen (five level sensors)", w);
+    return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Five level sensors: chosen with all weather, weather left out, region left out, random responsive and random any manholes">${g}</svg>`;
   }
 
   // One shared source/info card, outside the scrolling slide.
@@ -885,8 +892,8 @@
       card.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => enter(i + 1)));
       return;
     }
-    const act = sc.act && !sc.noAct ? `<span class="act">${tok(sc.act)}</span>` : "";
-    let h = `<div class="kicker">${act}</div><h1>${tok(sc.title)}</h1>`;
+    const act = sc.act && !sc.noAct ? `<span class="act">${tok(sc.act)}</span><span>·</span>` : "";
+    let h = `<div class="kicker">${act}<span>${tok(sc.kicker || "")}</span></div><h1>${tok(sc.title)}</h1>`;
     if (sc.stats) h += `<div class="stats">${sc.stats.map((s) => `<div class="stat ${s[2] || ""}"><b>${tok(s[0])}</b><span>${tok(s[1])}</span></div>`).join("")}</div>`;
     if (sc.html) h += `<div>${tok(sc.html)}</div>`;
     if (sc.chart === "ladder") h += chartFrontier();
@@ -933,7 +940,15 @@
   function sensorLabels() {
     if (!(LT.sensors > 0)) return;
     fx.sensorT0 = performance.now();
-    setLabels(phase1.flatMap((ch, k) => ch == null ? [] : [{ ch, sensor: true, html: "Sensor " + (k + 1), cls: "accent quiet" }]));
+    const sc = SCENES[cur];
+    if (sc.chart === "type") {
+      setLabels([
+        ...phase1.slice(0, 3).flatMap((ch, k) => ch == null ? [] : [{ ch, sensor: true, html: "Level sensor " + (k + 1), cls: "accent quiet" }]),
+        ...trunk.map((ch) => ({ ch, html: "Float switch", cls: "quiet" })),
+      ]);
+    } else {
+      setLabels(sc.id === "close" && phase1[0] != null ? [{ ch: phase1[0], sensor: true, html: "Sensor 1", cls: "accent quiet" }] : []);
+    }
   }
   const SCN = {
     welcome() { fx.reveal = 0; },
@@ -1000,8 +1015,8 @@
   $("acts").innerHTML = acts.map((a, k) => `<button class="act-seg" type="button" style="--n:${a.n}" data-k="${k}" aria-label="${a.name}"><span>${a.name}</span><i></i></button>`).join("");
   $("acts").querySelectorAll(".act-seg").forEach((b) => b.addEventListener("click", () => enter(acts[+b.dataset.k].first)));
   function updateBar() {
-    $("count").textContent = String(Math.max(0, cur + 1 - lead)) + " / " + (SCENES.length - lead);
-    $("actname").textContent = "";
+    $("count").textContent = String(Math.max(1, cur + 1 - lead)).padStart(2, "0") + " / " + String(SCENES.length - lead).padStart(2, "0");
+    const act = acts.find((a) => cur >= a.first && cur < a.first + a.n); $("actname").textContent = act ? act.name : "";
     $("prev").disabled = cur === 0; $("next").disabled = cur === SCENES.length - 1;
     $("acts").querySelectorAll(".act-seg").forEach((b, k) => {
       const a = acts[k], done = Math.max(0, Math.min(a.n, cur - a.first + 1));

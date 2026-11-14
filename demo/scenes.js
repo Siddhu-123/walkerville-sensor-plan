@@ -1,4 +1,4 @@
-// Scene-by-scene copy and camera cues for the Walkerville Simulation 4 guided client deck.
+// Scene-by-scene copy and camera cues for the Walkerville guided client deck.
 // Numbers come from demo/sim4-facts.js (window.OSP_SIM4.facts) and window.OSP_STATIC below, filled in with {{key}}.
 
 window.OSP_STATIC = {
@@ -9,60 +9,56 @@ window.OSP_SCENES = [
   {
     id: "welcome",
     welcome: true,
+    act: "",
     view: "region",
-    ms: 0,
-    show: { basemap: 0.72, pipes: 0.9, chambers: 0.35 },
     fx: "welcome",
-    html: `
-      <div class="w-top">
-        <span>Optimal Sensor Placement · Wastewater Networks</span>
-        <span>Capstone PG-S2-22 · {{uni_name}}</span>
-      </div>
-      <div class="w-body">
-        <div class="w-eyebrow">Town of Walkerville · {{model_version}}</div>
-        <h1>Where to watch Walkerville's sewers as it grows</h1>
-        <p class="w-sub">Wet weather already surcharges Walkerville's pipes before any new homes connect, while 2041 housing growth newly surcharges no manhole on a design wet day. This {{model_version}} study across {{sites}} manholes and {{swmm_links}} pipes tests where to place {{plan_k0}} or {{plan_k1}} continuous level sensors across {{regions}} regions.</p>
-        <div class="w-actions">
-          <button type="button" class="w-cta" data-go>Begin the walk-through <span aria-hidden="true">→</span></button>
-          <span class="w-hint">Use <kbd>→</kbd> or <kbd>Space</kbd>, <kbd>T</kbd> for dark mode, <kbd>F</kbd> for fullscreen</span>
+    ms: 1400,
+    show: { basemap: 0.72, pipes: 0.9, chambers: 0.35 },
+    html: `<div class="welcome-top">
+        <div class="welcome-kicker">{{uni_name}} · SA Water</div>
+        <h1 class="welcome-heading welcome-topic">Optimal sensor placement for wastewater network monitoring</h1>
+        <p class="welcome-greeting">Wet weather already fills Walkerville's sewers before any new homes connect, while 2041 infill growth adds no new surcharge on a design wet day. We test {{sites}} manholes and {{swmm_links}} pipes across {{regions}} regions to find where {{plan_k0}} to {{plan_k1}} level sensors catch growth early.</p>
+        <div class="welcome-start">
+          <button class="start-btn" type="button" data-go><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5 L10.5 6 L3 10.5 Z" /></svg>Start</button>
+          <span class="welcome-hint">or press →</span>
         </div>
       </div>
-      <div class="w-foot">
-        <div><b>Prepared by the team</b><span>Abraham Paul Jaison, Ashis Jose Kalathil, Rijoy John, Satya Siddhartha Balanagu, Wimukthi Rajapaksha</span></div>
-        <div><b>Industry partner</b><span>SA Water · Capstone PG-S2-22</span></div>
-        <div><b>Data</b><span>Location SA · PlanSA · ABS · Walkerville GIS · EPA SWMM 5.2</span></div>
-      </div>`,
+      <footer class="welcome-footer">
+        <div class="meta-block"><span class="meta-label">SA Water &amp; Academic Supervision</span><span class="meta-value">Vineeth Maruvada &amp; Adel (SA Water) · Karamjit Kaur (Supervisor)</span></div>
+        <div class="meta-block"><span class="meta-label">Project Team · Capstone PG-S2-22</span><div class="team-grid"><span>Abraham Paul Jaison</span><span>Ashis Jose Kalathil</span><span>Rijoy John</span><span>Satya Siddhartha Balanagu</span><span>Wimukthi Rajapaksha</span></div></div>
+      </footer>`,
   },
 
-  // 1 · Problem
+  // 1 · The question · Wet weather
   {
     id: "problem",
-    act: "Problem",
-    kicker: "Problem",
+    act: "The question",
+    kicker: "Wet weather",
     title: "Wet weather already fills pipes, before any new homes",
     view: "all",
     ms: 1400,
     show: { basemap: 0.45, pipes: 0.9, chambers: 0.55 },
     fx: "problem",
-    seg: [0, 1, 2],
     readout: true,
     legend: "problem",
     info: { params: "problem" },
     stats: [
-      ["{{base_surcharged_design}} / {{base_surcharged_wetter}} / {{base_surcharged_severe}}", "manholes surcharged today (Design wet / Beyond / Severe)", "accent"],
-      ["0 on Design wet", "new surcharges from 2041 growth ({{warn_total}} overloads in wetter cases)"],
+      ["{{base_surcharged_design}}", "manholes surcharged today on a design wet day"],
+      ["{{warn_total}}", "region-weather overloads, all in wetter weather"],
     ],
-    html: `
-      <p>Before any 2041 homes connect across Walkerville's <b>{{swmm_links}}</b> pipes and <b>{{sites}}</b> manholes (<span class="cite" data-src="sim4">EPA SWMM 5.2</span>), wet weather surcharges <b>{{base_surcharged_design}}</b> manholes on a design wet day, <b>{{base_surcharged_wetter}}</b> beyond design, and <b>{{base_surcharged_severe}}</b> in severe weather.</p>
-      <div class="params">
-        <div class="p"><b>Wet weather matters more than growth</b><span>On a design wet day, 2041 growth newly surcharges no manhole. All <b>{{warn_total}}</b> overloads (<b>{{new_surcharge_rows}}</b> of <b>{{wet_runs_100}}</b> wet runs surcharging, <b>{{new_spill_rows}}</b> spilling) come from wetter cases.</span><span class="chip checked" data-src="sim4">Sim 4</span></div>
-      </div>`,
+    html: `<p>In the <span class="cite" data-src="swmmlevel">EPA SWMM 5.2</span> model of Walkerville, rain and groundwater already push water above the pipe top (surcharge).</p>
+      <ul>
+        <li>Today, {{base_surcharged_design}} manholes surcharge on a design wet day, {{base_surcharged_wetter}} in beyond-design wet weather and {{base_surcharged_severe}} in severe wet weather.</li>
+        <li>On a design wet day, 2041 growth newly surcharges no manhole.</li>
+        <li>All {{warn_total}} overloads ({{new_surcharge_rows}} surcharged runs, {{new_spill_rows}} spill across {{wet_runs_100}} wet runs) come from wetter weather <span class="chip checked" data-src="sim4">checked</span>.</li>
+      </ul>`,
+    after: `<p class="note"><strong>Wet weather is the first pressure to measure.</strong></p>`,
   },
 
-  // 2 · Since October
+  // 2 · Our approach · Since October
   {
     id: "changed",
-    act: "Since October",
+    act: "Our approach",
     kicker: "Since October",
     title: "What changed since the October demo",
     view: "all",
@@ -71,23 +67,21 @@ window.OSP_SCENES = [
     show: { basemap: 0.55, pipes: 1, homes: 0.65 },
     fx: "infill",
     info: { params: "changed" },
-    stats: [
-      ["{{equal_regions}} + 1", "equal-home regions plus R9 corridor ({{region_homes_min}} to {{region_homes_max}} homes)", "accent"],
-      ["{{wet_runs_100}}", "wet-weather growth runs up to 2041 across {{wet_cases}} wet cases"],
-    ],
-    html: `
-      <p><span class="cite" data-src="sim4">{{model_version}}</span> replaces hand-picked zones with <b>{{equal_regions}}</b> regions adapted from <span class="cite" data-src="kim2022">Kim et al. (2022)</span> plus <b>R9</b> along Walkerville Terrace, and builds a nested 1-to-8 sensor ladder.</p>
-      <div class="params">
-        <div class="p"><b>Adapted from Kim et al. (2022)</b><span>Cuts at pipe ends instead of manholes, includes loops, and lets a manhole sit in two regions (Kim et al. chose sites for disease surveillance, not capacity). Growth was tested at 0.1, 0.25, 0.5, 0.75, 1, 1.5 and 3 times each region's 2041 figure.</span><span class="chip declared" data-src="kim2022">method</span></div>
-      </div>`,
+    html: `<p>The model replaces hand-picked zones with {{equal_regions}} regions of similar size ({{region_homes_min}} to {{region_homes_max}} homes each) adapted from <span class="cite" data-src="kim2022">Kim et al. (2022)</span>, plus R9 along Walkerville Terrace.</p>
+      <ul>
+        <li>Kim et al. (2022) placed samplers for disease surveillance. The model cuts at pipe ends, keeps loops and lets a manhole sit in two regions.</li>
+        <li>Growth is tested at 0.1, 0.25, 0.5, 0.75, 1, 1.5 and 3 times each region's 2041 projection across {{wet_cases}} wet cases.</li>
+        <li>Sensors are added one by one in a 1-to-{{plan_kmax}} staged plan <span class="chip checked" data-src="sim4">checked</span>.</li>
+      </ul>`,
+    after: `<p class="note">Testing to 3 times 2041 growth shows where spare room runs out, so <strong>regions are ranked before siting sensors</strong>.</p>`,
   },
 
-  // 3 · Regions
+  // 3 · The answer · Priority regions
   {
     id: "regions",
-    act: "Regions",
-    kicker: "Regions",
-    title: "Two regions to monitor, three to watch, four with room",
+    act: "The answer",
+    kicker: "Priority regions",
+    title: "Where to monitor first on a design wet day",
     view: "all",
     ms: 1400,
     show: { basemap: 0.42, pipes: 1, chambers: 0.45 },
@@ -95,118 +89,110 @@ window.OSP_SCENES = [
     legend: "triage",
     info: { params: "regions" },
     stats: [
-      ["{{monitor_regions}}", "monitor on Design wet (R3: {{r3_range}}; R7: {{r7_range}} homes)", "accent"],
-      ["R5 only", "keeps room in all {{wet_cases}} wet cases"],
+      ["2", "regions to monitor first on a design wet day (R3 and R7)"],
+      ["1", "region with room left in all {{wet_cases}} wet cases (R5)"],
     ],
-    html: `
-      <p>Triage uses the design wet case only (assumed <b>{{limit_bore_dec}}</b> bore limit), while the five-sensor plan uses all <b>{{wet_cases}}</b> wet cases. Homes-to-limit ranges pass 2041 because growth was tested up to 3 times 2041.</p>
-      <div class="params">
-        <div class="p"><b>Monitor {{monitor_regions}} · Watch {{watch_regions}}</b><span>R1 (Watch) runs out in 3 of 7 cases, as R3 does. R9 uses the <b>{{r9_homes}}-home</b> anchor (<span class="cite" data-src="sim4">Sim 4</span>).</span><span class="chip confirm" data-src="sim4">triage</span></div>
-        <div class="p"><b>Leave {{leave_regions}} (Design wet only)</b><span>Only <b>R5</b> keeps room in all 7 wet cases; <b>R8</b> is already over the limit in 4 of 7.</span><span class="chip declared" data-src="sim4">wet cases</span></div>
-      </div>`,
+    html: `<p>Region triage checks when pipes pass {{limit_bore}}% of pipe depth (assumed) on a design wet day, while the five-sensor staged plan scores all {{wet_cases}} wet cases <span class="chip declared" data-src="sim4">declared</span>.</p>
+      <ul>
+        <li>Monitor {{monitor_regions}} first ({{r3_range}} and {{r7_range}} homes to the {{limit_bore_dec}} limit); watch {{watch_regions}} ({{r9_homes}}-home R9 anchor).</li>
+        <li>R1 (Watch) runs out in 3 of {{wet_cases}} wet cases, just as R3 does.</li>
+        <li>Of {{leave_regions}}, only R5 keeps room in all {{wet_cases}} wet cases; R8 is already over the {{limit_bore_dec}} limit in 4 of {{wet_cases}}.</li>
+      </ul>`,
+    after: `<p class="note">Ranges pass 2041 because tests run to 3 times 2041; <strong>only R5 stays clear in every wet case</strong>.</p>`,
   },
 
-  // 4 · Sensors
+  // 4 · The answer · How many
   {
     id: "sensors",
-    act: "Sensors",
-    kicker: "Sensors",
-    title: "One sensor for the design day, five for wetter weather",
+    act: "The answer",
+    kicker: "How many",
+    title: "One sensor for a design wet day, five for wetter weather",
     view: "p1",
     ms: 1400,
     show: { basemap: 0.48, pipes: 0.92, chambers: 0.45, sensors: 1 },
     fx: "ladder",
     chart: "ladder",
     legend: "sensors",
-    info: { params: "sensors" },
-    stats: [
-      ["{{worst_k5}}% / {{avg_k5}}%", "5-sensor worst / average at 10 mm ({{rule25_worst_k5}}% / {{rule25_avg_k5}}% at 25 mm)", "accent"],
-      ["{{warn_k5}} of {{warn_total}}", "overloads warned (1 sensor: {{design_wet_k1_seen}} of {{design_wet_runs}} Design wet, {{avg_k1}}% avg)"],
-    ],
-    html: `
-      <p>At the assumed <b>{{rise_focus_mm}} mm</b> rise rule, <b>{{plan_k0}}</b> sensor ({{cost_k1}} assumed) reacts +12.4 mm at 14 homes in R3 and sees <b>{{design_wet_k1_seen}} of {{design_wet_runs}}</b> Design wet runs (<b>{{avg_k1}}%</b> across <b>{{wet_cases}}</b> wet cases); <b>{{plan_k1}}</b> nested sensors ({{cost_k5}} assumed) see <b>{{worst_k5}}% / {{avg_k5}}%</b>.</p>
-      <div class="params">
-        <div class="p"><b>25 mm rule &amp; Stonyfell variation</b><span>At <b>{{rise_strict_mm}} mm</b>, 5 sensors see <b>{{rule25_worst_k5}}%</b> worst / <b>{{rule25_avg_k5}}%</b> average. Stonyfell normal levels vary <b>20 to 75 mm</b> (<span class="cite" data-src="levelsensor">Do et al., 2023</span>); telling 10 mm of growth from daily variation is untested.</span><span class="chip declared" data-src="sim4">assumed</span></div>
-      </div>`,
+    info: { chart: "sensors" },
+    html: `<p>At a {{rise_focus_mm}} mm rise rule (assumed), Sensor 1 ({{cost_k1}}) reacts at {{sensor_1_reacts}} and sees {{design_wet_k1_seen}} of {{design_wet_runs}} runs on a design wet day.</p>
+      <ul>
+        <li>Five level sensors ({{cost_k5}}) see {{worst_k5}}% in the worst case, {{avg_k5}}% on average across all wet weather.</li>
+        <li>At {{rise_strict_mm}} mm, five sensors see {{rule25_worst_k5}}% in the worst case, {{rule25_avg_k5}}% on average.</li>
+        <li>Stonyfell normal levels vary 20 to 75 mm (<span class="cite" data-src="levelsensor">Do et al. (2023)</span>) <span class="chip sourced" data-src="levelsensor">sourced</span>.</li>
+      </ul>`,
+    after: `<p class="note"><strong>Telling {{rise_focus_mm}} mm of growth from daily variation is untested</strong>; an exact solver reaches {{exact_worst_k5}}% in the worst case, {{exact_avg_k5}}% on average.</p>`,
   },
 
-  // 5 · Which type
+  // 5 · Why it holds · Sensor types
   {
     id: "type",
-    act: "Which type",
-    kicker: "Which type",
-    title: "Floats alone miss growth in some weather",
+    act: "Why it holds",
+    kicker: "Sensor types",
+    title: "Float switches alone miss growth in some weather",
     view: "beats",
     ms: 1400,
     show: { basemap: 0.45, pipes: 0.85, chambers: 0.4, sensors: 1, trunk: 0.95 },
     fx: "beats",
     chart: "type",
     legend: "type",
-    info: { params: "type" },
-    stats: [
-      ["{{float_worst}}% / {{float_avg}}%", "floats-only worst / average ({{float_cap_count}} floats, {{float_cap_cost}} assumed)"],
-      ["{{mix_75k_worst}}% vs {{worst_k3}}%", "worst case at $75k: 2 level + 6 floats ($56k) vs 3 level", "accent"],
-    ],
-    html: `
-      <p>We compared continuous level sensors (<b>{{level_price}}</b> assumed) and <span class="cite" data-src="brieftype">float switches</span> (<b>{{float_price}}</b> assumed). Floats only count if they sit <b>{{float_margin_mm}} mm</b> above normal (assumed), stay quiet on Design wet, and growth lifts water past them.</p>
-      <div class="params">
-        <div class="p"><b>Floats alone vs a $75k mix</b><span>Floats on their own stall at <b>{{float_avg}}%</b> average and <b>{{float_worst}}%</b> worst case. In a mix, <b>{{cost_k3}}</b> buys <b>{{mix_75k_bought}} ({{mix_75k_cost}})</b> and reaches <b>{{mix_75k_worst}}%</b> worst case, against <b>{{worst_k3}}%</b> for 3 level sensors.</span><span class="chip declared" data-src="sim4">assumed</span></div>
-      </div>`,
+    info: { chart: "type" },
+    html: `<p>Level sensors ({{level_price}} each, assumed) with <span class="cite" data-src="brieftype">float switches</span> ({{float_price}} each) were compared on the same runs <span class="chip declared" data-src="sim4">declared</span>.</p>
+      <ul>
+        <li>A float switch counts only if it sits {{float_margin_mm}} mm above normal depth, stays quiet on a design wet day.</li>
+        <li>Alone, {{float_cap_count}} float switches ({{float_cap_cost}}) stall at {{float_worst}}% in the worst case, {{float_avg}}% on average.</li>
+        <li>At {{cost_k3}}, a separately chosen mix of 2 level sensors and 6 float switches ({{mix_75k_cost}}) sees {{mix_75k_worst}}% in the worst case, {{mix_75k_avg}}% on average, vs {{worst_k3}}% in the worst case, {{avg_k3}}% on average for 3 level sensors.</li>
+      </ul>`,
+    after: `<p class="note">At {{cost_k3}}, <strong>a mix of both types sees more in the worst case than level sensors alone</strong>.</p>`,
   },
 
-  // 6 · Does it hold up
+  // 6 · Why it holds · Unseen weather
   {
     id: "holdup",
-    act: "Does it hold up",
-    kicker: "Does it hold up",
-    title: "Held-out weather and regions still beat random picks",
+    act: "Why it holds",
+    kicker: "Unseen weather",
+    title: "How the plan holds on weather it never saw",
     view: "p1",
     ms: 1400,
     show: { basemap: 0.5, pipes: 0.85, chambers: 0.45, sensors: 1 },
     fx: "holdout",
     chart: "holdout",
     legend: "sensors",
-    info: { params: "holdup" },
-    stats: [
-      ["{{unseen_wx_k5}}% / {{unseen_reg_k5}}%", "unseen weather / unseen region (from {{avg_k5}}% in-sample)", "accent"],
-      ["{{random_resp_k5}}% / {{random_any_k5}}%", "random responsive / random any manholes ({{random_draws}} draws)"],
-    ],
-    html: `
-      <p>In-sample <b>{{avg_k5}}%</b> falls to <b>{{unseen_wx_k5}}%</b> on unseen weather and <b>{{unseen_reg_k5}}%</b> on an unseen region ({{model_version}} calls this a little generous because R9 overlaps other regions), beating random responsive (<b>{{random_resp_k5}}%</b>) and random any (<b>{{random_any_k5}}%</b>) picks.</p>
-      <div class="params">
-        <div class="p"><b>Age-weighted holdout &amp; sensor stability</b><span>With the age-weighted design wet case held out, even 8 sensors see <b>0%</b> of it. Sensors 1 and 3 appear in the October deck's five, the 6 November Sim 3.5 five, and {{model_version}}'s five.</span><span class="chip checked" data-src="sim4">holdout</span></div>
-      </div>`,
+    info: { chart: "holdup" },
+    html: `<p>Chosen with all weather cases, five level sensors see {{worst_k5}}% in the worst case, {{avg_k5}}% on average <span class="chip checked" data-src="sim4">checked</span>.</p>
+      <ul>
+        <li>With weather left out, average coverage is {{unseen_wx_k5}}%; with a region left out, it is {{unseen_reg_k5}}%.</li>
+        <li>Both beat random picks of responsive manholes ({{random_resp_k5}}%) and any manholes ({{random_any_k5}}%).</li>
+        <li>With the age-weighted design wet case left out, even {{plan_kmax}} sensors see 0% of it.</li>
+      </ul>`,
+    after: `<p class="note">Sensors 1 and 3 have been in every five-sensor plan since October. <strong>The plan has to be chosen across all the weather it will face.</strong></p>`,
   },
 
-  // 7 · What we assumed
+  // 7 · What's next · What to check
   {
     id: "assumed",
-    act: "What we assumed",
-    kicker: "What we assumed",
-    title: "What we assumed, and the data that would settle it",
+    act: "What's next",
+    kicker: "What to check",
+    title: "Wet-weather records are the next step",
     view: "all",
     ms: 1400,
     show: { basemap: 0.55, pipes: 0.85, chambers: 0.5, sensors: 1 },
     legend: "sensors",
     info: { params: "assumed" },
-    stats: [
-      ["{{run_noise_min}}–{{run_noise_max}} pts", "score shift per run (94% and 92% tie within noise)"],
-      ["{{sensors_90pct_all_wet}} / {{sensors_100pct_all_wet}} sensors", "for 90% / 100% across all {{wet_cases}} wet cases", "accent"],
-    ],
-    html: `
-      <p>Every figure is an uncalibrated model result. Wet-weather level records (not normal-day records) would decide between <b>{{plan_k0}}</b> sensor and <b>{{plan_k1}}</b>; reaching 100% of all <b>{{wet_cases}}</b> wet cases takes <b>{{sensors_100pct_all_wet}}</b> sensors (90% takes <b>{{sensors_90pct_all_wet}}</b>).</p>
+    html: `<p>Every figure comes from an uncalibrated model using a {{rise_focus_mm}} mm rise rule (assumed). Wet-weather level records decide between {{plan_k0}} sensor and {{plan_k1}}.</p>
       <div class="params">
-        <div class="p"><b>Sensors never fail &amp; 485-home source</b><span>Rules ({{rise_focus_mm}} mm, {{rise_strict_mm}} mm, {{limit_bore_dec}} bore) and prices are assumed; sensors never fail here, and the source for the <b>{{homes_2041}}-home</b> anchor (<span class="cite" data-src="sim4">Sim 4</span>) is still needed.</span><span class="chip ideal" data-src="sim4">limits</span></div>
-        <div class="p"><b>Future work · New suburb inputs</b><span>Pipes and manholes, outlets, homes now and projected, pump rates, weather cases, and utility rules and prices.</span><span class="chip checked" data-src="sim4">future work</span></div>
+        <div><span class="k">Wet-weather records</span><span class="v"><span class="chip confirm" data-src="infiltration">to confirm</span></span><span class="s">Settles {{plan_k0}} sensor vs {{plan_k1}} ({{sensors_90pct_all_wet}} sensors cover 90% of all {{wet_cases}} wet cases; {{sensors_100pct_all_wet}} cover 100%).</span></div>
+        <div><span class="k">Rules and uptime</span><span class="v"><span class="chip declared" data-src="sim4">declared</span></span><span class="s">Uses {{rise_focus_mm}} mm and {{rise_strict_mm}} mm rules, the {{limit_bore_dec}} limit and {{level_price}} / {{float_price}} prices; sensors never fail.</span></div>
+        <div><span class="k">Noise and {{homes_2041}} homes</span><span class="v"><span class="chip confirm" data-src="sim4">to confirm</span></span><span class="s">One run shifts scores by {{run_noise_min}} to {{run_noise_max}} percentage points so {{avg_k5}}% and {{avg_k4}}% are effectively equal; the {{homes_2041}}-home source is needed.</span></div>
       </div>`,
+    after: `<p class="note">To repeat this for another suburb: <strong>its pipe map, home projections, pump rates and weather cases.</strong></p>`,
   },
 
-  // 8 · Recommendation
+  // 8 · What's next · The first step
   {
     id: "close",
-    act: "Recommendation",
-    kicker: "Recommendation",
-    title: "Start with one sensor in R3, then grow to five",
+    act: "What's next",
+    kicker: "The first step",
+    title: "Start with Sensor 1 in R3, then grow to five",
     view: "p1",
     ms: 1400,
     show: { basemap: 0.55, pipes: 0.95, chambers: 0.4, sensors: 1 },
@@ -214,13 +200,15 @@ window.OSP_SCENES = [
     legend: "sensors",
     info: { params: "close" },
     stats: [
-      ["{{plan_k0}} → {{plan_k1}}", "level sensors ({{cost_k1}} to {{cost_k5}} at assumed prices)", "accent"],
-      ["{{monitor_regions}}", "monitor first; watch {{watch_regions}} (leave {{leave_regions}} on Design wet)"],
+      ["{{plan_k0}}", "level sensor in R3 for a design wet day ({{cost_k1}})"],
+      ["{{plan_k1}}", "level sensors across Walkerville for wetter weather ({{cost_k5}})"],
     ],
-    html: `
-      <p>Monitor <b>{{monitor_regions}}</b> and watch <b>{{watch_regions}}</b> first, noting that only <b>R5</b> keeps room in all <b>{{wet_cases}}</b> wet cases. Start with <b>Sensor 1</b> in R3 (<b>{{cost_k1}}</b> assumed) and record wet-weather levels to test the design wet case.</p>
-      <div class="params">
-        <div class="p"><b>Grow to {{plan_k1}} level sensors ({{cost_k5}} assumed) for wetter weather</b><span>Adding Sensors 2 to 5 reaches <b>{{worst_k5}}%</b> worst case and <b>{{avg_k5}}%</b> average (10 mm assumed rule) and warns of all <b>{{warn_k5}} of {{warn_total}}</b> overloads (<b>{{sensors_90pct_all_wet}}</b> sensors for 90% of all wet cases, <b>{{sensors_100pct_all_wet}}</b> for 100%).</span><span class="chip checked" data-src="sim4">plan</span></div>
-      </div>`,
+    html: `<p>Start with Sensor 1 in R3 to watch {{monitor_regions}} and {{watch_regions}} while recording wet-weather levels <span class="chip checked" data-src="sim4">checked</span>.</p>
+      <ul>
+        <li>Sensor 1 has 4 nearby stand-ins with the same score and catches {{design_wet_k1_seen}} of {{design_wet_runs}} runs on a design wet day.</li>
+        <li>If records show wetter inflow, add Sensors 2 to 5 in the staged plan ({{cost_k5}}) for {{worst_k5}}% in the worst case, {{avg_k5}}% on average.</li>
+        <li>Two sensors already warn of {{warn_k5}} of {{warn_total}} overloads.</li>
+      </ul>`,
+    after: `<p class="note"><strong>One sensor tests the design wet day now, and stays in place if the plan grows to five.</strong></p>`,
   },
 ];

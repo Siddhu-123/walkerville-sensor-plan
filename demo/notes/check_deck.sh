@@ -25,11 +25,11 @@ for (const sc of body) {
   if ((html.match(/<li>/g) || []).length > 3) bad.push(sc.id + ': more than 3 bullets');
   if ((html.match(/assumed/gi) || []).length > 1) bad.push(sc.id + ': "assumed" more than once');
   if (/class="p"|class="w-/.test(html)) bad.push(sc.id + ': non-original markup');
-  if (sc.chart && /class="stats"/.test(html)) bad.push(sc.id + ': stats on a chart slide');
+  if (sc.chart && (sc.stats || /class="stats"/.test(html))) bad.push(sc.id + ': stats on a chart slide');
   const words = html.replace(/<[^>]+>/g, ' ').replace(/\{\{[^}]+\}\}/g, 'N').split(/\s+/).filter(Boolean).length;
   if (words > 120) bad.push(sc.id + ': ' + words + ' words');
 }
-if (body.filter(sc => /class="stats"/.test(sc.html || '')).length > 3) bad.push('stats on more than 3 slides');
+if (body.filter(sc => sc.stats || /class="stats"/.test(sc.html || '')).length > 3) bad.push('stats on more than 3 slides');
 const acts = [...new Set(body.map(sc => sc.act))];
 if (acts.length < 4 || acts.length > 5) bad.push('want 4 to 5 grouped acts, got ' + acts.length);
 if (bad.length) { console.error('FAIL:\n' + bad.join('\n')); process.exit(1); }

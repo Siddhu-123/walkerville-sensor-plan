@@ -168,9 +168,9 @@ window.OSP_LIB = {
       lib: [],
       web: [
         {
-          title: "Kim, K., Ban, M. J., Kim, S., Park, M.-H., Stenstrom, M. K. and Kang, J.-H. (2022), Journal of Environmental Management, 320, 115806",
+          title: "Kim et al. (2022), Journal of Environmental Management, 320, 115806",
           url: "https://doi.org/10.1016/j.jenvman.2022.115806",
-          says: "Optimal allocation and operation of sewer monitoring sites for wastewater-based disease surveillance: A methodological proposal. Sim 4 adapts recursive spatial bisection by cutting at pipe ends rather than manholes, including loops, and allowing a manhole to sit in two regions where flow divides.",
+          says: "Optimal allocation and operation of sewer monitoring sites for wastewater-based disease surveillance: A methodological proposal. Simulation 4 adapts recursive spatial bisection by cutting at pipe ends rather than manholes, including loops, and allowing a manhole to sit in two regions where flow divides.",
         },
       ],
     },
@@ -190,105 +190,94 @@ window.OSP_LIB = {
   info: {
     problem: {
       title: "Baseline surcharge vs 2041 growth",
-      html: `<p><b>Baseline today:</b> before any 2041 homes connect, the EPA SWMM 5.2 model has 7 manholes surcharged (water above the pipe top, 0 spilling) on a design wet day (0.11 L/s per 100 m), 107 surcharged (1 spilling) in beyond-design wet weather (0.25 L/s per 100 m), and 141 surcharged (6 spilling) in severe wet weather (0.40 L/s per 100 m).</p>
+      html: `<p><b>Baseline today:</b> before any 2041 homes connect, the Simulation 4 EPA SWMM 5.2 model has 7 manholes surcharged (water above the pipe top, 0 spilling) on a design wet day (0.11 L/s per 100 m), 107 surcharged (1 spilling) in beyond-design wet weather (0.25 L/s per 100 m), and 141 surcharged (6 spilling) in severe wet weather (0.40 L/s per 100 m).</p>
         <p><b>Growth vs weather:</b> at full 2041 build-out on a design wet day, 5 regions (R1, R3, R4, R7 and R9) raise water by 10 mm or more (assumed rule) in at least one manhole and 4 regions (R2, R5, R6 and R8) do not, yet no manhole newly surcharges and none spills. Across all 7 wet cases up to 100% build-out (315 runs), 50 runs show a new surcharge and 1 shows a new spill across 14 manholes, giving 11 region-weather overloads in wetter cases. Wet weather drives pipe filling far more than 2041 housing growth on its own.</p>`,
     },
     changed: {
-      title: "What changed from October and Sim 3.5 to Simulation 4",
-      html: `<p><b>Regions:</b> instead of hand-picked suburb boundaries (100 to 829 existing homes), Simulation 4 adapts recursive spatial bisection from Kim et al. (2022) to cut 8 regions of 233 to 418 existing homes (ideal 321), plus R9, the Walkerville Terrace corridor (179 existing homes, 485 projected homes) overlapping them. Unlike Kim et al. (who placed sensors for disease surveillance and cut at manholes), Sim 4 cuts at pipe ends on the looped SWMM network and lets a manhole sit in two regions where flow divides.</p>
-        <p><b>Build-out steps:</b> each region is built out on its own at 0.1, 0.25, 0.5, 0.75, 1.0, 1.5 and 3.0 times its 2041 figure. The 1.5x and 3.0x stress steps explain why homes-to-limit ranges can exceed the 2041 projection.</p>
-        <p><b>Nested sensor ladder:</b> Sim 4 builds a greedy nested ladder from 1 to 8 continuous level sensors across the 5 target regions (R1, R3, R4, R7 and R9) up to 100% build-out.</p>`,
+      title: "What changed in Simulation 4",
+      html: `<p><b>Regions:</b> instead of hand-picked suburb boundaries (100 to 829 existing homes), Simulation 4 adapts recursive spatial bisection from Kim et al. (2022) to cut 8 regions of 233 to 418 existing homes (ideal 321), plus R9, the Walkerville Terrace corridor (179 existing homes, 485 projected homes) overlapping them. Unlike Kim et al. (2022) (who placed sensors for disease surveillance and cut at manholes), Simulation 4 cuts at pipe ends on the looped SWMM network and lets a manhole sit in two regions where flow divides.</p>
+        <p><b>Build-out steps:</b> each region is built out on its own at 0.1, 0.25, 0.5, 0.75, 1.0, 1.5 and 3.0 times its 2041 figure. The 1.5 and 3.0 stress steps explain why homes-to-limit ranges can extend past the 2041 projection.</p>
+        <p><b>Staged plan:</b> Simulation 4 builds a greedy staged plan from 1 to 8 continuous level sensors across the 5 target regions (R1, R3, R4, R7 and R9) up to 100% build-out.</p>`,
     },
     regions: {
-      title: "Region triage and per-case bands across all 7 wet cases",
-      html: `<p><b>Triage vs sensor scope:</b> region triage uses the design wet case only at an assumed pipe limit of 0.7 of bore (70%), whereas the 5-sensor plan is scored across all 7 wet cases. Growth was tested at 0.1, 0.25, 0.5, 0.75, 1, 1.5 and 3 times each region's 2041 figure, so the homes-to-limit ranges (10th to 90th percentile) can extend past 2041.</p>
-        <p><b>Bands across the 7 wet cases</b> (O = runs out, U = uncertain, R = room left, A = already over 0.7 before growth):<br>
-        <b>R1 (Watch, 54 homes, 12 to 78 to limit):</b> U O O U O A A (runs out in 3 of 7 cases, already over in 2).<br>
-        <b>R2 (Leave, 49 homes, 53 to beyond top step):</b> R U A R R U U.<br>
-        <b>R3 (Monitor, 54 homes, 2 to 59 to limit):</b> O O A R O A A (runs out in 3 of 7, already over in 3).<br>
-        <b>R4 (Watch, 54 homes, 15 to 79 to limit):</b> U A A U O A U.<br>
-        <b>R5 (Leave, 40 homes, not reached):</b> R R R R R R R (the only region that keeps room in all 7 wet cases).<br>
-        <b>R6 (Leave, 60 homes, not reached):</b> R R A R R R R.<br>
-        <b>R7 (Monitor, 55 homes, 6 to 71 to limit):</b> O A A R O A A.<br>
-        <b>R8 (Leave, 71 homes, not reached on Design wet):</b> R A A R R A A (already over the limit before growth in 4 of 7 wet cases).<br>
-        <b>R9 (Watch, 485-home anchor, 90 to 1,271 to limit):</b> U A A U U A A.</p>`,
+      title: "Region triage, R9 overlap and per-case bands",
+      html: `<p><b>Triage vs sensor scope:</b> region triage uses a design wet day only at a pipe limit of 70% of pipe depth (assumed), whereas the 5-sensor staged plan is scored across all 7 wet cases. Growth was tested at 0.1, 0.25, 0.5, 0.75, 1, 1.5 and 3 times each region's 2041 figure, so the homes-to-limit ranges (10th to 90th percentile to the 0.7 limit) can extend past 2041.</p>
+        <p><b>Why R9 overlaps other regions:</b> R9 is the Walkerville Terrace corridor (179 existing homes, 485-home anchor in Simulation 4). Because the corridor follows the main road across the suburb, its manholes overlap the equal-home regions (R1 to R8) that it crosses, and it is drawn with a dashed outline on the map.</p>
+        <p><b>Bands across the 7 wet cases</b> (O = runs out, U = uncertain, R = room left, A = already over the 0.7 limit before growth):<br>
+        <b>R1 (Watch, 54 homes, 12 to 78 to the 0.7 limit):</b> U O O U O A A (runs out in 3 of 7 cases, already over in 2).<br>
+        <b>R2 (Room on a design wet day, 49 homes, 53 to beyond the top step):</b> R U A R R U U.<br>
+        <b>R3 (Monitor, 54 homes, 2 to 59 to the 0.7 limit):</b> O O A R O A A (runs out in 3 of 7, already over in 3).<br>
+        <b>R4 (Watch, 54 homes, 15 to 79 to the 0.7 limit):</b> U A A U O A U.<br>
+        <b>R5 (Room on a design wet day, 40 homes, not reached):</b> R R R R R R R (the only region that keeps room in all 7 wet cases).<br>
+        <b>R6 (Room on a design wet day, 60 homes, not reached):</b> R R A R R R R.<br>
+        <b>R7 (Monitor, 55 homes, 6 to 71 to the 0.7 limit):</b> O A A R O A A.<br>
+        <b>R8 (Room on a design wet day, 71 homes, not reached on a design wet day):</b> R A A R R A A (already over the 0.7 limit before growth in 4 of 7 wet cases).<br>
+        <b>R9 (Watch, 485-home anchor, 90 to 1,271 to the 0.7 limit):</b> U A A U U A A.</p>`,
     },
     sensors: {
-      title: "Rise rule, solver choice, and stand-in zones for the five sensors",
-      html: `<p><b>What 16 of 16 and 11 of 11 mean:</b> on a design wet day there are 16 detectable target-region growth runs, and across all 7 wet cases there are 11 region-weather pairs that newly surcharge or spill. One simulated run moves a weather case's score by 5 to 7 percentage points, so 94% and 92% are the same within noise.</p>
-        <p><b>Assumed 10 mm rule vs normal variation:</b> every headline score uses an assumed 10 mm water-level rise rule. Sensor 1 (MH4450531) first reacts at +12.4 mm with 14 new homes in R3. In the Stonyfell study (Do et al., 2023), normal dry-weather levels varied between 20 and 75 mm. Whether a 10 mm rise from housing growth can be told apart from day-to-day flow variation is untested. Under the stricter 25 mm rule (dashed chart line), 5 sensors see 36% worst case and 45% on average.</p>
-        <p><b>Greedy ladder vs exact solver and stand-in zones:</b> the 5 sensors come from a greedy nested ladder (81% worst / 94% average). An unnested exact solver reaches 88% worst / 94% average with a different 5-sensor set, and at least 96 five-sensor sets tie for best on Design wet. Treat each pick as a monitoring zone with equal-score stand-ins:<br>
-        <b>1 · MH4450531:</b> Design-wet anchor; 4 stand-ins (MH4450391, MH4450137, MH4449796).<br>
-        <b>2 · MH4448345:</b> Wetter-weather R1/R4 branch; 0 stand-ins (without it, warnings drop to 9 of 11).<br>
-        <b>3 · MH4450922:</b> Reacts at 27 homes in R1 (+13.3 mm); only sensor here seeing age-weighted Design wet; surcharged before growth (worth a site check); 3 stand-ins (MH4451207, MH4451871, MH4452011).<br>
-        <b>4 · MH4452994:</b> Sits in R2 to catch through-flow from R9 and R3; 23 stand-ins (including MH4453489, MH4453579, MH4453970).<br>
-        <b>5 · MH4428268:</b> Upper R1/R4 wetter-weather watcher; 0 stand-ins.</p>
-        <p><b>Fewest sensors for full wet-weather coverage:</b> covering 90% of all 7 wet cases takes 6 level sensors, and covering 100% of all 7 wet cases takes 10 level sensors.</p>`,
+      title: "Rise rule, solver choice and stand-in zones",
+      html: `<p><b>What 16 of 16 and 11 of 11 mean:</b> on a design wet day there are 16 detectable target-region growth runs, and across all 7 wet cases there are 11 region-weather pairs that newly surcharge or spill. Two sensors in the staged plan already warn of all 11 of 11 overloads; sensors 3 to 5 are added to lift worst-case growth coverage from 0% to 81% in the worst case, 94% on average. One simulated run moves a weather case's score by 5 to 7 percentage points, so 94% and 92% are the same within noise.</p>
+        <p><b>Assumed 10 mm rule vs normal variation:</b> every headline score uses a 10 mm water-level rise rule (assumed). Sensor 1 (manhole 4450531) first reacts at +12.4 mm with 14 new homes in R3. In the Stonyfell study of Do et al. (2023), normal dry-weather levels varied from 20 to 75 mm. Whether a 10 mm rise from housing growth can be told apart from day-to-day flow variation is untested. Under the stricter 25 mm rule (dashed chart line), 5 sensors see 36% in the worst case, 45% on average.</p>
+        <p><b>Staged plan vs exact solver and stand-in zones:</b> the 5 sensors come from a greedy staged plan (81% in the worst case, 94% on average). An unnested exact solver reaches 88% in the worst case, 94% on average with a different 5-sensor set, and at least 96 five-sensor sets tie for best on a design wet day. Each pick represents a monitoring zone with equal-score stand-ins:<br>
+        <b>1 · Sensor 1 (manhole 4450531):</b> design-wet-day anchor; 4 stand-ins with the same score, of which the nearest 3 are MH4450391, MH4450137 and MH4449796.<br>
+        <b>2 · Sensor 2 (manhole 4448345):</b> wetter-weather R1 and R4 branch; brings warnings to 11 of 11 overloads; 0 stand-ins (without it, warnings drop to 9 of 11).<br>
+        <b>3 · Sensor 3 (manhole 4450922):</b> reacts at 27 homes in R1 (+13.3 mm); only sensor here seeing the age-weighted design wet case; surcharged before growth (worth a site check); 3 stand-ins (MH4451207, MH4451871 and MH4452011).<br>
+        <b>4 · Sensor 4 (manhole 4452994):</b> sits in R2 to catch through-flow from R9 and R3; 23 stand-ins (nearest 3 are MH4453489, MH4453579 and MH4453970).<br>
+        <b>5 · Sensor 5 (manhole 4428268):</b> upper R1 and R4 wetter-weather watcher; 0 stand-ins.</p>
+        <p><b>Fewest sensors by weather covered:</b> in Simulation 4's "Fewest sensors by weather covered" table (separate from the 1-to-8 staged plan chart), covering 90% of all 7 wet cases takes 6 level sensors, and covering 100% of all 7 wet cases takes 10 level sensors.</p>`,
       team: { page: 20, quote: "Exact and convex methods can be accurate but do not scale easily; greedy methods are efficient but can be locally suboptimal; evolutionary methods explore more alternatives but cost more computation." },
     },
     type: {
       title: "Level sensors vs float switches across budgets",
       html: `<p><b>Assumed rules and prices:</b> continuous level sensors are priced at $25k each and float switches at $1k each (both assumed). A float switch counts only if it sits at least 25 mm above its manhole's normal baseline depth (assumed margin), stays quiet on a design wet day, and growth lifts water past it.</p>
-        <p><b>Why floats alone stall at 35% average and 0% worst case:</b> 15 floats ($15k) already hit the float ceiling at any budget from $25k to $200k. In age-weighted Design wet, no float sees any growth run, and on unseen weather floats see 0% (warning of 4 of 11 overloads).</p>
-        <p><b>Budget comparison ($25k / $75k / $125k):</b><br>
-        At <b>$25k</b>, 1 level sensor on the nested list sees 0% worst / 53% average (55% unseen weather); 15 floats ($15k) see 0% / 35% (0% unseen); an unnested 1-level pick gets 12% / 42% (34% unseen).<br>
-        At <b>$75k</b>, 3 level sensors on the list see 44% worst / 86% average (71% unseen); an unnested free mix buys 2 level sensors + 6 floats ($56k) to maximise the worst case and reaches 62% worst / 79% average (55% unseen).<br>
-        At <b>$125k</b>, 5 level sensors on the list see 81% worst / 94% average (77% unseen), while the unnested 5-level solver reaches 88% worst / 94% average (76% unseen).</p>`,
+        <p><b>Why float switches alone stall:</b> 15 float switches ($15k) already hit the float ceiling at any budget from $25k to $200k, seeing 0% in the worst case, 35% on average. In the age-weighted design wet case, no float switch sees any growth run, and on unseen weather float switches see 0% (warning of 4 of 11 overloads).</p>
+        <p><b>Budget comparison ($25k, $75k and $125k):</b><br>
+        At <b>$25k</b>, 1 level sensor in the staged plan sees 0% in the worst case, 53% on average (55% on unseen weather); 15 float switches ($15k) see 0% in the worst case, 35% on average (0% on unseen weather); a separately chosen 1-level pick gets 12% in the worst case, 42% on average (34% on unseen weather).<br>
+        At <b>$75k</b> (shown on the chart), 3 level sensors in the staged plan see 44% in the worst case, 86% on average (71% on unseen weather); 15 float switches ($15k) see 0% in the worst case, 35% on average; a separately chosen mix buys 2 level sensors and 6 float switches ($56k) to maximise the worst case and reaches 62% in the worst case, 79% on average (55% on unseen weather).<br>
+        At <b>$125k</b>, 5 level sensors in the staged plan see 81% in the worst case, 94% on average (77% on unseen weather), while a separately chosen 5-level set reaches 88% in the worst case, 94% on average (76% on unseen weather).</p>`,
       team: { page: 9, quote: "Float or tilt devices can provide a robust threshold event, such as a high-level alarm, with a simple sensing principle. They do not provide the level history, rate of rise, or normal-pattern information available from a continuous sensor." },
     },
     holdup: {
-      title: "Holdout tests, age-weighted blind spot, and sensor stability",
-      html: `<p><b>Holdout drops:</b> in-sample 5-sensor coverage is 94% on average (81% worst case, 11 of 11 overloads warned). Chosen without the weather case tested, coverage falls to 77% (10 of 11 warned). Chosen without the region tested, coverage is 76% (10 of 11 warned), against 55% for 5,000 random draws of responsive manholes (8.3 of 11 warned) and 33% for any random manholes (5.4 of 11 warned). Because R9 shares manholes with the regions it crosses, holding R9 out does not fully hide it, so Simulation 4 calls the 76% unseen-region score a little generous.</p>
-        <p><b>Age-weighted blind spot:</b> a design wet day where older pipes leak more (age-weighted I&amp;I) cannot be predicted from the other weather cases. When age-weighted Design wet is held out of selection, even 8 sensors see 0% of its runs (in the 5-sensor set, only Sensor 3, MH4450922, detects it).</p>
-        <p><b>Stability across model versions:</b> comparing Sim 4's equal-home cut against Sim 3's hand-picked cut on the same Sim 4 runs shares 4 of 5 sensors (MH4450531, MH4448345, MH4450922 and MH4452994). Across the October Sim 2.5 deck's five, the 6 November Sim 3.5 five, and Simulation 4's five, two manholes appear in every set: Sensor 1 (MH4450531) and Sensor 3 (MH4450922).</p>`,
+      title: "Holdout tests, age-weighted blind spot and sensor stability",
+      html: `<p><b>Holdout drops:</b> in-sample 5-sensor coverage in Simulation 4 is 81% in the worst case, 94% on average (11 of 11 overloads warned). Chosen without the weather case tested, average coverage falls to 77% (10 of 11 warned). Chosen without the region tested, average coverage is 76% (10 of 11 warned), against 55% for 5,000 random draws of responsive manholes (8.3 of 11 warned) and 33% for any random manholes (5.4 of 11 warned). Because R9 shares manholes with the regions it crosses, holding R9 out does not fully hide it, so Simulation 4 notes that the 76% unseen-region score is a little generous.</p>
+        <p><b>Age-weighted blind spot:</b> a design wet day where older pipes leak more (age-weighted inflow and infiltration) cannot be predicted from the other weather cases. When the age-weighted design wet case is held out of selection, even 8 sensors see 0% of its runs (in the 5-sensor set, only Sensor 3, manhole 4450922, detects it).</p>
+        <p><b>Stability across model revisions:</b> comparing Simulation 4's equal-home cut against Simulation 3's hand-picked cut on the same runs shares 4 of 5 sensors (MH4450531, MH4448345, MH4450922 and MH4452994). Across every model revision from October to Simulation 4, two sites appear in every 5-sensor set: Sensor 1 (manhole 4450531) and Sensor 3 (manhole 4450922).</p>`,
       team: { page: 19, quote: "The method was robust in average reconstruction across SWMM parameter variants, but exact sensor locations changed with model parameterisation." },
     },
     assumed: {
-      title: "Assumptions, missing 485-home source, and new-suburb checklist",
-      html: `<p><b>Assumptions and unmodelled factors:</b> the SWMM model has no field calibration. The 10 mm and 25 mm rise rules, the 0.7 bore pipe limit, the triage bands, the 25 mm float margin, and the $25k / $1k sensor prices are all assumed. Sensors never fail in Simulation 4 (long-term sensor drift and outages are not modelled).</p>
+      title: "Assumptions, missing 485-home source and new-suburb checklist",
+      html: `<p><b>Assumptions and unmodelled factors:</b> the SWMM model has no field calibration. The 10 mm and 25 mm rise rules, the limit of 70% of pipe depth (assumed), the triage bands, the 25 mm float switch margin, and the $25k and $1k sensor prices are all assumed. Sensors never fail in Simulation 4 (long-term sensor drift and outages are not modelled).</p>
         <p><b>485-home projection source still needed:</b> Simulation 4's <code>regions.js</code> anchors Walkerville's 2041 growth at 485 projected homes (used both to scale the 8 equal-home regions and as R9's corridor anchor), but the underlying planning projection document is not in the repository and is still needed for audit traceability.</p>
-        <p><b>What settles 1 vs 5 sensors:</b> wet-weather level records (not normal dry-day records) are needed to check which infiltration case Walkerville actually experiences. Covering 90% of all 7 wet cases requires 6 level sensors, and covering 100% requires 10.</p>
-        <p><b>What a new suburb must supply:</b> pipe and manhole positions, inverts, diameters and lids; outlet and exit pipes; existing and projected homes (to cut regions by spatial bisection); property connections and pump station rates; wet-weather inflow cases; and the utility's own pipe limit, rise rule and device prices (plus trunk main criteria if testing greenfield estates, such as the team's assumed 225 mm rule).</p>`,
+        <p><b>What settles 1 vs 5 sensors:</b> wet-weather level records (not normal dry-day records) are needed to check which infiltration case Walkerville actually experiences. In Simulation 4's "Fewest sensors by weather covered" table, covering 90% of all 7 wet cases requires 6 level sensors, and covering 100% requires 10.</p>
+        <p><b>What a new suburb must supply:</b> pipe and manhole positions, inverts, diameters and lids; outlet and exit pipes; existing and projected homes (to cut regions by spatial bisection); property connections and pump station rates; wet-weather inflow cases; and the utility's own pipe depth limit, rise rule and device prices.</p>`,
     },
     close: {
       title: "Staged rollout details and manhole IDs",
-      html: `<p><b>Priority regions:</b> monitor R3 (2 to 59 homes to the assumed 0.7 bore limit; 2041 projection 54) and R7 (6 to 71 homes to limit; 2041 projection 55) first. Watch R1, R4 and R9. Remember that R1 runs out in 3 of 7 wet cases just as R3 does, R8 is already over 0.7 in 4 of 7 wet cases, and only R5 keeps room across all 7 wet cases.</p>
-        <p><b>The 5-sensor ladder ($25k each, assumed):</b><br>
-        <b>Sensor 1 (MH4450531, R3):</b> $25k; sees 16 of 16 Design wet runs (53% average across 7 wet cases; 4 stand-ins).<br>
-        <b>Sensor 2 (MH4448345, R4):</b> adds wetter-weather R1/R4 coverage (72% average, 11 of 11 warned; 0 stand-ins).<br>
-        <b>Sensor 3 (MH4450922, R7/R9):</b> adds age-weighted Design wet coverage (44% worst / 86% average; 3 stand-ins; check site surcharge).<br>
-        <b>Sensor 4 (MH4452994, R2 through-flow):</b> catches R9 and R3 in wetter cases (69% worst / 92% average; 23 stand-ins).<br>
-        <b>Sensor 5 (MH4428268, R1):</b> lifts coverage to 81% worst / 94% average ($125k assumed; 0 stand-ins). Expanding to 6 sensors reaches 90% across all 7 wet cases, and 10 sensors reaches 100%.</p>`,
+      html: `<p><b>Priority regions:</b> monitor R3 (2 to 59 homes to the 0.7 limit; 2041 projection 54) and R7 (6 to 71 homes to the 0.7 limit; 2041 projection 55) first. Watch R1, R4 and R9. Remember that R1 runs out in 3 of 7 wet cases just as R3 does, R8 is already over the 0.7 limit in 4 of 7 wet cases, and only R5 keeps room across all 7 wet cases.</p>
+        <p><b>The 5-sensor staged plan ($25k each, assumed):</b><br>
+        <b>Sensor 1 (manhole 4450531, R3):</b> $25k; sees all 16 of 16 growth runs on a design wet day (0% in the worst case, 53% on average across 7 wet cases; 4 stand-ins with the same score, of which the nearest 3 are MH4450391, MH4450137 and MH4449796).<br>
+        <b>Sensor 2 (manhole 4448345, R4):</b> adds wetter-weather R1 and R4 coverage (0% in the worst case, 72% on average, and reaches 11 of 11 overloads warned; 0 stand-ins).<br>
+        <b>Sensor 3 (manhole 4450922, R7 and R9):</b> adds coverage for the age-weighted design wet case (44% in the worst case, 86% on average; 3 stand-ins; check site surcharge).<br>
+        <b>Sensor 4 (manhole 4452994, R2 through-flow):</b> catches R9 and R3 in wetter cases (69% in the worst case, 92% on average; 23 stand-ins).<br>
+        <b>Sensor 5 (manhole 4428268, R1):</b> lifts coverage to 81% in the worst case, 94% on average ($125k assumed; 0 stand-ins). In Simulation 4's "Fewest sensors by weather covered" table, 6 sensors reach 90% across all 7 wet cases and 10 sensors reach 100%.</p>`,
     },
     frontier: {
       title: "Reading this chart",
-      html: `<p><b>x-axis:</b> number of continuous level sensors on the Simulation 4 nested ladder, 1 to 8.<br><b>y-axis:</b> share of detectable growth runs seen across the target regions (R1, R3, R4, R7 and R9) up to 100% build-out.</p>
-        <p><b>Solid curves (10 mm assumed rule):</b> average across the 7 wet cases climbs from 53% (1 sensor) to 94% (5 sensors) and 98% (8 sensors); worst wet case climbs from 0% (1 to 2 sensors) to 81% (5 sensors) and 94% (7 to 8 sensors). An unnested exact solver gets 88% worst / 94% average at 5 sensors.</p>
-        <p><b>Dashed curve (25 mm strict rule):</b> average across the 7 wet cases climbs from 21% (1 sensor) to 45% (5 sensors, 36% worst case) and 52% (8 sensors). One run moves a case's score by 5 to 7 points.</p>`,
+      html: `<p><b>x-axis:</b> number of continuous level sensors in the Simulation 4 staged plan, 1 to 8.<br><b>y-axis:</b> share of detectable growth runs seen across the target regions (R1, R3, R4, R7 and R9) up to 100% build-out.</p>
+        <p><b>Solid curves (10 mm assumed rule):</b> worst wet case climbs from 0% (1 to 2 sensors) to 81% in the worst case at 5 sensors and 94% at 7 to 8 sensors; average across the 7 wet cases climbs from 53% at 1 sensor to 94% on average at 5 sensors and 98% at 8 sensors. An unnested exact solver reaches 88% in the worst case, 94% on average at 5 sensors.</p>
+        <p><b>Dashed curve (25 mm strict rule):</b> at 5 sensors, coverage drops to 36% in the worst case, 45% on average (climbing from 21% on average at 1 sensor to 52% at 8 sensors). One run moves a case's score by 5 to 7 percentage points.</p>`,
       team: { page: 20, quote: "Exact and convex methods can be accurate but do not scale easily; greedy methods are efficient but can be locally suboptimal; evolutionary methods explore more alternatives but cost more computation." },
     },
     beats: {
       title: "Reading this chart",
-      html: `<p>Grouped bars compare the nested level-sensor list, floats only, and an unnested free mix at $25k, $75k and $125k (assuming $25k per level sensor, $1k per float switch, and a 25 mm float margin above normal).</p>
-        <p>Floats alone stall at 35% average and 0% worst case at every budget (15 floats for $15k hit the ceiling). At $75k, 2 level sensors + 6 floats ($56k) reach 62% worst / 79% average against 44% worst / 86% average for 3 level sensors.</p>`,
+      html: `<p>Horizontal bars compare the staged level-sensor plan, float switches only, and a separately chosen mix at $75k (assuming $25k per level sensor, $1k per float switch, and a 25 mm float switch margin above normal depth).</p>
+        <p>Float switches alone stall at 0% in the worst case, 35% on average at every budget (15 float switches for $15k hit the ceiling). At $75k, 2 level sensors and 6 float switches ($56k) reach 62% in the worst case, 79% on average, against 44% in the worst case, 86% on average for 3 level sensors in the staged plan.</p>`,
       team: { page: 9, quote: "Float or tilt devices can provide a robust threshold event, such as a high-level alarm, with a simple sensing principle. They do not provide the level history, rate of rise, or normal-pattern information available from a continuous sensor." },
     },
     holdout: {
       title: "Reading this chart",
-      html: `<p>For the 5-sensor ladder (10 mm rule), in-sample coverage is 94% average and 81% worst case (11 of 11 overloads warned). Held-out weather drops to 77% (10 of 11 warned) and held-out region to 76% (10 of 11 warned, a little generous because R9 overlaps other regions), still well above 5,000 random draws of responsive manholes (55%) or any manholes (33%). If age-weighted Design wet is held out, even 8 sensors see 0% of it.</p>`,
+      html: `<p>For the 5-sensor staged plan (10 mm rule), in-sample coverage is 81% in the worst case, 94% on average (11 of 11 overloads warned). Weather left out drops to 77% on average (10 of 11 warned) and region left out to 76% on average (10 of 11 warned; R9 shares manholes with other regions, so this test is not fully independent), still well above 5,000 random draws of responsive manholes (55%) or any manholes (33%). If the age-weighted design wet case is held out, even 8 sensors see 0% of it.</p>`,
       team: { page: 19, quote: "The method was robust in average reconstruction across SWMM parameter variants, but exact sensor locations changed with model parameterisation." },
-    },
-    answerstats: {
-      title: "What these numbers mean",
-      html: `<p><b>16 of 16 runs:</b> the 16 detectable target-region growth runs on a design wet day.<br><b>11 of 11 overloads:</b> the 11 region-weather pairs (across 50 surcharged runs and 1 spilled run out of 315 wet runs) where a manhole newly surcharges or spills. One run shifts a case's score by 5 to 7 points.</p>`,
-    },
-    stress: {
-      title: "Reading this map and table",
-      html: `<p>Regions R1 to R8 are cut by spatial bisection adapted from Kim et al. (2022) at pipe ends, with R9 overlapping along Walkerville Terrace. Triage uses Design wet only (assumed 0.7 bore limit), while only R5 keeps room in all 7 wet cases.</p>`,
-    },
-    register: {
-      title: "Reading this table",
-      html: `<p>Key limitations and assumptions stated in Simulation 4, the 485-home planning source still needed, and the data checklist for a new suburb.</p>`,
     },
   },
 };
