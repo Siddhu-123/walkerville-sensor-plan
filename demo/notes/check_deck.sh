@@ -10,10 +10,10 @@ const fs = require('fs'), vm = require('vm');
 const context = {window: {}};
 vm.runInNewContext(fs.readFileSync('demo/scenes.js', 'utf8'), context, {timeout: 1000});
 const scenes = context.window.OSP_SCENES;
-if (!Array.isArray(scenes) || scenes.length !== 9 ||
+if (!Array.isArray(scenes) || scenes.length !== 11 ||
     scenes.some(scene => !scene || typeof scene !== 'object' || Array.isArray(scene)) ||
     scenes[0].id !== 'welcome' || scenes.filter(scene => scene.id === 'welcome').length !== 1) {
-  console.error('FAIL: want exactly 9 scene objects (welcome + 8)');
+  console.error('FAIL: want exactly 11 scene objects (welcome + 10)');
   process.exit(1);
 }
 const body = scenes.slice(1);
@@ -33,7 +33,11 @@ if (body.filter(sc => sc.stats || /class="stats"/.test(sc.html || '')).length > 
 const acts = [...new Set(body.map(sc => sc.act))];
 if (acts.length < 4 || acts.length > 5) bad.push('want 4 to 5 grouped acts, got ' + acts.length);
 if (bad.length) { console.error('FAIL:\n' + bad.join('\n')); process.exit(1); }
-console.log('scenes: 9 (welcome + 8), acts: ' + acts.length);
+const order = body.map(sc => sc.id).join(',');
+if (order !== 'brief,problem,built,method,regions,sensors,type,holdup,close,assumed') bad.push('scene order: ' + order);
+if (/October|Sim 3\.5|since October/i.test(body.map(sc => (sc.html||'')+(sc.after||'')+sc.title+sc.kicker).join(' '))) bad.push('version history on slides');
+if (bad.length) { console.error('FAIL:\n' + bad.join('\n')); process.exit(1); }
+console.log('scenes: 11 (welcome + 10), acts: ' + acts.length);
 JS
 if grep -nE '—|What we did:|The result:' demo/scenes.js; then
   echo "FAIL: scene writing rule"; exit 1; fi
