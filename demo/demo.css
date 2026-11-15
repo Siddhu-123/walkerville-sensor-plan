@@ -1,6 +1,7 @@
 /* Story demo, layered on welcome.css (index.html's own styles). Same tokens, type and sheet; this file
    adds the story card, map labels, charts and the one small navigation row. */
 :root {
+  --triage-leave: #82917d;
   --teal: #2d6a6e;
   --teal-deep: #1f4e52;
   --water: #2c7f95;
@@ -56,6 +57,7 @@
 }
 
 html[data-theme="dark"] {
+  --triage-leave: #8b9d8a;
   --teal: #5fb3b3;
   --teal-deep: #5fb3b3;
   --water: #70b9cc;
@@ -198,7 +200,7 @@ body.is-welcome .card { justify-content: space-between; max-width: none; }
 .card .refs li { padding-left: 1.5em; text-indent: -1.5em; margin: 0 0 8px; }
 .card .refs a { color: var(--teal-deep); overflow-wrap: anywhere; }
 
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 14px; margin: 2px 0 16px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 14px; margin: 2px 0 12px; }
 .stat { padding-top: 10px; border-top: 1px solid var(--ink); }
 .stat b { display: block; font-size: clamp(30px, 2.6vw, 38px); font-weight: 300; line-height: 1; letter-spacing: -0.03em; color: var(--ink); }
 .stat span { display: block; margin-top: 6px; font-size: 11.5px; line-height: 1.4; color: var(--ink-muted); }
@@ -296,6 +298,7 @@ body.is-welcome .card { justify-content: space-between; max-width: none; }
 .cite[data-src] { text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
 .info-host { position: relative; padding-top: 26px; }
 .info-chart { max-width: 380px; }
+.info-chart .info-button { top: auto; bottom: 6px; }
 .card .info-button { position: absolute; top: 1px; right: 0; display: grid; place-items: center;
   width: 22px; height: 22px; padding: 0; border: 1px solid var(--rule-strong); border-radius: 50%;
   background: var(--paper); color: var(--teal-deep); font-size: 12px; font-weight: 600; line-height: 1; cursor: pointer; }
@@ -406,11 +409,14 @@ body.is-welcome #source, body.is-welcome #furniture { opacity: 0; }
   .card p:not([class^="welcome"]) { font-size: 13px; line-height: 1.5; margin-bottom: 9px; }
   .card p.lead { font-size: 14px; }
   .card p.note { font-size: 11px; line-height: 1.45; }
+  .card li { font-size: 13px; line-height: 1.45; margin-bottom: 4px; }
+  .card ul { margin-bottom: 8px; }
+  .info-host { padding-top: 20px; }
   .stats { margin-bottom: 12px; gap: 10px; }
   .stat b { font-size: 28px; }
   .params > div { padding: 6px 0; }
-  .info-chart { max-width: 330px; }
-  .chart { max-width: 330px; margin: 4px 0 8px; }
+  .info-chart { max-width: 250px; }
+  .chart { max-width: 250px; margin: 4px 0 8px; }
   #bar { margin-top: 14px; padding-top: 10px; }
 }
 @media (max-width: 520px) {
@@ -426,3 +432,6 @@ body.is-welcome #source, body.is-welcome #furniture { opacity: 0; }
 body:not(.is-welcome) #map { filter: saturate(.72); }
 
 html[data-theme="dark"] .steps .dropped span { opacity: 1; }
+
+/* Region tags use the same map-label family as sensor tags. */
+.lbl.region-label.overlap { border-style: dashed; border-color: var(--amber); }
