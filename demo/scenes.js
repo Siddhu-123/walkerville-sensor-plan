@@ -17,7 +17,7 @@ window.OSP_SCENES = [
     html: `<div class="welcome-top">
         <div class="welcome-kicker">{{uni_name}} · SA Water</div>
         <h1 class="welcome-heading welcome-topic">Optimal sensor placement for wastewater network monitoring</h1>
-        <p class="welcome-greeting">Wet weather already fills Walkerville's sewers before any new homes connect, while 2041 infill growth adds no new surcharge on a design wet day. We test {{sites}} manholes and {{swmm_links}} pipes across {{regions}} regions to find where {{plan_k0}} to {{plan_k1}} level sensors catch growth early.</p>
+        <p class="welcome-greeting">Wet weather already fills Walkerville's sewers, and new homes keep connecting to them. We work out how many level sensors the network needs, and where, so growth shows before it causes an overflow.</p>
         <div class="welcome-start">
           <button class="start-btn" type="button" data-go><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5 L10.5 6 L3 10.5 Z" /></svg>Start</button>
           <span class="welcome-hint">or press →</span>
@@ -181,8 +181,8 @@ window.OSP_SCENES = [
     html: `<p>Every figure comes from an uncalibrated model using a {{rise_focus_mm}} mm rise rule (assumed). Wet-weather level records decide between {{plan_k0}} sensor and {{plan_k1}}.</p>
       <div class="params">
         <div><span class="k">Wet-weather records</span><span class="v"><span class="chip confirm" data-src="infiltration">to confirm</span></span><span class="s">Settles {{plan_k0}} sensor vs {{plan_k1}} ({{sensors_90pct_all_wet}} sensors cover 90% of all {{wet_cases}} wet cases; {{sensors_100pct_all_wet}} cover 100%).</span></div>
-        <div><span class="k">Rules and uptime</span><span class="v"><span class="chip declared" data-src="sim4">declared</span></span><span class="s">Uses {{rise_focus_mm}} mm and {{rise_strict_mm}} mm rules, the {{limit_bore_dec}} limit and {{level_price}} / {{float_price}} prices; sensors never fail.</span></div>
-        <div><span class="k">Noise and {{homes_2041}} homes</span><span class="v"><span class="chip confirm" data-src="sim4">to confirm</span></span><span class="s">One run shifts scores by {{run_noise_min}} to {{run_noise_max}} percentage points so {{avg_k5}}% and {{avg_k4}}% are effectively equal; the {{homes_2041}}-home source is needed.</span></div>
+        <div><span class="k">Model rules</span><span class="v"><span class="chip declared" data-src="sim4">declared</span></span><span class="s">Uses {{rise_focus_mm}} mm and {{rise_strict_mm}} mm rules, the {{limit_bore_dec}} limit and {{level_price}} / {{float_price}} prices; sensors never fail.</span></div>
+        <div><span class="k">Precision and projection</span><span class="v"><span class="chip confirm" data-src="sim4">to confirm</span></span><span class="s">One run shifts scores by {{run_noise_min}} to {{run_noise_max}} percentage points so {{avg_k5}}% and {{avg_k4}}% are effectively equal; the {{homes_2041}}-home source is needed.</span></div>
       </div>`,
     after: `<p class="note">To repeat this for another suburb: <strong>its pipe map, home projections, pump rates and weather cases.</strong></p>`,
   },
