@@ -205,10 +205,10 @@ window.OSP_SCENES = [
     after: `<p class="note">Sensors 1 and 3 stayed in every five-sensor plan the team tested. <strong>The plan has to be chosen across all the weather it will face.</strong></p>`,
   },
 
-  // 9 · Our recommendation · The answer
+  // 9 · Recommendation · The answer
   {
     id: "answer",
-    act: "Our recommendation",
+    act: "Recommendation",
     kicker: "The answer",
     title: "How many, which type, where",
     view: "all",
@@ -223,10 +223,10 @@ window.OSP_SCENES = [
     after: `<p class="note"><strong>Start with Sensor 1, then grow to {{plan_k1}} as budget allows.</strong></p>`,
   },
 
-  // 10 · Our recommendation · The first step
+  // 10 · Recommendation · The first step
   {
     id: "close",
-    act: "Our recommendation",
+    act: "Recommendation",
     kicker: "The first step",
     title: "Start with Sensor 1 in R3, then grow to five",
     view: "p1",
@@ -248,10 +248,10 @@ window.OSP_SCENES = [
     after: `<p class="note"><strong>One sensor tests the design wet day now, and stays in place if the plan grows to five.</strong></p>`,
   },
 
-  // 11 · Our recommendation · Cost and benefit
+  // 11 · Recommendation · Cost and benefit
   {
     id: "cost",
-    act: "Our recommendation",
+    act: "Recommendation",
     kicker: "Cost and benefit",
     title: "What each budget buys",
     view: "all",
@@ -267,11 +267,11 @@ window.OSP_SCENES = [
     after: `<p class="note">Beyond {{cost_k5}}, <strong>each extra sensor adds little</strong>: {{worst_k6}}% in the worst case at 6 sensors, {{worst_k8}}% at 8.</p>`,
   },
 
-  // 12 · What we hand over · Deliverables
+  // 12 · Handover · Project scope
   {
     id: "deliver",
-    act: "What we hand over",
-    kicker: "Deliverables",
+    act: "Handover",
+    kicker: "Project scope",
     title: "What the project delivers",
     view: "all",
     ms: 1400,
@@ -287,16 +287,16 @@ window.OSP_SCENES = [
     after: `<p class="note"><strong>D1 to D5 are in this presentation and the tools.</strong></p>`,
   },
 
-  // 13 · What we hand over · Handover
+  // 13 · Handover · Files and tools
   {
     id: "handover",
-    act: "What we hand over",
-    kicker: "Handover",
+    act: "Handover",
+    kicker: "Files and tools",
     title: "What the next team receives",
     view: "all",
     ms: 1400,
     show: { basemap: 0.48, pipes: 0.9, chambers: 0.45 },
-    html: `<p>Everything runs from public data and is kept on GitHub.</p>
+    html: `<p>The tool, model and library are public on GitHub.</p>
       <div class="params">
         <div><span class="k">Simulation tool</span><span class="v"></span><span class="s"><a href="https://abrahampaulj.github.io/gravity-sewer-osp/simulation4/index.html" target="_blank" rel="noopener">An online simulation tool</a> and its Python source.</span></div>
         <div><span class="k">Walkerville model</span><span class="v"></span><span class="s">An EPA SWMM 5.2 model of {{sites}} manholes and {{swmm_links}} pipes.</span></div>
