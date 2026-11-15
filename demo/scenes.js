@@ -205,7 +205,25 @@ window.OSP_SCENES = [
     after: `<p class="note">Sensors 1 and 3 stayed in every five-sensor plan the team tested. <strong>The plan has to be chosen across all the weather it will face.</strong></p>`,
   },
 
-  // 9 · Our recommendation · The first step
+  // 9 · Our recommendation · The answer
+  {
+    id: "answer",
+    act: "Our recommendation",
+    kicker: "The answer",
+    title: "How many, which type, where",
+    view: "all",
+    ms: 1400,
+    show: { basemap: 0.48, pipes: 0.9, chambers: 0.45 },
+    html: `<p>The three questions in the brief, answered from the model.</p>
+      <div class="params">
+        <div><span class="k">How many</span><span class="v"></span><span class="s">{{plan_k0}} level sensor covers a design wet day; {{plan_k1}} cover wetter weather.</span></div>
+        <div><span class="k">Which type</span><span class="v"></span><span class="s">Level sensors. Float switches only warn of spills and saw {{float_worst}}% of growth in the worst case.</span></div>
+        <div><span class="k">Where</span><span class="v"></span><span class="s">Monitor {{monitor_regions}} first, starting with Sensor 1 in R3; the five-sensor plan covers {{target_regions}}.</span></div>
+      </div>`,
+    after: `<p class="note"><strong>Start with Sensor 1, then grow to {{plan_k1}} as budget allows.</strong></p>`,
+  },
+
+  // 10 · Our recommendation · The first step
   {
     id: "close",
     act: "Our recommendation",
@@ -230,7 +248,65 @@ window.OSP_SCENES = [
     after: `<p class="note"><strong>One sensor tests the design wet day now, and stays in place if the plan grows to five.</strong></p>`,
   },
 
-  // 10 · For the next team · What to work on next
+  // 11 · Our recommendation · Cost and benefit
+  {
+    id: "cost",
+    act: "Our recommendation",
+    kicker: "Cost and benefit",
+    title: "What each budget buys",
+    view: "all",
+    ms: 1400,
+    show: { basemap: 0.48, pipes: 0.9, chambers: 0.45 },
+    html: `<p>Level sensors at {{level_price}} each (assumed); share of detectable growth seen, worst case first.</p>
+      <div class="params">
+        <div><span class="k">{{cost_k1}}, 1 sensor</span><span class="v"></span><span class="s">{{worst_k1}}% in the worst case, {{avg_k1}}% on average.</span></div>
+        <div><span class="k">{{cost_k3}}, 3 sensors</span><span class="v"></span><span class="s">{{worst_k3}}% in the worst case, {{avg_k3}}% on average.</span></div>
+        <div><span class="k">{{cost_k5}}, 5 sensors</span><span class="v"></span><span class="s">{{worst_k5}}% in the worst case, {{avg_k5}}% on average.</span></div>
+        <div><span class="k">Float switches only</span><span class="v"></span><span class="s">{{float_cap_count}} switches ({{float_cap_cost}}) reach {{float_worst}}% in the worst case, {{float_avg}}% on average, and more switches add nothing.</span></div>
+      </div>`,
+    after: `<p class="note">Beyond {{cost_k5}}, <strong>each extra sensor adds little</strong>: {{worst_k6}}% in the worst case at 6 sensors, {{worst_k8}}% at 8.</p>`,
+  },
+
+  // 12 · What we hand over · Deliverables
+  {
+    id: "deliver",
+    act: "What we hand over",
+    kicker: "Deliverables",
+    title: "What the project delivers",
+    view: "all",
+    ms: 1400,
+    show: { basemap: 0.48, pipes: 0.9, chambers: 0.45 },
+    html: `<p>Each deliverable in the project scope, and where it sits.</p>
+      <div class="params">
+        <div><span class="k">D1 Literature review</span><span class="v"></span><span class="s">The sensor review, the team compiled paper and a research library of 58 summarised papers.</span></div>
+        <div><span class="k">D2 Parameter catalogue</span><span class="v"></span><span class="s">Network and placement parameters, with evidence for each.</span></div>
+        <div><span class="k">D3 and D4 Placement approach and pilot plan</span><span class="v"></span><span class="s">Equal-home regions and the staged plan, applied to Walkerville.</span></div>
+        <div><span class="k">D5 Cost and information trade-off</span><span class="v"></span><span class="s">Level sensors against float switches at each budget.</span></div>
+        <div><span class="k">D6 to D8 Guidelines, business case and handover</span><span class="v"><span class="chip confirm">to confirm</span></span><span class="s">Covered in the final report.</span></div>
+      </div>`,
+    after: `<p class="note"><strong>D1 to D5 are in this presentation and the tools.</strong></p>`,
+  },
+
+  // 13 · What we hand over · Handover
+  {
+    id: "handover",
+    act: "What we hand over",
+    kicker: "Handover",
+    title: "What the next team receives",
+    view: "all",
+    ms: 1400,
+    show: { basemap: 0.48, pipes: 0.9, chambers: 0.45 },
+    html: `<p>Everything runs from public data and is kept on GitHub.</p>
+      <div class="params">
+        <div><span class="k">Simulation tool</span><span class="v"></span><span class="s"><a href="https://abrahampaulj.github.io/gravity-sewer-osp/simulation4/index.html" target="_blank" rel="noopener">An online simulation tool</a> and its Python source.</span></div>
+        <div><span class="k">Walkerville model</span><span class="v"></span><span class="s">An EPA SWMM 5.2 model of {{sites}} manholes and {{swmm_links}} pipes.</span></div>
+        <div><span class="k">Data warehouse</span><span class="v"></span><span class="s">19 datasets and an availability matrix.</span></div>
+        <div><span class="k">Research library</span><span class="v"></span><span class="s"><a href="https://siddhu-123.github.io/waste_water_network_sensor-papers/" target="_blank" rel="noopener">58 summarised papers</a> sorted by topic, with a PDF viewer.</span></div>
+      </div>`,
+    after: `<p class="note"><strong>The next team starts from the same model, data and code.</strong></p>`,
+  },
+
+  // 14 · For the next team · What to work on next
   {
     id: "assumed",
     act: "For the next team",

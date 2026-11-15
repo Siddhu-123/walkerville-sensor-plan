@@ -10,10 +10,10 @@ const fs = require('fs'), vm = require('vm');
 const context = {window: {}};
 vm.runInNewContext(fs.readFileSync('demo/scenes.js', 'utf8'), context, {timeout: 1000});
 const scenes = context.window.OSP_SCENES;
-if (!Array.isArray(scenes) || scenes.length !== 11 ||
+if (!Array.isArray(scenes) || scenes.length !== 15 ||
     scenes.some(scene => !scene || typeof scene !== 'object' || Array.isArray(scene)) ||
     scenes[0].id !== 'welcome' || scenes.filter(scene => scene.id === 'welcome').length !== 1) {
-  console.error('FAIL: want exactly 11 scene objects (welcome + 10)');
+  console.error('FAIL: want exactly 15 scene objects (welcome + 14)');
   process.exit(1);
 }
 const body = scenes.slice(1);
@@ -31,13 +31,13 @@ for (const sc of body) {
 }
 if (body.filter(sc => sc.stats || /class="stats"/.test(sc.html || '')).length > 3) bad.push('stats on more than 3 slides');
 const acts = [...new Set(body.map(sc => sc.act))];
-if (acts.length < 4 || acts.length > 5) bad.push('want 4 to 5 grouped acts, got ' + acts.length);
+if (acts.length < 4 || acts.length > 6) bad.push('want 4 to 6 grouped acts, got ' + acts.length);
 if (bad.length) { console.error('FAIL:\n' + bad.join('\n')); process.exit(1); }
 const order = body.map(sc => sc.id).join(',');
-if (order !== 'brief,problem,built,method,regions,sensors,type,holdup,close,assumed') bad.push('scene order: ' + order);
+if (order !== 'brief,problem,built,method,regions,sensors,type,holdup,answer,close,cost,deliver,handover,assumed') bad.push('scene order: ' + order);
 if (/October|Sim 3\.5|since October/i.test(body.map(sc => (sc.html||'')+(sc.after||'')+sc.title+sc.kicker).join(' '))) bad.push('version history on slides');
 if (bad.length) { console.error('FAIL:\n' + bad.join('\n')); process.exit(1); }
-console.log('scenes: 11 (welcome + 10), acts: ' + acts.length);
+console.log('scenes: 15 (welcome + 14), acts: ' + acts.length);
 JS
 if grep -nE '—|What we did:|The result:' demo/scenes.js; then
   echo "FAIL: scene writing rule"; exit 1; fi
@@ -58,4 +58,4 @@ if grep -nE 'calls this|deck.s five|Sim 3\.5 five|Begin the walk-through|pts\b' 
 [ -n "$SCENES_ONLY" ] && { echo "OK (scenes only)"; exit 0; }
 if grep -nE 'Open Simulation 4|Circle = |Square = ' demo/engine.js demo.html; then echo "FAIL: meta or drifted labels"; exit 1; fi
 if grep -nE 'min-width: ?400px' demo/demo.css; then echo "FAIL: chart min-width"; exit 1; fi
-echo OK
+echo "OK (scenes: 15 (welcome + 14))"
