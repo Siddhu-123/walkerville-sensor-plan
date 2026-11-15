@@ -87,8 +87,8 @@ window.OSP_SCENES = [
       <div class="params">
         <div><span class="k">Sensor review</span><span class="v"></span><span class="s">A literature review of level, flow and float sensors and of placement methods. Finding: no single best sensor, and level is not flow.</span></div>
         <div><span class="k">Parameter catalogue</span><span class="v"></span><span class="s">The network and placement parameters the method needs, with the evidence for each.</span></div>
-        <div><span class="k">Data availability matrix</span><span class="v"></span><span class="s">19 public sewer datasets checked for use in the tool.</span></div>
-        <div><span class="k">Walkerville model and simulation tool</span><span class="v"></span><span class="s">An EPA SWMM 5.2 model of {{sites}} manholes and {{swmm_links}} pipes, and <a href="https://abrahampaulj.github.io/gravity-sewer-osp/simulation4/index.html" target="_blank" rel="noopener">Simulation 4 online</a> with growth and wet-weather cases.</span></div>
+        <div><span class="k">Data availability matrix</span><span class="v"></span><span class="s">19 datasets (pipes, rainfall, census and more) checked for use in the tool.</span></div>
+        <div><span class="k">Walkerville model and simulation tool</span><span class="v"></span><span class="s">An EPA SWMM 5.2 model of {{sites}} manholes and {{swmm_links}} pipes, and <a href="https://abrahampaulj.github.io/gravity-sewer-osp/simulation4/index.html" target="_blank" rel="noopener">an online simulation tool</a> with growth and wet-weather cases.</span></div>
       </div>`,
     after: `<p class="note"><strong>Each finding that follows comes from this model.</strong></p>`,
   },
@@ -174,9 +174,9 @@ window.OSP_SCENES = [
     chart: "type",
     legend: "type",
     info: { chart: "type" },
-    html: `<p>Level sensors ({{level_price}} each, assumed) with <span class="cite" data-src="brieftype">float switches</span> ({{float_price}} each) were compared on the same runs <span class="chip declared" data-src="sim4">declared</span>.</p>
+    html: `<p>Level sensors ({{level_price}} each, assumed) and <span class="cite" data-src="brieftype">float switches</span> ({{float_price}} each) were compared on the same runs <span class="chip declared" data-src="sim4">declared</span>.</p>
       <ul>
-        <li>A float switch counts only if it sits {{float_margin_mm}} mm above normal depth, stays quiet on a design wet day.</li>
+        <li>A float switch counts only if it sits {{float_margin_mm}} mm above normal depth and stays quiet on a design wet day.</li>
         <li>Alone, {{float_cap_count}} float switches ({{float_cap_cost}}) stall at {{float_worst}}% in the worst case, {{float_avg}}% on average.</li>
         <li>At {{cost_k3}}, a separately chosen mix of 2 level sensors and 6 float switches ({{mix_75k_cost}}) sees {{mix_75k_worst}}% in the worst case, {{mix_75k_avg}}% on average, vs {{worst_k3}}% in the worst case, {{avg_k3}}% on average for 3 level sensors.</li>
       </ul>`,
@@ -244,7 +244,7 @@ window.OSP_SCENES = [
     html: `<p>Every figure comes from an uncalibrated model with a {{rise_focus_mm}} mm rise rule (assumed).</p>
       <div class="params">
         <div><span class="k">Wet-weather level records</span><span class="v"><span class="chip confirm" data-src="infiltration">to confirm</span></span><span class="s">They settle {{plan_k0}} sensor versus {{plan_k1}} ({{sensors_90pct_all_wet}} sensors cover 90% of all {{wet_cases}} wet cases; {{sensors_100pct_all_wet}} cover 100%).</span></div>
-        <div><span class="k">Calibrate the model</span><span class="v"><span class="chip declared" data-src="sim4">declared</span></span><span class="s">Test the {{rise_focus_mm}} mm rule and {{limit_bore_dec}} limit on measured levels; replace the prices with quotes.</span></div>
+        <div><span class="k">Calibrate the model</span><span class="v"><span class="chip declared" data-src="sim4">declared</span></span><span class="s">Test the {{rise_focus_mm}} and {{rise_strict_mm}} mm rules and the {{limit_bore_dec}} limit on measured levels; replace the {{level_price}} and {{float_price}} prices with quotes.</span></div>
         <div><span class="k">Source the {{homes_2041}}-home projection</span><span class="v"><span class="chip confirm" data-src="sim4">to confirm</span></span><span class="s">Its planning source is still needed.</span></div>
         <div><span class="k">Sensor failure and precision</span><span class="v"><span class="chip confirm" data-src="sim4">to confirm</span></span><span class="s">The model assumes sensors never fail, and one run shifts a score by {{run_noise_min}} to {{run_noise_max}} percentage points.</span></div>
         <div><span class="k">Another suburb</span><span class="v"></span><span class="s">Needs its pipe map, home projections, pump rates and weather cases.</span></div>
