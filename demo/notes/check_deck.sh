@@ -52,7 +52,7 @@ grep -qiE 'sim(ulation)? ?4' demo/sources.js || { echo "FAIL: no Sim 4 content";
 if grep -nE 'Siloko|Wimukthiikawa|225 ?mm|trunk_min_mm|R1 and R2|Two of the eight|float_25' demo/scenes.js; then
   echo "FAIL: stale Sim 3.5 or wrong-name content"; exit 1; fi
 grep -q 'Wimukthi Rajapaksha' demo/scenes.js && grep -q 'Balanagu' demo/scenes.js || { echo "FAIL: team names"; exit 1; }
-grep -qiE 'limitation|what limits|what we assumed|what to check' demo/scenes.js || { echo "FAIL: no limitations scene"; exit 1; }
+grep -qiE 'limitation|what limits|what we assumed|what to check|next team' demo/scenes.js || { echo "FAIL: no limitations scene"; exit 1; }
 if grep -nE 'class="chip[^"]*"[^>]*>(Sim 4|triage|plan|future work|holdout|limits|method|wet cases)<' demo/scenes.js; then echo "FAIL: topic chips"; exit 1; fi
 if grep -nE 'calls this|deck.s five|Sim 3\.5 five|Begin the walk-through|pts\b' demo/scenes.js; then echo "FAIL: meta copy"; exit 1; fi
 [ -n "$SCENES_ONLY" ] && { echo "OK (scenes only)"; exit 0; }

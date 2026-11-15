@@ -112,6 +112,9 @@ window.OSP_LIB = {
     briefask: {
       lib: [{ doc: "team", page: 5, at: "defines the central problem as finding the optimal locations for float and level sensors", says: "The project brief asks for the best locations for float and level sensors, so that a minimum number of devices gives high monitoring capability across the network." }],
     },
+    request: {
+      lib: [{ doc: "team", page: 5, at: "defines the central problem as finding the optimal locations for float and level sensors", says: "The project brief (request.pdf, WIL Schedule 2) asks to identify the optimal sensor locations and number of sensors, develop a model for sensor placement and deployment density, and deliver recommended sensor locations and densities." }],
+    },
     brieftype: {
       lib: [{ doc: "team", page: 9, at: "Float or tilt devices can provide a robust threshold event", says: "Float or tilt devices give a threshold event, such as a high-level alarm. They do not give the level history or rate of rise that a continuous sensor gives." }],
     },
@@ -120,6 +123,16 @@ window.OSP_LIB = {
     },
     briefwithin: {
       lib: [{ doc: "team", page: 5, at: "Physical entry, installation, commissioning, and operational approval are outside this research stage", says: "Physical entry, installation, commissioning and operational approval are outside this research stage." }],
+    },
+    sim4tool: {
+      lib: [],
+      web: [
+        {
+          title: "Simulation 4 online tool (Walkerville sewer sensor placement)",
+          url: "https://abrahampaulj.github.io/gravity-sewer-osp/simulation4/index.html",
+          says: "Interactive Simulation 4 web tool for the Walkerville EPA SWMM 5.2 model, with region triage, staged sensor plans, level-versus-float comparisons and wet-weather holdout tests.",
+        },
+      ],
     },
     swmmnet: {
       lib: [{ doc: "swmm2", page: 19, at: "The conveyance portion of the drainage system is modeled with a network of Nodes and Links", says: "SWMM models the pipe network as nodes (junctions such as manholes) joined by links (pipes)." }],
@@ -188,6 +201,24 @@ window.OSP_LIB = {
   },
 
   info: {
+    brief: {
+      title: "Project brief and scope",
+      html: `<p><b>Original brief (<code>request.pdf</code>, WIL Schedule 2):</b> investigate the optimal placement and number of sensors required in a network to achieve effective monitoring while minimising deployment costs; identify the optimal sensor locations and number of sensors; develop a model for sensor placement and deployment density; and deliver recommended sensor locations and densities.</p>
+        <p><b>Focused scope:</b> growth-related load from new homes on gravity trunk sewers, comparing continuous level sensors and float switches on a single pilot network (Walkerville) as a desk-based study without physical installation or field validation.</p>`,
+    },
+    built: {
+      title: "Project deliverables and repository artefacts",
+      html: `<p><b>1 · Sensor review:</b> literature review of level, flow and float sensors and of sensor placement methods in wastewater networks. It finds that no single sensor suits every task, and water level alone is not flow when backwater or geometry is uncertain.</p>
+        <p><b>2 · Parameter catalogue:</b> network and placement parameters needed for overflow-risk and sensor-placement modelling, with source evidence and status for each.</p>
+        <p><b>3 · Data availability matrix:</b> 19 public South Australian and Australian sewer datasets checked for coverage, usable attributes and gaps.</p>
+        <p><b>4 · Walkerville model and simulation tool:</b> an EPA SWMM 5.2 hydraulic model of 328 manholes and 890 pipes, with <a href="https://abrahampaulj.github.io/gravity-sewer-osp/simulation4/index.html" target="_blank" rel="noopener">Simulation 4 online</a> covering 9 regions, 7 growth steps and 8 weather cases.</p>`,
+    },
+    method: {
+      title: "How the method works in Simulation 4",
+      html: `<p><b>Regions:</b> instead of hand-picked suburb boundaries (100 to 829 existing homes), Simulation 4 adapts recursive spatial bisection from Kim et al. (2022) to cut 8 regions of 233 to 418 existing homes (ideal 321), plus R9, the Walkerville Terrace corridor (179 existing homes, 485 projected homes) overlapping them. Unlike Kim et al. (2022) (who placed sensors for disease surveillance and cut at manholes), Simulation 4 cuts at pipe ends on the looped SWMM network and lets a manhole sit in two regions where flow divides.</p>
+        <p><b>Build-out steps:</b> each region is built out on its own at 0.1, 0.25, 0.5, 0.75, 1.0, 1.5 and 3.0 times its 2041 figure. The 1.5 and 3.0 stress steps explain why homes-to-limit ranges can extend past the 2041 projection.</p>
+        <p><b>Staged plan:</b> Simulation 4 builds a greedy staged plan from 1 to 8 continuous level sensors across the 5 target regions (R1, R3, R4, R7 and R9) up to 100% build-out.</p>`,
+    },
     problem: {
       title: "Baseline surcharge vs 2041 growth",
       html: `<p><b>Baseline today:</b> before any 2041 homes connect, the Simulation 4 EPA SWMM 5.2 model has 7 manholes surcharged (water above the pipe top, 0 spilling) on a design wet day (0.11 L/s per 100 m), 107 surcharged (1 spilling) in beyond-design wet weather (0.25 L/s per 100 m), and 141 surcharged (6 spilling) in severe wet weather (0.40 L/s per 100 m).</p>
@@ -241,7 +272,7 @@ window.OSP_LIB = {
       title: "Holdout tests, age-weighted blind spot and sensor stability",
       html: `<p><b>Holdout drops:</b> in-sample 5-sensor coverage in Simulation 4 is 81% in the worst case, 94% on average (11 of 11 overloads warned). Chosen without the weather case tested, average coverage falls to 77% (10 of 11 warned). Chosen without the region tested, average coverage is 76% (10 of 11 warned), against 55% for 5,000 random draws of responsive manholes (8.3 of 11 warned) and 33% for any random manholes (5.4 of 11 warned). Because R9 shares manholes with the regions it crosses, holding R9 out does not fully hide it, so Simulation 4 notes that the 76% unseen-region score is a little generous.</p>
         <p><b>Age-weighted blind spot:</b> a design wet day where older pipes leak more (age-weighted inflow and infiltration) cannot be predicted from the other weather cases. When the age-weighted design wet case is held out of selection, even 8 sensors see 0% of its runs (in the 5-sensor set, only Sensor 3, manhole 4450922, detects it).</p>
-        <p><b>Stability across model revisions:</b> comparing Simulation 4's equal-home cut against Simulation 3's hand-picked cut on the same runs shares 4 of 5 sensors (MH4450531, MH4448345, MH4450922 and MH4452994). Across every model revision from October to Simulation 4, two sites appear in every 5-sensor set: Sensor 1 (manhole 4450531) and Sensor 3 (manhole 4450922).</p>`,
+        <p><b>Stability across plans tested:</b> comparing Simulation 4's equal-home cut against Simulation 3's hand-picked cut on the same runs shares 4 of 5 sensors (MH4450531, MH4448345, MH4450922 and MH4452994). Across every five-sensor plan the team tested, two sites stayed in every set: Sensor 1 (manhole 4450531) and Sensor 3 (manhole 4450922).</p>`,
       team: { page: 19, quote: "The method was robust in average reconstruction across SWMM parameter variants, but exact sensor locations changed with model parameterisation." },
     },
     assumed: {

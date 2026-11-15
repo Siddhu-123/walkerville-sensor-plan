@@ -29,11 +29,29 @@ window.OSP_SCENES = [
       </footer>`,
   },
 
-  // 1 · The question · Wet weather
+  // 1 · The brief · What we were asked
+  {
+    id: "brief",
+    act: "The brief",
+    kicker: "What we were asked",
+    title: "How many sensors, which type, and where",
+    view: "all",
+    ms: 1400,
+    show: { basemap: 0.48, pipes: 0.9, chambers: 0.55 },
+    html: `<p>The <span class="cite" data-src="request">project brief</span> asks for the optimal sensor locations and number of sensors for a sewer network, with recommendations based on the results.</p>
+      <ul>
+        <li>The focus is growth: new homes adding load to trunk sewers, seen early enough to act before an overflow (<span class="cite" data-src="briefwatch">scope</span>).</li>
+        <li>Two device types are compared: continuous level sensors and <span class="cite" data-src="brieftype">float switches</span> (threshold alarms).</li>
+        <li>The study is desk-based: no installation or field validation <span class="chip sourced" data-src="briefwithin">sourced</span>.</li>
+      </ul>`,
+    after: `<p class="note"><strong>Tested on Walkerville's sewer network.</strong></p>`,
+  },
+
+  // 2 · The brief · Why it matters
   {
     id: "problem",
-    act: "The question",
-    kicker: "Wet weather",
+    act: "The brief",
+    kicker: "Why it matters",
     title: "Wet weather already fills pipes, before any new homes",
     view: "all",
     ms: 1400,
@@ -55,19 +73,39 @@ window.OSP_SCENES = [
     after: `<p class="note"><strong>Wet weather is the first pressure to measure.</strong></p>`,
   },
 
-  // 2 · Our approach · Since October
+  // 3 · What we built · Deliverables
   {
-    id: "changed",
-    act: "Our approach",
-    kicker: "Since October",
-    title: "What changed since the October demo",
+    id: "built",
+    act: "What we built",
+    kicker: "Deliverables",
+    title: "Four things built for this project",
+    view: "all",
+    ms: 1400,
+    show: { basemap: 0.48, pipes: 0.9, chambers: 0.45 },
+    info: { params: "built" },
+    html: `<p>Four pieces of work feed the recommendation.</p>
+      <div class="params">
+        <div><span class="k">Sensor review</span><span class="v"></span><span class="s">A literature review of level, flow and float sensors and of placement methods. Finding: no single best sensor, and level is not flow.</span></div>
+        <div><span class="k">Parameter catalogue</span><span class="v"></span><span class="s">The network and placement parameters the method needs, with the evidence for each.</span></div>
+        <div><span class="k">Data availability matrix</span><span class="v"></span><span class="s">19 public sewer datasets checked for use in the tool.</span></div>
+        <div><span class="k">Walkerville model and simulation tool</span><span class="v"></span><span class="s">An EPA SWMM 5.2 model of {{sites}} manholes and {{swmm_links}} pipes, and <a href="https://abrahampaulj.github.io/gravity-sewer-osp/simulation4/index.html" target="_blank" rel="noopener">Simulation 4 online</a> with growth and wet-weather cases.</span></div>
+      </div>`,
+    after: `<p class="note"><strong>Each finding that follows comes from this model.</strong></p>`,
+  },
+
+  // 4 · What we built · The method
+  {
+    id: "method",
+    act: "What we built",
+    kicker: "The method",
+    title: "Group homes into regions, then add sensors one at a time",
     view: "all",
     ms: 1400,
     style: "age",
     show: { basemap: 0.55, pipes: 1, homes: 0.65 },
     fx: "infill",
-    info: { params: "changed" },
-    html: `<p>The model replaces hand-picked zones with {{equal_regions}} regions of similar size ({{region_homes_min}} to {{region_homes_max}} homes each) adapted from <span class="cite" data-src="kim2022">Kim et al. (2022)</span>, plus R9 along Walkerville Terrace.</p>
+    info: { params: "method" },
+    html: `<p>The model divides Walkerville into {{equal_regions}} regions of similar size ({{region_homes_min}} to {{region_homes_max}} homes each) adapted from <span class="cite" data-src="kim2022">Kim et al. (2022)</span>, plus R9 along Walkerville Terrace.</p>
       <ul>
         <li>Kim et al. (2022) placed samplers for disease surveillance. The model cuts at pipe ends, keeps loops and lets a manhole sit in two regions.</li>
         <li>Growth is tested at 0.1, 0.25, 0.5, 0.75, 1, 1.5 and 3 times each region's 2041 projection across {{wet_cases}} wet cases.</li>
@@ -76,10 +114,10 @@ window.OSP_SCENES = [
     after: `<p class="note">Testing to 3 times 2041 growth shows where spare room runs out, so <strong>regions are ranked before siting sensors</strong>.</p>`,
   },
 
-  // 3 · The answer · Priority regions
+  // 5 · What we found · Priority regions
   {
     id: "regions",
-    act: "The answer",
+    act: "What we found",
     kicker: "Priority regions",
     title: "Where to monitor first on a design wet day",
     view: "all",
@@ -101,10 +139,10 @@ window.OSP_SCENES = [
     after: `<p class="note">Ranges pass 2041 because tests run to 3 times 2041; <strong>only R5 stays clear in every wet case</strong>.</p>`,
   },
 
-  // 4 · The answer · How many
+  // 6 · What we found · How many
   {
     id: "sensors",
-    act: "The answer",
+    act: "What we found",
     kicker: "How many",
     title: "One sensor for a design wet day, five for wetter weather",
     view: "p1",
@@ -123,10 +161,10 @@ window.OSP_SCENES = [
     after: `<p class="note"><strong>Telling {{rise_focus_mm}} mm of growth from daily variation is untested</strong>; an exact solver reaches {{exact_worst_k5}}% in the worst case, {{exact_avg_k5}}% on average.</p>`,
   },
 
-  // 5 · Why it holds · Sensor types
+  // 7 · What we found · Sensor types
   {
     id: "type",
-    act: "Why it holds",
+    act: "What we found",
     kicker: "Sensor types",
     title: "Float switches alone miss growth in some weather",
     view: "beats",
@@ -145,10 +183,10 @@ window.OSP_SCENES = [
     after: `<p class="note">At {{cost_k3}}, <strong>a mix of both types sees more in the worst case than level sensors alone</strong>.</p>`,
   },
 
-  // 6 · Why it holds · Unseen weather
+  // 8 · What we found · Unseen weather
   {
     id: "holdup",
-    act: "Why it holds",
+    act: "What we found",
     kicker: "Unseen weather",
     title: "How the plan holds on weather it never saw",
     view: "p1",
@@ -164,33 +202,13 @@ window.OSP_SCENES = [
         <li>Both beat random picks of responsive manholes ({{random_resp_k5}}%) and any manholes ({{random_any_k5}}%).</li>
         <li>With the age-weighted design wet case left out, even {{plan_kmax}} sensors see 0% of it.</li>
       </ul>`,
-    after: `<p class="note">Sensors 1 and 3 have been in every five-sensor plan since October. <strong>The plan has to be chosen across all the weather it will face.</strong></p>`,
+    after: `<p class="note">Sensors 1 and 3 stayed in every five-sensor plan the team tested. <strong>The plan has to be chosen across all the weather it will face.</strong></p>`,
   },
 
-  // 7 · What's next · What to check
-  {
-    id: "assumed",
-    act: "What's next",
-    kicker: "What to check",
-    title: "Wet-weather records are the next step",
-    view: "all",
-    ms: 1400,
-    show: { basemap: 0.55, pipes: 0.85, chambers: 0.5, sensors: 1 },
-    legend: "sensors",
-    info: { params: "assumed" },
-    html: `<p>Every figure comes from an uncalibrated model using a {{rise_focus_mm}} mm rise rule (assumed). Wet-weather level records decide between {{plan_k0}} sensor and {{plan_k1}}.</p>
-      <div class="params">
-        <div><span class="k">Wet-weather records</span><span class="v"><span class="chip confirm" data-src="infiltration">to confirm</span></span><span class="s">Settles {{plan_k0}} sensor vs {{plan_k1}} ({{sensors_90pct_all_wet}} sensors cover 90% of all {{wet_cases}} wet cases; {{sensors_100pct_all_wet}} cover 100%).</span></div>
-        <div><span class="k">Model rules</span><span class="v"><span class="chip declared" data-src="sim4">declared</span></span><span class="s">Uses {{rise_focus_mm}} mm and {{rise_strict_mm}} mm rules, the {{limit_bore_dec}} limit and {{level_price}} / {{float_price}} prices; sensors never fail.</span></div>
-        <div><span class="k">Precision and projection</span><span class="v"><span class="chip confirm" data-src="sim4">to confirm</span></span><span class="s">One run shifts scores by {{run_noise_min}} to {{run_noise_max}} percentage points so {{avg_k5}}% and {{avg_k4}}% are effectively equal; the {{homes_2041}}-home source is needed.</span></div>
-      </div>`,
-    after: `<p class="note">To repeat this for another suburb: <strong>its pipe map, home projections, pump rates and weather cases.</strong></p>`,
-  },
-
-  // 8 · What's next · The first step
+  // 9 · Our recommendation · The first step
   {
     id: "close",
-    act: "What's next",
+    act: "Our recommendation",
     kicker: "The first step",
     title: "Start with Sensor 1 in R3, then grow to five",
     view: "p1",
@@ -210,5 +228,27 @@ window.OSP_SCENES = [
         <li>Two sensors already warn of {{warn_k5}} of {{warn_total}} overloads.</li>
       </ul>`,
     after: `<p class="note"><strong>One sensor tests the design wet day now, and stays in place if the plan grows to five.</strong></p>`,
+  },
+
+  // 10 · For the next team · What to work on next
+  {
+    id: "assumed",
+    act: "For the next team",
+    kicker: "What to work on next",
+    title: "What the next team should work on",
+    view: "all",
+    ms: 1400,
+    show: { basemap: 0.55, pipes: 0.85, chambers: 0.5, sensors: 1 },
+    legend: "sensors",
+    info: { params: "assumed" },
+    html: `<p>Every figure comes from an uncalibrated model with a {{rise_focus_mm}} mm rise rule (assumed).</p>
+      <div class="params">
+        <div><span class="k">Wet-weather level records</span><span class="v"><span class="chip confirm" data-src="infiltration">to confirm</span></span><span class="s">They settle {{plan_k0}} sensor versus {{plan_k1}} ({{sensors_90pct_all_wet}} sensors cover 90% of all {{wet_cases}} wet cases; {{sensors_100pct_all_wet}} cover 100%).</span></div>
+        <div><span class="k">Calibrate the model</span><span class="v"><span class="chip declared" data-src="sim4">declared</span></span><span class="s">Test the {{rise_focus_mm}} mm rule and {{limit_bore_dec}} limit on measured levels; replace the prices with quotes.</span></div>
+        <div><span class="k">Source the {{homes_2041}}-home projection</span><span class="v"><span class="chip confirm" data-src="sim4">to confirm</span></span><span class="s">Its planning source is still needed.</span></div>
+        <div><span class="k">Sensor failure and precision</span><span class="v"><span class="chip confirm" data-src="sim4">to confirm</span></span><span class="s">The model assumes sensors never fail, and one run shifts a score by {{run_noise_min}} to {{run_noise_max}} percentage points.</span></div>
+        <div><span class="k">Another suburb</span><span class="v"></span><span class="s">Needs its pipe map, home projections, pump rates and weather cases.</span></div>
+      </div>`,
+    after: `<p class="note"><strong>Wet-weather records are the first thing to collect.</strong></p>`,
   },
 ];
