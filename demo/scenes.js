@@ -130,7 +130,7 @@ window.OSP_SCENES = [
       ["2", "regions to monitor first on a design wet day (R3 and R7)"],
       ["1", "region with room left in all {{wet_cases}} wet cases (R5)"],
     ],
-    html: `<p>Region triage checks when pipes pass {{limit_bore}}% of pipe depth (assumed) on a design wet day, while the five-sensor staged plan scores all {{wet_cases}} wet cases <span class="chip declared" data-src="sim4">declared</span>.</p>
+    html: `<p>Region triage checks when pipes pass {{limit_bore}}% of pipe depth <span class="chip sourced" data-src="limit">sourced</span> on a design wet day, while the five-sensor staged plan scores all {{wet_cases}} wet cases <span class="chip declared" data-src="sim4">declared</span>.</p>
       <ul>
         <li>Monitor {{monitor_regions}} first ({{r3_range}} and {{r7_range}} homes to the {{limit_bore_dec}} limit); watch {{watch_regions}} ({{r9_homes}}-home R9 anchor).</li>
         <li>R1 (Watch) runs out in 3 of {{wet_cases}} wet cases, just as R3 does.</li>
@@ -152,13 +152,13 @@ window.OSP_SCENES = [
     chart: "ladder",
     legend: "sensors",
     info: { chart: "sensors" },
-    html: `<p>At a {{rise_focus_mm}} mm rise rule (assumed), Sensor 1 ({{cost_k1}}) reacts at {{sensor_1_reacts}} and sees {{design_wet_k1_seen}} of {{design_wet_runs}} runs on a design wet day.</p>
+    html: `<p>At a {{rise_focus_mm}} mm rise rule <span class="chip declared" data-src="riserule">declared</span>, Sensor 1 ({{cost_k1}}) reacts at {{sensor_1_reacts}} and sees {{design_wet_k1_seen}} of {{design_wet_runs}} runs on a design wet day.</p>
       <ul>
         <li>Five level sensors ({{cost_k5}}) see {{worst_k5}}% in the worst case, {{avg_k5}}% on average across all wet weather.</li>
         <li>At {{rise_strict_mm}} mm, five sensors see {{rule25_worst_k5}}% in the worst case, {{rule25_avg_k5}}% on average.</li>
         <li>Stonyfell normal levels vary 20 to 75 mm (<span class="cite" data-src="levelsensor">Do et al. (2023)</span>) <span class="chip sourced" data-src="levelsensor">sourced</span>.</li>
       </ul>`,
-    after: `<p class="note"><strong>Telling {{rise_focus_mm}} mm of growth from daily variation is untested</strong>; an exact solver reaches {{exact_worst_k5}}% in the worst case, {{exact_avg_k5}}% on average.</p>`,
+    after: `<p class="note"><strong>Telling {{rise_focus_mm}} mm of growth from daily variation is untested</strong>; an exact solver <span class="chip sourced" data-src="greedy">sourced</span> reaches {{exact_worst_k5}}% in the worst case, {{exact_avg_k5}}% on average.</p>`,
   },
 
   // 7 · What we found · Sensor types
@@ -174,13 +174,13 @@ window.OSP_SCENES = [
     chart: "type",
     legend: "type",
     info: { chart: "type" },
-    html: `<p>Level sensors ({{level_price}} each, assumed) and <span class="cite" data-src="brieftype">float switches</span> ({{float_price}} each) were compared on the same runs <span class="chip declared" data-src="sim4">declared</span>.</p>
+    html: `<p>Level sensors ({{level_price}} each <span class="chip declared" data-src="price">declared</span>) and <span class="cite" data-src="brieftype">float switches</span> ({{float_price}} each) were compared on the same runs <span class="chip declared" data-src="sim4">declared</span>.</p>
       <ul>
         <li>A float switch counts only if it sits {{float_margin_mm}} mm above normal depth and stays quiet on a design wet day.</li>
         <li>Alone, {{float_cap_count}} float switches ({{float_cap_cost}}) stall at {{float_worst}}% in the worst case, {{float_avg}}% on average.</li>
         <li>Float switches are <span class="cite" data-src="levelsensor">spill alarms</span>: each switches at one set height and cannot show a rise building up.</li>
       </ul>`,
-    after: `<p class="note">Even set {{float_margin_mm}} mm above normal depth, <strong>float switches alone see {{float_worst}}% of growth in the worst case</strong>.</p>`,
+    after: `<p class="note">Even set {{float_margin_mm}} mm above normal depth <span class="chip declared" data-src="floatheight">declared</span>, <strong>float switches alone see {{float_worst}}% of growth in the worst case</strong>.</p>`,
   },
 
   // 8 · What we found · Unseen weather
@@ -205,10 +205,28 @@ window.OSP_SCENES = [
     after: `<p class="note">Sensors 1 and 3 stayed in every five-sensor plan the team tested. <strong>The plan has to be chosen across all the weather it will face.</strong></p>`,
   },
 
-  // 9 · Our recommendation · The first step
+  // 9 · Recommendation · The answer
+  {
+    id: "answer",
+    act: "Recommendation",
+    kicker: "The answer",
+    title: "How many, which type, where",
+    view: "all",
+    ms: 1400,
+    show: { basemap: 0.48, pipes: 0.9, chambers: 0.45 },
+    html: `<p>The three questions in the brief, answered from the model.</p>
+      <div class="params">
+        <div><span class="k">How many</span><span class="v"></span><span class="s">{{plan_k0}} level sensor covers a design wet day; {{plan_k1}} cover wetter weather.</span></div>
+        <div><span class="k">Which type</span><span class="v"></span><span class="s">Level sensors. Float switches only warn of spills and saw {{float_worst}}% of growth in the worst case.</span></div>
+        <div><span class="k">Where</span><span class="v"></span><span class="s">Monitor {{monitor_regions}} first, starting with Sensor 1 in R3; the five-sensor plan covers {{target_regions}}.</span></div>
+      </div>`,
+    after: `<p class="note"><strong>Start with Sensor 1, then grow to {{plan_k1}} as budget allows.</strong></p>`,
+  },
+
+  // 10 · Recommendation · The first step
   {
     id: "close",
-    act: "Our recommendation",
+    act: "Recommendation",
     kicker: "The first step",
     title: "Start with Sensor 1 in R3, then grow to five",
     view: "p1",
@@ -230,7 +248,65 @@ window.OSP_SCENES = [
     after: `<p class="note"><strong>One sensor tests the design wet day now, and stays in place if the plan grows to five.</strong></p>`,
   },
 
-  // 10 · For the next team · What to work on next
+  // 11 · Recommendation · Cost and benefit
+  {
+    id: "cost",
+    act: "Recommendation",
+    kicker: "Cost and benefit",
+    title: "What each budget buys",
+    view: "all",
+    ms: 1400,
+    show: { basemap: 0.48, pipes: 0.9, chambers: 0.45 },
+    html: `<p>Level sensors at {{level_price}} each <span class="chip declared" data-src="price">declared</span>; share of detectable growth seen, worst case first.</p>
+      <div class="params">
+        <div><span class="k">{{cost_k1}}, 1 sensor</span><span class="v"></span><span class="s">{{worst_k1}}% in the worst case, {{avg_k1}}% on average.</span></div>
+        <div><span class="k">{{cost_k3}}, 3 sensors</span><span class="v"></span><span class="s">{{worst_k3}}% in the worst case, {{avg_k3}}% on average.</span></div>
+        <div><span class="k">{{cost_k5}}, 5 sensors</span><span class="v"></span><span class="s">{{worst_k5}}% in the worst case, {{avg_k5}}% on average.</span></div>
+        <div><span class="k">Float switches only</span><span class="v"></span><span class="s">{{float_cap_count}} switches ({{float_cap_cost}}) reach {{float_worst}}% in the worst case, {{float_avg}}% on average, and more switches add nothing.</span></div>
+      </div>`,
+    after: `<p class="note">Beyond {{cost_k5}}, <strong>each extra sensor adds little</strong>: {{worst_k6}}% in the worst case at 6 sensors, {{worst_k8}}% at 8.</p>`,
+  },
+
+  // 12 · Handover · Project scope
+  {
+    id: "deliver",
+    act: "Handover",
+    kicker: "Project scope",
+    title: "What the project delivers",
+    view: "all",
+    ms: 1400,
+    show: { basemap: 0.48, pipes: 0.9, chambers: 0.45 },
+    html: `<p>Each deliverable in the project scope, and where it sits.</p>
+      <div class="params">
+        <div><span class="k">D1 Literature review</span><span class="v"></span><span class="s">The sensor review, the team compiled paper and a research library of 58 summarised papers.</span></div>
+        <div><span class="k">D2 Parameter catalogue</span><span class="v"></span><span class="s">Network and placement parameters, with evidence for each.</span></div>
+        <div><span class="k">D3 and D4 Placement approach and pilot plan</span><span class="v"></span><span class="s">Equal-home regions and the staged plan, applied to Walkerville.</span></div>
+        <div><span class="k">D5 Cost and information trade-off</span><span class="v"></span><span class="s">Level sensors against float switches at each budget.</span></div>
+        <div><span class="k">D6 to D8 Guidelines, business case and handover</span><span class="v"><span class="chip confirm">to confirm</span></span><span class="s">Covered in the final report.</span></div>
+      </div>`,
+    after: `<p class="note"><strong>D1 to D5 are in this presentation and the tools.</strong></p>`,
+  },
+
+  // 13 · Handover · Files and tools
+  {
+    id: "handover",
+    act: "Handover",
+    kicker: "Files and tools",
+    title: "What the next team receives",
+    view: "all",
+    ms: 1400,
+    show: { basemap: 0.48, pipes: 0.9, chambers: 0.45 },
+    html: `<p>The tool, model and library are public on GitHub.</p>
+      <div class="params">
+        <div><span class="k">Simulation tool</span><span class="v"></span><span class="s"><a href="https://abrahampaulj.github.io/gravity-sewer-osp/simulation4/index.html" target="_blank" rel="noopener">An online simulation tool</a> and its Python source.</span></div>
+        <div><span class="k">Walkerville model</span><span class="v"></span><span class="s">An EPA SWMM 5.2 model of {{sites}} manholes and {{swmm_links}} pipes.</span></div>
+        <div><span class="k">Data warehouse</span><span class="v"></span><span class="s">19 datasets and an availability matrix.</span></div>
+        <div><span class="k">Research library</span><span class="v"></span><span class="s"><a href="https://siddhu-123.github.io/waste_water_network_sensor-papers/" target="_blank" rel="noopener">58 summarised papers</a> sorted by topic, with a PDF viewer.</span></div>
+      </div>`,
+    after: `<p class="note"><strong>The next team starts from the same model, data and code.</strong></p>`,
+  },
+
+  // 14 · For the next team · What to work on next
   {
     id: "assumed",
     act: "For the next team",
@@ -241,10 +317,10 @@ window.OSP_SCENES = [
     show: { basemap: 0.55, pipes: 0.85, chambers: 0.5, sensors: 1 },
     legend: "sensors",
     info: { params: "assumed" },
-    html: `<p>Every figure comes from an uncalibrated model with a {{rise_focus_mm}} mm rise rule (assumed).</p>
+    html: `<p>Every figure uses an uncalibrated model with a {{rise_focus_mm}} mm rise rule <span class="chip declared" data-src="riserule">declared</span>.</p>
       <div class="params">
         <div><span class="k">Wet-weather level records</span><span class="v"><span class="chip confirm" data-src="infiltration">to confirm</span></span><span class="s">They settle {{plan_k0}} sensor versus {{plan_k1}} ({{sensors_90pct_all_wet}} sensors cover 90% of all {{wet_cases}} wet cases; {{sensors_100pct_all_wet}} cover 100%).</span></div>
-        <div><span class="k">Calibrate the model</span><span class="v"><span class="chip declared" data-src="sim4">declared</span></span><span class="s">Test the {{rise_focus_mm}} and {{rise_strict_mm}} mm rules, the {{limit_bore_dec}} limit and the {{float_margin_mm}} mm float height on measured levels; replace prices with quotes.</span></div>
+        <div><span class="k">Calibrate the model</span><span class="v"><span class="chip declared" data-src="validation">declared</span></span><span class="s">Test the {{rise_focus_mm}} and {{rise_strict_mm}} mm rules, the {{limit_bore_dec}} limit and the {{float_margin_mm}} mm float height on measured levels; replace prices with quotes.</span></div>
         <div><span class="k">Source the {{homes_2041}}-home projection</span><span class="v"><span class="chip confirm" data-src="sim4">to confirm</span></span><span class="s">Its source is still needed.</span></div>
         <div><span class="k">Sensor failure and precision</span><span class="v"><span class="chip confirm" data-src="sim4">to confirm</span></span><span class="s">The model assumes sensors never fail, and one run shifts a score by {{run_noise_min}} to {{run_noise_max}} percentage points.</span></div>
         <div><span class="k">Another suburb</span><span class="v"></span><span class="s">Needs its pipe map, home projections, pump rates and weather cases.</span></div>
