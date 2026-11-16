@@ -1,6 +1,6 @@
 // Where each tag and citation in scenes.js comes from, and the info-button text for charts,
-// tables and methods. Every page number and quote below was checked against the PDF in the
-// team library (papers/sensor_papers). `web` lists published sources outside the library, linked directly.
+// tables and methods. Library page numbers and quotes were read against the PDFs in the
+// team library (library/sensor_papers); web entries link to the published source. `web` lists published sources outside the library, linked directly.
 //
 // docs: library items, opened in the library's PDF viewer at `page`.
 // src:  one entry per data-src key used in scenes.js.
@@ -19,7 +19,14 @@ window.OSP_LIB = {
     sadata: { id: "abraham-sa-wastewater-data", title: "Public Wastewater Network Data in South Australia (Abraham)", pdf: "./contributors/abraham/compiled-papers/Public Wastewater Network Data in South Australia.pdf" },
     swmm2: { id: "SATYA-GL-01", title: "US EPA SWMM 5.2 Reference Manual, Vol. II: Hydraulics", pdf: "./contributors/satya-siddhartha/grey/GL_2017_USEPA_SWMM_Reference_Manual_Vol2_Hydraulics.pdf" },
     do2023: { id: "31", title: "Do et al. (2023), Proactive Detection of Wastewater Overflows for Smart Sanitary Sewer Systems: Case Study in South Australia", pdf: "./contributors/abraham/papers/2023_Do_Stonyfell-SA-overflow-detection.pdf" },
-    he2026: { id: "55", title: "He et al. (2026), A topology-first and demand-driven sensor placement framework for urban drainage networks", pdf: "./contributors/rijoy-john/papers/2026_Li He_A topology-first and demand-driven sensor placement framework for.pdf" },
+    he2026: { id: "55", title: "He et al. (2026), A topology-first and demand-driven sensor placement framework for hydraulic-state reconstruction in urban drainage networks", pdf: "./contributors/rijoy-john/papers/2026_Li He_A topology-first and demand-driven sensor placement framework for.pdf" },
+    ninh2025: { id: "30", title: "Ninh et al. (2025), Optimal Sensor Placement in Smart Sewer Systems Using Network Topology and Elevation", pdf: "./contributors/abraham/papers/2025_Ninh_topology-elevation-sensor-placement.pdf" },
+    moradi2026: { id: "28", title: "Moradi and Najafi (2026), Risk-Driven Sensor Placement in Sewer Networks: A Descriptive-Predictive-Prescriptive Framework", pdf: "./contributors/rijoy-john/papers/Moradi_2026_Risk_based_DPP-SP_framework_for_sewer_OSP.pdf" },
+    kimbrough2019: { id: "ASHIS-GL-17", title: "Kimbrough (2019), Optimal Sensor Placement for Sewer Capacity Risk Management (PhD dissertation)", pdf: "./contributors/ashis-jose/grey/ASHIS-GL-17_Kimbrough_2019_Sewer_Capacity_Risk_Sensor_Placement_Dissertation.pdf" },
+    ciwem2017: { id: "ASHIS-GL-03", title: "CIWEM UDG (2017), Code of Practice for the Hydraulic Modelling of Urban Drainage Systems", pdf: "./contributors/ashis-jose/grey/ASHIS-GL-03_CIWEM_Code_of_Practice_Hydraulic_Modelling_2017.pdf" },
+    sydneywater2021: { id: "GL-10", title: "Sydney Water (2021), Wastewater Network Planning Guideline", pdf: "./contributors/rijoy-john/grey/GL_2021_SydneyWater_Wastewater_Network_Planning_Guideline.pdf" },
+    vancouver2014: { id: "GL-38", title: "Metro Vancouver (2014), Inflow and Infiltration Allowance Assessment", pdf: "./contributors/rijoy-john/grey/GL_2014_MetroVancouver_II_Allowance_Assessment.pdf" },
+    drenoyanis2022: { id: "41", title: "Drenoyanis et al. (2022), Detecting Wastewater Blockages with Digital Water Meters? A Survey of Methods Used by Sydney Water", pdf: "./contributors/wimukthi/papers/Drenoyanis_2022_Detecting-Wastewater-Blockages-with-Digital-Water-Meters.pdf" },
     simone2023: { id: "32", title: "Simone et al. (2023), Two different approaches for monitoring planning in sewer networks: topological vs. deterministic optimization", pdf: "./contributors/wimukthi/papers/Antonietta_2023_Two_different_approaches_for_monitoring_planning_in_sewer_networks.pdf" },
   },
 
@@ -60,20 +67,20 @@ window.OSP_LIB = {
     },
     manning: {
       lib: [
-        { doc: "swmm2", page: 179, at: "Sanitary sewers coated with sewage slime", says: "Table G-2 (source: Chow, 1959): clay pipe n from 0.011 to 0.017; 0.013 for drainage tile and slime-coated sanitary sewers." },
+        { doc: "swmm2", page: 179, at: "Sanitary sewers coated with sewage slime", says: "Table G-2 (source: Chow, 1959): clay drainage tile n 0.011 to 0.017 (normal 0.013); vitrified clay sewer 0.011 to 0.017 (normal 0.014); sanitary sewers coated with sewage slime 0.012 to 0.016 (normal 0.013)." },
         { doc: "sadata", page: 4, at: "Roughness must be assumed, not read. No public source carries usable roughness.", says: "Roughness must be assumed, not read. No public source carries usable roughness." },
       ],
       team: { page: 10, quote: "Level-derived Manning estimates are useful for a benchmark where geometry and roughness are known, but roughness is often missing or assumed." },
     },
     household: {
-      lib: [],
+      lib: [{ doc: "vancouver2014", page: 55, at: "design procedures assume 3 persons per dwelling", says: "Auckland's WaterCare default design parameters assume 3 persons per dwelling." }],
       web: [
         { title: "ABS (2022), Walkerville: 2021 Census all persons QuickStats", url: "https://www.abs.gov.au/census/find-census-data/quickstats/2021/LGA48260", says: "Average number of people per household: 2.3." },
         { title: "Icon Water, WSA 02 gravity sewerage code supplement (STD-SPE-G-011)", url: "https://www.iconwater.com.au/sites/default/files/2025-10/STD-SPE-G-011%20WSA%2002%20Gravity%20Sewage%20Code%20Supplement.pdf", says: "Equivalent population per dwelling by density: low 3.5, medium 2.5, high 2." },
       ],
     },
     wateruse: {
-      lib: [],
+      lib: [{ doc: "sydneywater2021", page: 15, at: "Future population discharge is 150 l/p/d", says: "Sydney Water plans future residential discharge at 150 L per person per day, below the 180 to 200 L used here." }],
       web: [
         { title: "Barwon Water, Supplementary information to the WSAA Sewerage Code of Australia 2014", url: "https://www.barwonwater.vic.gov.au/__data/assets/pdf_file/0025/72529/Supplementary-information-to-the-WSAA-Sewerage-Code-of-Australia-2014.pdf", says: "Section 3.2.2: 200 L per person per day." },
         { title: "Icon Water, WSA 02 gravity sewerage code supplement (STD-SPE-G-011)", url: "https://www.iconwater.com.au/sites/default/files/2025-10/STD-SPE-G-011%20WSA%2002%20Gravity%20Sewage%20Code%20Supplement.pdf", says: "Uses 180 L per equivalent person per day." },
@@ -87,7 +94,7 @@ window.OSP_LIB = {
       lib: [],
       web: [
         { title: "ABS (2022), Walkerville: 2021 Census all persons QuickStats", url: "https://www.abs.gov.au/census/find-census-data/quickstats/2021/LGA48260", says: "Total people: 8,023." },
-        { title: "Town of Walkerville (2021), SA Water sewer network", url: "https://services-ap1.arcgis.com/38lmAqtkEsaNGT6T/arcgis/rest/services/SA_Water_Sewer_Network/FeatureServer", says: "2,851 property connection points. 8,023 people over 2,851 connections gives 2.81 per existing home." },
+        { title: "Town of Walkerville (2021), SA Water sewer network", url: "https://services-ap1.arcgis.com/38lmAqtkEsaNGT6T/arcgis/rest/services/SA_Water_Sewer_Network/FeatureServer", says: "2,851 property connection points. 8,023 people over 2,851 connection points gives 2.81 people per connection point." },
       ],
     },
     infiltration: {
@@ -103,7 +110,7 @@ window.OSP_LIB = {
       team: { page: 9, quote: "Initial fixed thresholds of 150 mm and 300 mm generated severe operational alarm fatigue: the 150 mm threshold alone produced over 100,000 low-priority alarms in 2019, swamping operational response teams." },
     },
     levelsensor: {
-      lib: [{ doc: "do2023", page: 4, at: "from 20 to 75 mm, showing that wastewater generally flows within", says: "Normal levels in Stonyfell ranged from 20 to 75 mm." }],
+      lib: [{ doc: "ninh2025", page: 3, at: "two float sensors are set corre", says: "In the South Australian trial, two float sensors per manhole are set at a low and a high alarm level; below them they send only a healthy pulse." }, { doc: "do2023", page: 4, at: "from 20 to 75 mm, showing that wastewater generally flows within", says: "Normal levels in Stonyfell ranged from 20 to 75 mm." }],
       team: { page: 9, quote: "Float or tilt devices can provide a robust threshold event, such as a high-level alarm, with a simple sensing principle. They do not provide the level history, rate of rise, or normal-pattern information available from a continuous sensor." },
     },
     maprule: {
@@ -173,9 +180,39 @@ window.OSP_LIB = {
       gap: "Internal model issue (relief pipes return everyday flow to a pump well). No outside source applies.",
     },
     validation: {
-      lib: [],
+      lib: [{ doc: "ciwem2017", page: 105, at: "There would generally be a verification report produced", says: "Section 8.5: a model is verified against a flow survey, with the monitor and rain gauge sites and their reasons recorded." }],
       team: { page: 19, quote: "The SWMM model was physically grounded but not validated against field measurements, so it was used as a scenario generator rather than a calibrated operational digital twin." },
       gap: "Field check waits on utility overflow and blockage history.",
+    },
+    limit: {
+      lib: [{ doc: "kimbrough2019", page: 87, at: "water level in wastewater pipes is the area above 70% full", says: "The critical water level in wastewater pipes is above 70% full; time spent there escalates surcharge risk rapidly." }],
+      gap: "Used as a planning limit; the utility's own design limit should replace it.",
+    },
+    greedy: {
+      lib: [{ doc: "moradi2026", page: 11, at: "greedy is guaranteed to achieve at least 63% of the optimal", says: "Coverage is submodular, so greedy selection is guaranteed at least 63% of the optimum." }],
+    },
+    riserule: {
+      lib: [
+        { doc: "do2023", page: 4, at: "from 20 to 75 mm, showing that wastewater generally flows within", says: "Normal levels in Stonyfell ranged from 20 to 75 mm." },
+        { doc: "drenoyanis2022", page: 1, at: "measure every 15 minutes the sewer height with centimetres", says: "Sydney Water's ultrasonic and radar sensors read sewer height every 15 minutes with centimetre accuracy." },
+      ],
+      web: [{ title: "VEGA, VEGAPULS C 21 radar level sensor (product data)", url: "https://www.vega.com/en/products/product-catalog/level/radar/vegapuls-c-21", says: "Accuracy ±2 mm, range 20 m; recommended by VEGA for sewer mains." }],
+      gap: "No published source sets a 10 mm or 25 mm detection rule; both are model choices to test on measured levels.",
+    },
+    floatheight: {
+      lib: [
+        { doc: "ninh2025", page: 3, at: "two float sensors are set corre", says: "In the South Australian trial, float sensors sit at a low alarm (150 mm) and a high alarm." },
+        { doc: "drenoyanis2022", page: 1, at: "Level switches/float sensors, which generate an alarm when a pre-defined sewer level is reached", says: "Float sensors generate an alarm when a pre-defined sewer level is reached." },
+      ],
+      web: [
+        { title: "Sulzer, ABS KS float switch for wastewater and sewage (product data)", url: "https://www.sulzer.com/en/shared/products/float-switch-type-abs-ks", says: "The minimum cable length is 50 mm, which corresponds to a minimum switching differential of 100 mm." },
+        { title: "APG, TLS dual-point cable float switch (product data)", url: "https://apgsensors.com/product/dual-point-cable-suspended-float-switch/", says: "Switching differential 0.27 to 1 m (TLS-6) and 0.33 to 4 m (TLS-8)." },
+      ],
+      gap: "The 25 mm height is a model setting that favours float switches; a real sewage float switches over at least 100 mm.",
+    },
+    price: {
+      lib: [],
+      gap: "No published unit prices for level sensors or float switches; both prices are planning inputs until quotes replace them.",
     },
     kim2022: {
       lib: [],
@@ -249,7 +286,8 @@ window.OSP_LIB = {
     },
     type: {
       title: "Level sensors vs float switches across budgets",
-      html: `<p><b>Assumed rules and prices:</b> continuous level sensors are priced at $25k each and float switches at $1k each (both assumed). A float switch counts only if it sits at least 25 mm above its manhole's normal baseline depth (assumed margin), stays quiet on a design wet day, and growth lifts water past it.</p>
+      html: `<p><b>Two rules, one score:</b> a level sensor counts a growth run when its manhole rises 10 mm; a float switch counts it only when growth lifts water past its fixed height. Both give a yes or no per run, and the score is the share of growth runs flagged. Level sensors also show how much and how fast the level rises, which this score does not count.</p>
+        <p><b>Float height favours float switches:</b> the model sets them 25 mm above normal depth and trips them exactly there. Sewage float switches switch over at least 100 mm (Sulzer ABS KS product data), and the South Australian trial set them at alarm levels such as 150 mm (Ninh et al. 2025), so real float switches would see less. Prices are assumed: $25k per level sensor, $1k per float switch.</p>
         <p><b>Why float switches alone stall:</b> 15 float switches ($15k) already hit the float ceiling at any budget from $25k to $200k, seeing 0% in the worst case, 35% on average. In the age-weighted design wet case, no float switch sees any growth run, and on unseen weather float switches see 0% (warning of 4 of 11 overloads).</p>
         <p><b>Budget comparison ($25k, $75k and $125k):</b><br>
         <b>$25k:</b> 1 level sensor in the staged plan sees 0% in the worst case, 53% on average (55% on unseen weather); 15 float switches ($15k) see 0% in the worst case, 35% on average (0% on unseen weather); a separately chosen 1-level pick gets 12% in the worst case, 42% on average (34% on unseen weather).<br>

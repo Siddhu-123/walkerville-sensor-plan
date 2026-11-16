@@ -130,7 +130,7 @@ window.OSP_SCENES = [
       ["2", "regions to monitor first on a design wet day (R3 and R7)"],
       ["1", "region with room left in all {{wet_cases}} wet cases (R5)"],
     ],
-    html: `<p>Region triage checks when pipes pass {{limit_bore}}% of pipe depth (assumed) on a design wet day, while the five-sensor staged plan scores all {{wet_cases}} wet cases <span class="chip declared" data-src="sim4">declared</span>.</p>
+    html: `<p>Region triage checks when pipes pass {{limit_bore}}% of pipe depth <span class="chip sourced" data-src="limit">sourced</span> on a design wet day, while the five-sensor staged plan scores all {{wet_cases}} wet cases <span class="chip declared" data-src="sim4">declared</span>.</p>
       <ul>
         <li>Monitor {{monitor_regions}} first ({{r3_range}} and {{r7_range}} homes to the {{limit_bore_dec}} limit); watch {{watch_regions}} ({{r9_homes}}-home R9 anchor).</li>
         <li>R1 (Watch) runs out in 3 of {{wet_cases}} wet cases, just as R3 does.</li>
@@ -152,13 +152,13 @@ window.OSP_SCENES = [
     chart: "ladder",
     legend: "sensors",
     info: { chart: "sensors" },
-    html: `<p>At a {{rise_focus_mm}} mm rise rule (assumed), Sensor 1 ({{cost_k1}}) reacts at {{sensor_1_reacts}} and sees {{design_wet_k1_seen}} of {{design_wet_runs}} runs on a design wet day.</p>
+    html: `<p>At a {{rise_focus_mm}} mm rise rule <span class="chip declared" data-src="riserule">declared</span>, Sensor 1 ({{cost_k1}}) reacts at {{sensor_1_reacts}} and sees {{design_wet_k1_seen}} of {{design_wet_runs}} runs on a design wet day.</p>
       <ul>
         <li>Five level sensors ({{cost_k5}}) see {{worst_k5}}% in the worst case, {{avg_k5}}% on average across all wet weather.</li>
         <li>At {{rise_strict_mm}} mm, five sensors see {{rule25_worst_k5}}% in the worst case, {{rule25_avg_k5}}% on average.</li>
         <li>Stonyfell normal levels vary 20 to 75 mm (<span class="cite" data-src="levelsensor">Do et al. (2023)</span>) <span class="chip sourced" data-src="levelsensor">sourced</span>.</li>
       </ul>`,
-    after: `<p class="note"><strong>Telling {{rise_focus_mm}} mm of growth from daily variation is untested</strong>; an exact solver reaches {{exact_worst_k5}}% in the worst case, {{exact_avg_k5}}% on average.</p>`,
+    after: `<p class="note"><strong>Telling {{rise_focus_mm}} mm of growth from daily variation is untested</strong>; an exact solver <span class="chip sourced" data-src="greedy">sourced</span> reaches {{exact_worst_k5}}% in the worst case, {{exact_avg_k5}}% on average.</p>`,
   },
 
   // 7 · What we found · Sensor types
@@ -174,13 +174,13 @@ window.OSP_SCENES = [
     chart: "type",
     legend: "type",
     info: { chart: "type" },
-    html: `<p>Level sensors ({{level_price}} each, assumed) and <span class="cite" data-src="brieftype">float switches</span> ({{float_price}} each) were compared on the same runs <span class="chip declared" data-src="sim4">declared</span>.</p>
+    html: `<p>Level sensors ({{level_price}} each <span class="chip declared" data-src="price">declared</span>) and <span class="cite" data-src="brieftype">float switches</span> ({{float_price}} each) were compared on the same runs <span class="chip declared" data-src="sim4">declared</span>.</p>
       <ul>
         <li>A float switch counts only if it sits {{float_margin_mm}} mm above normal depth and stays quiet on a design wet day.</li>
         <li>Alone, {{float_cap_count}} float switches ({{float_cap_cost}}) stall at {{float_worst}}% in the worst case, {{float_avg}}% on average.</li>
         <li>Float switches are <span class="cite" data-src="levelsensor">spill alarms</span>: each switches at one set height and cannot show a rise building up.</li>
       </ul>`,
-    after: `<p class="note">Even set {{float_margin_mm}} mm above normal depth, <strong>float switches alone see {{float_worst}}% of growth in the worst case</strong>.</p>`,
+    after: `<p class="note">Even set {{float_margin_mm}} mm above normal depth <span class="chip declared" data-src="floatheight">declared</span>, <strong>float switches alone see {{float_worst}}% of growth in the worst case</strong>.</p>`,
   },
 
   // 8 · What we found · Unseen weather
@@ -257,7 +257,7 @@ window.OSP_SCENES = [
     view: "all",
     ms: 1400,
     show: { basemap: 0.48, pipes: 0.9, chambers: 0.45 },
-    html: `<p>Level sensors at {{level_price}} each (assumed); share of detectable growth seen, worst case first.</p>
+    html: `<p>Level sensors at {{level_price}} each <span class="chip declared" data-src="price">declared</span>; share of detectable growth seen, worst case first.</p>
       <div class="params">
         <div><span class="k">{{cost_k1}}, 1 sensor</span><span class="v"></span><span class="s">{{worst_k1}}% in the worst case, {{avg_k1}}% on average.</span></div>
         <div><span class="k">{{cost_k3}}, 3 sensors</span><span class="v"></span><span class="s">{{worst_k3}}% in the worst case, {{avg_k3}}% on average.</span></div>
@@ -317,10 +317,10 @@ window.OSP_SCENES = [
     show: { basemap: 0.55, pipes: 0.85, chambers: 0.5, sensors: 1 },
     legend: "sensors",
     info: { params: "assumed" },
-    html: `<p>Every figure comes from an uncalibrated model with a {{rise_focus_mm}} mm rise rule (assumed).</p>
+    html: `<p>Every figure uses an uncalibrated model with a {{rise_focus_mm}} mm rise rule <span class="chip declared" data-src="riserule">declared</span>.</p>
       <div class="params">
         <div><span class="k">Wet-weather level records</span><span class="v"><span class="chip confirm" data-src="infiltration">to confirm</span></span><span class="s">They settle {{plan_k0}} sensor versus {{plan_k1}} ({{sensors_90pct_all_wet}} sensors cover 90% of all {{wet_cases}} wet cases; {{sensors_100pct_all_wet}} cover 100%).</span></div>
-        <div><span class="k">Calibrate the model</span><span class="v"><span class="chip declared" data-src="sim4">declared</span></span><span class="s">Test the {{rise_focus_mm}} and {{rise_strict_mm}} mm rules, the {{limit_bore_dec}} limit and the {{float_margin_mm}} mm float height on measured levels; replace prices with quotes.</span></div>
+        <div><span class="k">Calibrate the model</span><span class="v"><span class="chip declared" data-src="validation">declared</span></span><span class="s">Test the {{rise_focus_mm}} and {{rise_strict_mm}} mm rules, the {{limit_bore_dec}} limit and the {{float_margin_mm}} mm float height on measured levels; replace prices with quotes.</span></div>
         <div><span class="k">Source the {{homes_2041}}-home projection</span><span class="v"><span class="chip confirm" data-src="sim4">to confirm</span></span><span class="s">Its source is still needed.</span></div>
         <div><span class="k">Sensor failure and precision</span><span class="v"><span class="chip confirm" data-src="sim4">to confirm</span></span><span class="s">The model assumes sensors never fail, and one run shifts a score by {{run_noise_min}} to {{run_noise_max}} percentage points.</span></div>
         <div><span class="k">Another suburb</span><span class="v"></span><span class="s">Needs its pipe map, home projections, pump rates and weather cases.</span></div>
